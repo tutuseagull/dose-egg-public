@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoseEgg — Nav Directions (Lo-fi)</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #EFEFED;
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  min-height: 100vh;
+  padding: 40px 32px 72px;
+}
+
+/* ── Page header ── */
+.page-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #AAAAAA;
+  margin-bottom: 40px;
+}
+
+/* ── Options row ── */
+.options-row {
+  display: flex;
+  gap: 52px;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+/* ── Option wrapper ── */
+.option-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ── Option label ── */
+.option-label {
+  text-align: center;
+}
+
+.option-tag {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #BBBBBB;
+  margin-bottom: 4px;
+}
+
+.option-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #222;
+}
+
+.option-desc {
+  font-size: 12px;
+  color: #666666;
+  line-height: 1.65;
+  margin-top: 6px;
+  max-width: 220px;
+}
+
+.option-hint {
+  font-size: 11px;
+  color: #AAAAAA;
+  margin-top: 8px;
+}
+
+/* ── Phone frame ── */
+.phone {
+  width: 248px;
+  height: 516px;
+  background: #1C1C1C;
+  border-radius: 44px;
+  padding: 10px;
+  flex-shrink: 0;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.screen {
+  width: 100%;
+  height: 100%;
+  background: #FFFFFF;
+  border-radius: 34px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.island {
+  width: 76px;
+  height: 22px;
+  background: #1C1C1C;
+  border-radius: 12px;
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+}
+
+/* ── Screen chrome ── */
+.status-bar {
+  height: 38px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 18px 5px;
+  flex-shrink: 0;
+}
+
+.s-time { font-size: 11px; font-weight: 700; color: #111; }
+.s-icons { font-size: 9px; color: #555; letter-spacing: 2px; }
+
+.top-bar {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #EBEBEB;
+}
+
+.top-title { font-size: 15px; font-weight: 700; color: #111; }
+.icon-btn { font-size: 14px; color: #888; cursor: pointer; padding: 4px; }
+.hamburger-btn { font-size: 15px; cursor: pointer; color: #333; line-height: 1; padding: 4px; }
+
+/* ── Confirmation card ── */
+.confirm-card {
+  margin: 8px 12px 4px;
+  border: 1.5px solid #222;
+  border-radius: 10px;
+  padding: 10px 12px;
+  flex-shrink: 0;
+}
+
+.confirm-q { font-size: 11px; font-weight: 600; color: #111; margin-bottom: 3px; }
+.confirm-time { font-size: 10px; color: #999; margin-bottom: 7px; }
+.confirm-actions { display: flex; gap: 5px; }
+
+.c-btn {
+  font-size: 10px;
+  padding: 3px 11px;
+  border: 1.5px solid #333;
+  border-radius: 20px;
+  background: white;
+  cursor: pointer;
+  font-weight: 500;
+  font-family: inherit;
+}
+.c-btn.primary { background: #222; color: white; border-color: #222; }
+
+/* ── Timeline ── */
+.timeline {
+  flex: 1;
+  overflow: hidden;
+  padding: 6px 0 4px;
+}
+
+.day-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #CCCCCC;
+  padding: 4px 14px 2px;
+}
+
+.tl-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 5px 14px;
+}
+
+.tl-entry.dim { opacity: 0.3; }
+
+.tl-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid #CCCCCC;
+  background: white;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.tl-dot.filled { background: #333; border-color: #333; }
+
+.tl-body { display: flex; flex-direction: column; gap: 1px; }
+.tl-time { font-size: 9px; color: #CCCCCC; }
+.tl-text { font-size: 11px; color: #222; font-weight: 500; }
+
+/* ── Inline trends link ── */
+.inline-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 4px 12px;
+  padding: 8px 12px;
+  border: 1px solid #E5E5E5;
+  border-radius: 10px;
+  background: #FAFAFA;
+  cursor: pointer;
+}
+.inline-link-text { font-size: 11px; color: #555; }
+.inline-link-arrow { font-size: 12px; color: #CCCCCC; }
+
+/* ── Bottom nav (Mirror) ── */
+.bottom-nav {
+  height: 52px;
+  border-top: 1px solid #EBEBEB;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.nav-tabs { display: flex; }
+
+.nav-tab {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  color: #CCCCCC;
+  transition: all 0.15s;
+}
+.nav-tab.active { color: #111; background: #F0F0F0; font-weight: 600; }
+
+.fab-docked {
+  position: absolute;
+  right: 12px;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid #222;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+/* ── Floating FAB ── */
+.fab-float {
+  position: absolute;
+  bottom: 14px; right: 14px;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: 1.5px solid #222;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 1;
+  z-index: 10;
+}
+
+/* ── Log sheet ── */
+.sheet-bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 20;
+  border-radius: 34px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.sheet-bg.open { opacity: 1; pointer-events: all; }
+
+.log-sheet {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  padding: 0 14px 50px;
+  z-index: 21;
+  transform: translateY(100%);
+  transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+}
+.log-sheet.open { transform: translateY(0); }
+
+.sheet-pull {
+  width: 32px; height: 4px;
+  background: #DDD;
+  border-radius: 2px;
+  margin: 12px auto 12px;
+}
+
+.sheet-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #CCCCCC;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.log-list { display: flex; flex-direction: column; gap: 4px; }
+
+.log-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid #EBEBEB;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.log-icon {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  border: 1px solid #E5E5E5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.log-name { font-size: 12px; font-weight: 500; color: #222; }
+
+/* ── Analyze / Insights view ── */
+.analyze-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.a-section {
+  padding: 8px 12px;
+  border-bottom: 1px solid #F0F0F0;
+}
+
+.a-section-title {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: #CCCCCC;
+  margin-bottom: 6px;
+}
+
+.chart-box {
+  height: 48px;
+  background: #F7F7F7;
+  border-radius: 8px;
+  border: 1px solid #EBEBEB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #CCCCCC;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.chips { display: flex; gap: 5px; flex-wrap: wrap; }
+
+.chip {
+  font-size: 9px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1.5px solid #CCCCCC;
+  color: #888;
+  cursor: pointer;
+  font-weight: 500;
+}
+.chip.on { border-color: #333; color: #111; font-weight: 700; }
+
+.streak-block {
+  background: #F5F5F5;
+  border-radius: 9px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+.streak-num { font-size: 22px; font-weight: 700; color: #111; }
+.streak-sub { font-size: 9px; color: #AAAAAA; margin-top: 1px; }
+
+.report-btn {
+  width: 100%;
+  padding: 9px;
+  border: 1.5px solid #222;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  background: white;
+  cursor: pointer;
+  font-family: inherit;
+  margin-bottom: 3px;
+}
+.report-note { font-size: 9px; color: #CCCCCC; text-align: center; }
+
+/* ── Hamburger ── */
+.ham-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 28;
+  border-radius: 34px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.ham-overlay.open { opacity: 1; pointer-events: all; }
+
+.ham-drawer {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 68%;
+  background: white;
+  z-index: 29;
+  transform: translateX(-100%);
+  transition: transform 0.25s cubic-bezier(0.32,0.72,0,1);
+  border-radius: 34px 0 0 34px;
+  padding: 52px 18px 20px;
+}
+.ham-drawer.open { transform: translateX(0); }
+
+.ham-section {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #CCCCCC;
+  font-weight: 700;
+  margin: 14px 0 4px;
+}
+
+.ham-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid #F0F0F0;
+  cursor: pointer;
+}
+.ham-icon { font-size: 13px; }
+.ham-label { font-size: 12px; font-weight: 500; color: #222; }
+
+/* ── Breadcrumb ── */
+.bc-bar {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  flex-shrink: 0;
+}
+.bc-back {
+  font-size: 12px;
+  color: #888;
+  cursor: pointer;
+}
+.bc-sep { font-size: 10px; color: #CCCCCC; }
+.bc-here { font-size: 12px; font-weight: 600; color: #333; }
+
+</style>
+</head>
+<body>
+<a href="../index.html" style="position:fixed;top:12px;left:12px;z-index:9999;background:rgba(255,255,255,0.92);border:1px solid rgba(0,0,0,0.12);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:#333;text-decoration:none;box-shadow:0 1px 6px rgba(0,0,0,0.1);backdrop-filter:blur(4px);">← Home</a>
+
+<div class="page-title">DoseEgg · Nav Directions · Lo-fi</div>
+
+<div class="options-row">
+
+  <!-- ══════════════════════
+       THE MIRROR
+  ══════════════════════ -->
+  <div class="option-wrap">
+    <div class="phone">
+      <div class="screen">
+        <div class="island"></div>
+        <div class="status-bar">
+          <span class="s-time">9:41</span>
+          <span class="s-icons">● ● ●</span>
+        </div>
+
+        <!-- Today -->
+        <div id="m-today" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+          <div class="top-bar">
+            <span class="top-title">Today</span>
+            <span class="icon-btn">···</span>
+          </div>
+          <div class="confirm-card">
+            <div class="confirm-q">Did you take Levodopa?</div>
+            <div class="confirm-time">Scheduled 10:30 · now 10:47</div>
+            <div class="confirm-actions">
+              <button class="c-btn primary">Yes</button>
+              <button class="c-btn">Edit</button>
+              <button class="c-btn">No</button>
+            </div>
+          </div>
+          <div class="timeline">
+            <div class="day-label">Today</div>
+            <div class="tl-entry dim">
+              <div class="tl-dot"></div>
+              <div class="tl-body"><div class="tl-time">10:30</div><div class="tl-text">Levodopa 100mg — planned</div></div>
+            </div>
+            <div class="tl-entry">
+              <div class="tl-dot filled"></div>
+              <div class="tl-body"><div class="tl-time">10:00</div><div class="tl-text">Walk — 20 min</div></div>
+            </div>
+            <div class="tl-entry">
+              <div class="tl-dot filled"></div>
+              <div class="tl-body"><div class="tl-time">09:40</div><div class="tl-text">✦ Meds kicked in</div></div>
+            </div>
+            <div class="tl-entry">
+              <div class="tl-dot filled"></div>
+              <div class="tl-body"><div class="tl-time">09:00</div><div class="tl-text">Feeling stiff — checked in</div></div>
+            </div>
+            <div class="tl-entry">
+              <div class="tl-dot filled"></div>
+              <div class="tl-body"><div class="tl-time">08:15</div><div class="tl-text">Levodopa 100mg</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analyze (hidden) -->
+        <div id="m-analyze" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+          <div class="top-bar">
+            <span class="top-title">Analyze</span>
+            <div class="chips">
+              <span class="chip on">Week</span>
+              <span class="chip">Month</span>
+            </div>
+          </div>
+          <div class="analyze-view">
+            <div class="a-section">
+              <div class="a-section-title">Medication timing</div>
+              <div class="chart-box">▁ ▃ ▅ ▄ ▇ ▆ ▅ ▃ ▄ ▆ ▇</div>
+            </div>
+            <div class="a-section">
+              <div class="a-section-title">Activity</div>
+              <div class="chart-box">▂ ▁ ▃ ▅ ▂ ▆ ▄ ▃ ▅ ▇ ▄</div>
+            </div>
+            <div class="a-section">
+              <div class="a-section-title">Filter</div>
+              <div class="chips">
+                <span class="chip on">Meds</span>
+                <span class="chip on">Activity</span>
+                <span class="chip">Diet</span>
+                <span class="chip">Symptoms</span>
+              </div>
+            </div>
+            <div class="a-section">
+              <button class="report-btn">Generate report</button>
+              <div class="report-note">* powered by AI</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom nav -->
+        <div class="bottom-nav">
+          <div class="nav-tabs">
+            <div class="nav-tab active" id="m-tab-today" onclick="mirrorTab('today')">Today</div>
+            <div class="nav-tab" id="m-tab-analyze" onclick="mirrorTab('analyze')">Analyze</div>
+          </div>
+          <div class="fab-docked" onclick="openLog('m')">+</div>
+        </div>
+
+        <div class="sheet-bg" id="bg-m" onclick="closeLog('m')"></div>
+        <div class="log-sheet" id="sheet-m">
+          <div class="sheet-pull"></div>
+          <div class="sheet-label">Add to today</div>
+          <div class="log-list">
+            <div class="log-row"><div class="log-icon">💊</div><div class="log-name">Medication</div></div>
+            <div class="log-row"><div class="log-icon">🏃</div><div class="log-name">Activity</div></div>
+            <div class="log-row"><div class="log-icon">🥗</div><div class="log-name">Food & protein</div></div>
+            <div class="log-row"><div class="log-icon">📝</div><div class="log-name">Note / symptom</div></div>
+            <div class="log-row"><div class="log-icon">😊</div><div class="log-name">Check-in</div></div>
+            <div class="log-row"><div class="log-icon">🏥</div><div class="log-name">Doctor visit</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="option-label">
+      <div class="option-tag">The Mirror</div>
+      <div class="option-name">2 tabs + docked log</div>
+      <div class="option-desc">Two tabs anchor the bottom-left (Today, Analyze). The log "+" sits separately on the bottom-right — always in reach, not mixed into navigation.</div>
+      <div class="option-hint">Tap Analyze · Tap + to log</div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════
+       THE COMPANION
+  ══════════════════════ -->
+  <div class="option-wrap">
+    <div class="phone">
+      <div class="screen">
+        <div class="island"></div>
+        <div class="status-bar">
+          <span class="s-time">9:41</span>
+          <span class="s-icons">● ● ●</span>
+        </div>
+
+        <!-- Timeline -->
+        <div id="c-timeline" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+          <div class="top-bar">
+            <span class="hamburger-btn" onclick="openHam()">☰</span>
+            <span class="top-title">Today</span>
+            <span class="icon-btn">···</span>
+          </div>
+          <div class="confirm-card">
+            <div class="confirm-q">Did you take Levodopa?</div>
+            <div class="confirm-time">Scheduled 10:30 · now 10:47</div>
+            <div class="confirm-actions">
+              <button class="c-btn primary">Yes</button>
+              <button class="c-btn">Edit</button>
+              <button class="c-btn">No</button>
+            </div>
+          </div>
+          <div class="timeline">
+            <div class="day-label">Today</div>
+            <div class="tl-entry dim">
+              <div class="tl-dot"></div>
+              <div class="tl-body"><div class="tl-time">10:30</div><div class="tl-text">Levodopa 100mg — planned</div></div>
+            </div>
+            <div class="tl-entry">
+              <div class="tl-dot filled"></div>
+              <div class="tl-body"><div class="tl-time">10:00</div><div class="tl-text">Walk — 20 min</div></div>
+            </div>
+            <div class="tl-entry">
+              <div class="tl-dot filled"></div>
+              <div class="tl-body"><div class="tl-time">09:40</div><div class="tl-text">✦ Meds kicked in</div></div>
+            </div>
+            <div class="tl-entry">
+              <div class="tl-dot filled"></div>
+              <div class="tl-body"><div class="tl-time">08:15</div><div class="tl-text">Levodopa 100mg</div></div>
+            </div>
+            <div class="day-label" style="margin-top:4px;">Yesterday</div>
+            <div class="tl-entry">
+              <div class="tl-dot filled"></div>
+              <div class="tl-body"><div class="tl-time">14:10</div><div class="tl-text">Levodopa 100mg — late</div></div>
+            </div>
+            <div class="tl-entry">
+              <div class="tl-dot filled"></div>
+              <div class="tl-body"><div class="tl-time">12:00</div><div class="tl-text">Lunch — high protein</div></div>
+            </div>
+            <div class="tl-entry">
+              <div class="tl-dot filled"></div>
+              <div class="tl-body"><div class="tl-time">08:20</div><div class="tl-text">Levodopa 100mg</div></div>
+            </div>
+            <div class="inline-link" onclick="cGoTrends()">
+              <span class="inline-link-text">↗ See this week's trends</span>
+              <span class="inline-link-arrow">›</span>
+            </div>
+          </div>
+          <div class="fab-float" onclick="openLog('c')">+</div>
+        </div>
+
+        <!-- Trends -->
+        <div id="c-trends" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+          <div class="bc-bar">
+            <span class="bc-back" onclick="cGoTimeline()">‹ Today</span>
+            <span class="bc-sep">/</span>
+            <span class="bc-here">Trends</span>
+          </div>
+          <div style="flex:1;overflow-y:auto;">
+            <div class="a-section">
+              <div class="a-section-title">Logging streak</div>
+              <div class="streak-block" onclick="cGoTimeline()">
+                <div><div class="streak-num">12</div><div class="streak-sub">days logged · tap for today</div></div>
+                <span style="font-size:16px;color:#CCC;">›</span>
+              </div>
+            </div>
+            <div class="a-section">
+              <div class="a-section-title" style="margin-bottom:6px;">This week</div>
+              <div class="chips" style="margin-bottom:8px;">
+                <span class="chip on">Week</span><span class="chip">Month</span>
+              </div>
+              <div class="chart-box">▂ ▃ ▅ ▄ ▇ ▆ ▅ ▃ ▄ ▆</div>
+            </div>
+            <div class="a-section">
+              <div class="chips">
+                <span class="chip on">Meds</span>
+                <span class="chip on">Activity</span>
+                <span class="chip">Diet</span>
+                <span class="chip">Symptoms</span>
+              </div>
+            </div>
+            <div class="a-section">
+              <button class="report-btn">Generate report</button>
+              <div class="report-note">* powered by AI</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hamburger -->
+        <div class="ham-overlay" id="c-ham-bg" onclick="closeHam()"></div>
+        <div class="ham-drawer" id="c-ham">
+          <div class="ham-section">Navigate</div>
+          <div class="ham-row"><span class="ham-icon">📅</span><span class="ham-label">Today</span></div>
+          <div class="ham-row" onclick="cGoTrends(); closeHam()"><span class="ham-icon">📈</span><span class="ham-label">Trends & Analyze</span></div>
+          <div class="ham-section">Records</div>
+          <div class="ham-row"><span class="ham-icon">🏥</span><span class="ham-label">Medical records</span></div>
+          <div class="ham-section">Account</div>
+          <div class="ham-row"><span class="ham-icon">👤</span><span class="ham-label">Profile</span></div>
+          <div class="ham-row"><span class="ham-icon">⚙</span><span class="ham-label">Settings</span></div>
+          <div class="ham-row"><span class="ham-icon">💊</span><span class="ham-label">Medication plan</span></div>
+        </div>
+
+        <div class="sheet-bg" id="bg-c" onclick="closeLog('c')"></div>
+        <div class="log-sheet" id="sheet-c">
+          <div class="sheet-pull"></div>
+          <div class="sheet-label">Add to today</div>
+          <div class="log-list">
+            <div class="log-row"><div class="log-icon">💊</div><div class="log-name">Medication</div></div>
+            <div class="log-row"><div class="log-icon">🏃</div><div class="log-name">Activity</div></div>
+            <div class="log-row"><div class="log-icon">🥗</div><div class="log-name">Food & protein</div></div>
+            <div class="log-row"><div class="log-icon">📝</div><div class="log-name">Note / symptom</div></div>
+            <div class="log-row"><div class="log-icon">😊</div><div class="log-name">Check-in</div></div>
+            <div class="log-row"><div class="log-icon">🏥</div><div class="log-name">Doctor visit</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="option-label">
+      <div class="option-tag">The Companion</div>
+      <div class="option-name">No tabs</div>
+      <div class="option-desc">No bottom nav at all. You live in the timeline. Trends and settings are reachable from the hamburger or an inline link. Nothing competes with Today for attention.</div>
+      <div class="option-hint">Tap ☰ menu · Tap Trends › inline · Tap + to log</div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════
+       THE JOURNAL
+  ══════════════════════ -->
+  <div class="option-wrap">
+    <div class="phone">
+      <div class="screen">
+        <div class="island"></div>
+        <div class="status-bar">
+          <span class="s-time">9:41</span>
+          <span class="s-icons">● ● ●</span>
+        </div>
+
+        <!-- Timeline (default) -->
+        <div id="j-timeline" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+          <div class="top-bar">
+            <span class="bc-back" onclick="jGoInsights()" style="font-size:13px;color:#888;">‹ Insights</span>
+            <span class="top-title">Today</span>
+            <span class="icon-btn">···</span>
+          </div>
+          <div class="confirm-card">
+            <div class="confirm-q">Did you take Levodopa?</div>
+            <div class="confirm-time">Scheduled 10:30 · now 10:47</div>
+            <div class="confirm-actions">
+              <button class="c-btn primary">Yes</button>
+              <button class="c-btn">Edit</button>
+              <button class="c-btn">No</button>
+            </div>
+          </div>
+          <div class="timeline">
+            <div class="day-label">Today</div>
+            <div class="tl-entry dim">
+              <div class="tl-dot"></div>
+              <div class="tl-body"><div class="tl-time">10:30</div><div class="tl-text">Levodopa 100mg — planned</div></div>
+            </div>
+            <div class="tl-entry">
+              <div class="tl-dot filled"></div>
+              <div class="tl-body"><div class="tl-time">10:00</div><div class="tl-text">Walk — 20 min</div></div>
+            </div>
+            <div class="tl-entry">
+              <div class="tl-dot filled"></div>
+              <div class="tl-body"><div class="tl-time">09:40</div><div class="tl-text">✦ Meds kicked in</div></div>
+            </div>
+            <div class="tl-entry">
+              <div class="tl-dot filled"></div>
+              <div class="tl-body"><div class="tl-time">08:15</div><div class="tl-text">Levodopa 100mg</div></div>
+            </div>
+            <div class="day-label" style="margin-top:6px;">Yesterday</div>
+            <div class="tl-entry">
+              <div class="tl-dot filled"></div>
+              <div class="tl-body"><div class="tl-time">14:10</div><div class="tl-text">Levodopa 100mg — late</div></div>
+            </div>
+            <div class="tl-entry">
+              <div class="tl-dot filled"></div>
+              <div class="tl-body"><div class="tl-time">12:00</div><div class="tl-text">Lunch — high protein</div></div>
+            </div>
+            <div class="tl-entry">
+              <div class="tl-dot filled"></div>
+              <div class="tl-body"><div class="tl-time">08:20</div><div class="tl-text">Levodopa 100mg</div></div>
+            </div>
+          </div>
+          <div class="fab-float" onclick="openLog('j')">+</div>
+        </div>
+
+        <!-- Insights (zoomed out) -->
+        <div id="j-insights" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+          <div class="top-bar">
+            <span class="top-title">Insights</span>
+            <span class="icon-btn">⚙</span>
+          </div>
+          <div style="flex:1;overflow-y:auto;">
+            <div class="a-section">
+              <div class="a-section-title">Logging streak</div>
+              <div class="streak-block" onclick="jGoTimeline()">
+                <div><div class="streak-num">12</div><div class="streak-sub">days logged · tap for today →</div></div>
+                <span style="font-size:16px;color:#CCC;">›</span>
+              </div>
+            </div>
+            <div class="a-section">
+              <div class="a-section-title" style="margin-bottom:6px;">Trends</div>
+              <div class="chips" style="margin-bottom:8px;">
+                <span class="chip on">Week</span><span class="chip">Month</span>
+              </div>
+              <div class="chart-box" style="height:52px;">▂ ▃ ▅ ▄ ▇ ▆ ▅ ▃ ▄ ▆ ▇ ▅</div>
+            </div>
+            <div class="a-section">
+              <div class="a-section-title">Filter by</div>
+              <div class="chips">
+                <span class="chip on">Meds</span>
+                <span class="chip on">Activity</span>
+                <span class="chip">Diet</span>
+                <span class="chip">Symptoms</span>
+              </div>
+            </div>
+            <div class="a-section">
+              <button class="report-btn">Generate report</button>
+              <div class="report-note">* powered by AI</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sheet-bg" id="bg-j" onclick="closeLog('j')"></div>
+        <div class="log-sheet" id="sheet-j">
+          <div class="sheet-pull"></div>
+          <div class="sheet-label">Add to today</div>
+          <div class="log-list">
+            <div class="log-row"><div class="log-icon">💊</div><div class="log-name">Medication</div></div>
+            <div class="log-row"><div class="log-icon">🏃</div><div class="log-name">Activity</div></div>
+            <div class="log-row"><div class="log-icon">🥗</div><div class="log-name">Food & protein</div></div>
+            <div class="log-row"><div class="log-icon">📝</div><div class="log-name">Note / symptom</div></div>
+            <div class="log-row"><div class="log-icon">😊</div><div class="log-name">Check-in</div></div>
+            <div class="log-row"><div class="log-icon">🏥</div><div class="log-name">Doctor visit</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="option-label">
+      <div class="option-tag">The Journal</div>
+      <div class="option-name">Hierarchy / zoom</div>
+      <div class="option-desc">Lands on the timeline by default. A back button zooms out to Insights — the bigger picture. No tab bar anywhere. The hierarchy itself communicates what matters most.</div>
+      <div class="option-hint">Tap ‹ Insights to zoom out · Tap streak to zoom in · Tap + to log</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function openLog(id) {
+  document.getElementById('bg-' + id).classList.add('open');
+  document.getElementById('sheet-' + id).classList.add('open');
+}
+function closeLog(id) {
+  document.getElementById('bg-' + id).classList.remove('open');
+  document.getElementById('sheet-' + id).classList.remove('open');
+}
+
+function mirrorTab(tab) {
+  const toToday = tab === 'today';
+  document.getElementById('m-today').style.display = toToday ? 'flex' : 'none';
+  document.getElementById('m-analyze').style.display = toToday ? 'none' : 'flex';
+  document.getElementById('m-tab-today').classList.toggle('active', toToday);
+  document.getElementById('m-tab-analyze').classList.toggle('active', !toToday);
+}
+
+function openHam() {
+  document.getElementById('c-ham').classList.add('open');
+  document.getElementById('c-ham-bg').classList.add('open');
+}
+function closeHam() {
+  document.getElementById('c-ham').classList.remove('open');
+  document.getElementById('c-ham-bg').classList.remove('open');
+}
+function cGoTrends() {
+  document.getElementById('c-timeline').style.display = 'none';
+  document.getElementById('c-trends').style.display = 'flex';
+}
+function cGoTimeline() {
+  document.getElementById('c-timeline').style.display = 'flex';
+  document.getElementById('c-trends').style.display = 'none';
+}
+
+function jGoInsights() {
+  document.getElementById('j-timeline').style.display = 'none';
+  document.getElementById('j-insights').style.display = 'flex';
+}
+function jGoTimeline() {
+  document.getElementById('j-timeline').style.display = 'flex';
+  document.getElementById('j-insights').style.display = 'none';
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoseEgg — Reference Products</title>
+<style>
+  :root {
+    --bg: #FAF7F0;
+    --card: #FFFFFF;
+    --text: #2A2823;
+    --text-muted: #6B665C;
+    --text-soft: #8E8779;
+    --divider: #E8E1D2;
+    --accent: #7A6080;
+    --accent-soft: rgba(122, 96, 128, 0.07);
+    --accent-border: rgba(122, 96, 128, 0.18);
+    --zh: #5F7E6E;
+    --tag-pd: rgba(122, 96, 128, 0.08);
+    --tag-pd-text: #5A3D66;
+    --tag-journal: rgba(95, 126, 110, 0.08);
+    --tag-journal-text: #3A5E4A;
+    --tag-t1d: rgba(95, 120, 160, 0.08);
+    --tag-t1d-text: #2A4A70;
+    --tag-ref: rgba(160, 120, 60, 0.08);
+    --tag-ref-text: #6B4A10;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .back {
+    position: fixed;
+    top: 14px; left: 14px;
+    z-index: 999;
+    background: rgba(250,247,240,0.92);
+    border: 1px solid var(--divider);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
+    text-decoration: none;
+    backdrop-filter: blur(4px);
+  }
+  .back:hover { color: var(--text); }
+
+  .page {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 64px 40px 96px;
+  }
+
+  header {
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--divider);
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--text-soft);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0;
+    max-width: 500px;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 48px;
+  }
+
+  .section-header {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--text-soft);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--divider);
+    margin-bottom: 4px;
+  }
+
+  .section-note {
+    font-size: 12px;
+    color: var(--text-soft);
+    font-style: italic;
+    margin: 6px 0 16px;
+  }
+
+  /* Item */
+  .item {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--divider);
+  }
+  .item:last-child { border-bottom: none; }
+
+  .item-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    min-width: 160px;
+  }
+
+  .item-name a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .item-name a:hover { color: var(--accent); }
+
+  .item-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.55;
+    flex: 1;
+  }
+
+  .item-tag {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .tag-direct   { background: var(--tag-pd); color: var(--tag-pd-text); border: 1px solid rgba(122,96,128,0.15); }
+  .tag-tone     { background: var(--tag-journal); color: var(--tag-journal-text); border: 1px solid rgba(95,126,110,0.15); }
+  .tag-t1d      { background: var(--tag-t1d); color: var(--tag-t1d-text); border: 1px solid rgba(95,120,160,0.15); }
+  .tag-data     { background: var(--tag-ref); color: var(--tag-ref-text); border: 1px solid rgba(160,120,60,0.15); }
+
+  .callout {
+    margin-top: 10px;
+    padding: 14px 18px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .callout strong { color: var(--text); }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 20px;
+    border-top: 1px solid var(--divider);
+    font-size: 12px;
+    color: var(--text-soft);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 600px) {
+    .page { padding: 40px 20px 64px; }
+    h1 { font-size: 26px; }
+    .item { flex-wrap: wrap; gap: 6px; }
+    .item-name { min-width: unset; width: 100%; }
+  }
+</style>
+</head>
+<body>
+<a href="index.html" class="back">← Home</a>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">DoseEgg · Research</div>
+    <h1>Reference Products</h1>
+    <p class="subtitle">Apps and tools to learn from — not competitors, but adjacent practices worth understanding before designing.</p>
+  </header>
+
+
+  <!-- ─── PD / Direct ─── -->
+  <div class="section">
+    <div class="section-header">PD — Direct reference</div>
+    <p class="section-note">Apps built specifically for Parkinson's patients.</p>
+
+    <div class="item">
+      <div class="item-name"><a href="https://www.strivepd.com" target="_blank">StrivePD</a></div>
+      <div class="item-desc">PD-specific tracking app. The closest direct competitor. Worth understanding what they built and where the gaps are.</div>
+      <span class="item-tag tag-direct">PD</span>
+    </div>
+  </div>
+
+
+  <!-- ─── Health tracking ─── -->
+  <div class="section">
+    <div class="section-header">Health tracking — tone + IA reference</div>
+    <p class="section-note">DoseEgg's sweet spot sits between Bearable (depth) and Apple Journal / Finch (companion tone). Explicitly not Oura / Apple Fitness performance framing.</p>
+
+    <div class="item">
+      <div class="item-name">Bearable</div>
+      <div class="item-desc">Symptom, medication, and lifestyle tracking. Closest to DoseEgg's data model and intent. Study the log types and how they surface patterns.</div>
+      <span class="item-tag tag-data">Data model</span>
+    </div>
+
+    <div class="item">
+      <div class="item-name">Apple Health</div>
+      <div class="item-desc">Unified timeline, system-level. Reference for how to present diverse data types in a single view without overwhelming the user.</div>
+      <span class="item-tag tag-data">Timeline</span>
+    </div>
+
+    <div class="item">
+      <div class="item-name">Apple Journal</div>
+      <div class="item-desc">Reflective, calm, low-pressure. The tone DoseEgg wants to borrow — logging as adding to your day, not checking a box.</div>
+      <span class="item-tag tag-tone">Tone</span>
+    </div>
+
+    <div class="item">
+      <div class="item-name">Finch</div>
+      <div class="item-desc">Wellbeing companion with a gentle character. Companion tone without performance pressure. Useful for understanding how to make a care-oriented app feel warm, not clinical.</div>
+      <span class="item-tag tag-tone">Tone</span>
+    </div>
+
+    <div class="item">
+      <div class="item-name">Oura</div>
+      <div class="item-desc">Sleep and readiness tracking with a daily score. Well-executed — but the score model is what DoseEgg is moving away from. Study it to understand what to avoid.</div>
+      <span class="item-tag tag-data">Anti-pattern ref</span>
+    </div>
+  </div>
+
+
+  <!-- ─── T1D ─── -->
+  <div class="section">
+    <div class="section-header">Type 1 Diabetes — structural analog</div>
+    <p class="section-note">T1D is the closest design precedent: same logic as PD (lacks X, supplement X, monitor), more mature ecosystem. The whole category is worth studying.</p>
+
+    <div class="item">
+      <div class="item-name"><a href="https://www.dexcom.com" target="_blank">Dexcom G7</a></div>
+      <div class="item-desc">Gold standard CGM (continuous glucose monitor). Study how they surface "time in range" as the headline metric — this is the T1D equivalent of DoseEgg's potential "time in ON" metric.</div>
+      <span class="item-tag tag-t1d">CGM</span>
+    </div>
+
+    <div class="item">
+      <div class="item-name"><a href="https://www.librelinkup.com" target="_blank">Abbott LibreLink</a></div>
+      <div class="item-desc">More accessible CGM, strong in Europe and Asia. Good for seeing an alternative UX approach to the same underlying data problem.</div>
+      <span class="item-tag tag-t1d">CGM</span>
+    </div>
+
+    <div class="item">
+      <div class="item-name"><a href="https://www.omnipod.com/omnipod-5" target="_blank">Omnipod 5</a></div>
+      <div class="item-desc">Automated insulin delivery — adjusts dose in real time based on CGM readings. Dream future analog for PD (automated levodopa). Study the closed-loop UX: how do you design for a system that acts without asking?</div>
+      <span class="item-tag tag-t1d">Closed-loop</span>
+    </div>
+
+    <div class="item">
+      <div class="item-name"><a href="https://www.tandemdiabetes.com/products/software/control-iq" target="_blank">Tandem Control-IQ</a></div>
+      <div class="item-desc">Another leading automated insulin delivery system. Compare with Omnipod 5 to see two approaches to the same UX problem.</div>
+      <span class="item-tag tag-t1d">Closed-loop</span>
+    </div>
+
+    <div class="item">
+      <div class="item-name"><a href="https://nightscout.github.io" target="_blank">Nightscout</a></div>
+      <div class="item-desc">Open source, patient-built CGM monitoring. The T1D community built this because official tools weren't good enough — a huge cultural parallel to what DoseEgg could become for YOPD.</div>
+      <span class="item-tag tag-t1d">Community-built</span>
+    </div>
+
+    <div class="item">
+      <div class="item-name"><a href="https://www.tidepool.org" target="_blank">Tidepool</a></div>
+      <div class="item-desc">Aggregates data from all CGM and pump devices into one place. Relevant to DoseEgg's unified timeline concept — how do you bring multiple data streams together cleanly?</div>
+      <span class="item-tag tag-t1d">Aggregator</span>
+    </div>
+
+    <div class="callout">
+      <strong>Key metric to borrow:</strong> T1D uses "time in range" — % of hours glucose stays in the target zone — as the single headline outcome. DoseEgg probably needs an equivalent: <em>time in ON</em> or <em>functional hours per day</em>. That one number is what a patient checks each morning and what a doctor scans in 10 seconds. Worth defining before designing the Trend/Analyze view.
+    </div>
+  </div>
+
+
+  <footer>
+    <span>DoseEgg · Research · Reference Products</span>
+    <span>Last updated May 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>

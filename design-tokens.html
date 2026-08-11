@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DoseEgg — Design Tokens (v0 proposal)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════
+   LAYER 1 — PRIMITIVES
+   Raw values. Never referenced directly by a component.
+   Their only job is to be the single place a value is written down.
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  /* ── DECIDED 2026-08-05: "Oat + petrol" ──
+     Chosen after ten alternatives across four exploration sheets — warm variants,
+     near-neutral cool, and genuinely blue grounds. Tutu returned to this one, which
+     makes it evidence rather than a first guess.
+     The organising idea is TEMPERATURE TENSION: a warm-undertoned ground against a
+     cool-undertoned ink. Palettes where accent and neutrals shared a temperature all
+     read as flat — harmony is the opposite of interest.
+     Exploration preserved in: palette-options.html, palette-warm-variants.html,
+     palette-cool-variants.html, palette-cooler-blues.html. */
+
+  /* Oat neutrals. Warm, but pulled back from cream — greyer, less yellow, which
+     keeps the paper feel without the familiar AI-product association. */
+  --paper-0:   #FFFFFF;
+  --paper-50:  #F9F8F5;
+  --paper-100: #F2F1EC;
+  --paper-200: #E8E6DF;
+  --paper-300: #D9D6CC;
+  --paper-400: #BAB6A9;
+  --paper-500: #8D8A7D;
+  --paper-600: #6E6B5F;
+  --paper-700: #46443C;
+  --paper-800: #2A2822;
+  --paper-900: #1A1916;
+
+  /* Petrol — the single accent. Deep blue-teal.
+     Cool against the warm ground (that's the whole point), and far less default
+     than navy. Low chroma: it can never read as "good" or "alert". */
+  --ink-400: #2F6470;
+  --ink-500: #1F4A52;
+  --ink-600: #163940;
+  --ink-700: #0F282D;
+
+  /* Entry-type hues. Categorical, NOT a scale.
+     Tuned to the oat ground. Chosen at near-equal lightness so no type looks more
+     severe, more urgent, or more important than another. */
+  --hue-dose:     #2E5560;
+  --hue-symptom:  #83574A;
+  --hue-activity: #4E6B55;
+  --hue-meal:     #84713F;
+  --hue-note:     #6A675C;
+
+  /* Reserved. UI failure only — never a body state. */
+  --red-600: #A33A2A;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LAYER 2 — SEMANTIC
+   What components actually use. Named by role, so values can change
+   without any name becoming a lie.
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  /* ── Surfaces ── three levels, not Material's six.
+     If you can't say what the fourth level is for, you don't need it. */
+  --surface-page:    var(--paper-50);
+  --surface-card:    var(--paper-0);
+  --surface-raised:  var(--paper-100);
+  --surface-sunken:  var(--paper-200);
+
+  /* ── Text ── */
+  --text-primary:    var(--paper-900);
+  --text-secondary:  var(--paper-700);
+  --text-muted:      var(--paper-600);
+  --text-inverse:    var(--paper-50);
+
+  /* ── Borders ──
+     Two kinds, and the difference is an accessibility rule, not taste:
+     `subtle` is decorative separation (exempt from WCAG 1.4.11).
+     `interactive` DEFINES a control's edge and must clear 3:1. */
+  --border-subtle:      var(--paper-200);  /* 1.2:1 — dividers only, never a control edge */
+  --border-interactive: var(--paper-500);  /* 3.2:1 — outlined buttons, inputs, chips */
+
+  /* ── Accent ── one accent. Actions, not meaning. */
+  --accent:          var(--ink-500);
+  --accent-hover:    var(--ink-600);
+  --accent-quiet:    var(--ink-400);
+  --on-accent:       var(--paper-0);
+
+  /* ── Focus ── WCAG 2.4.7. Non-optional: keyboard and switch-control users
+     include people whose tremor makes touch unreliable. */
+  --focus-ring:        var(--ink-500);
+  --focus-ring-width:  3px;
+  --focus-ring-offset: 2px;
+
+  /* ── Entry marks ── timeline dots, icons, type indicators.
+     Categorical only. Never ranked, never summed.
+     ⚠ COLOUR IS THE SECONDARY CHANNEL. Under simulated colour-vision
+     deficiency these five collapse to near-identical (audit 2026-08-05:
+     symptom/activity/note reach 1.00–1.14:1 under all three types). Equal
+     lightness is what makes them unranked, and it is also what makes them
+     indistinguishable — the two goals genuinely conflict.
+     Resolution: ICON OR SHAPE always carries the type. Colour reinforces. */
+  --mark-dose:       var(--hue-dose);
+  --mark-symptom:    var(--hue-symptom);
+  --mark-activity:   var(--hue-activity);
+  --mark-meal:       var(--hue-meal);
+  --mark-note:       var(--hue-note);
+
+  /* ── Epistemic state ── mirrors the `basis` field in the entry schema.
+     Expressed as FILL and OUTLINE STYLE, never as hue — so it reads
+     as certainty, not as quality. An assumed dose must never look taken.
+     All outlines clear 3:1 (WCAG 1.4.11): this distinction is safety-critical,
+     so it cannot be allowed to fade out for a low-vision user. */
+  --entry-asserted-fill:   currentColor;      /* solid        — the user said so */
+  --entry-assumed-fill:    transparent;       /* hollow       — proposed, no answer */
+  --entry-assumed-border:  var(--paper-500);  /* 3.2:1 */
+  --entry-unknown-fill:    transparent;       /* hollow dashed — we cannot know */
+  --entry-unknown-border:  var(--paper-500);  /* 3.2:1 — differs from assumed by STYLE, not weight */
+  --entry-unknown-style:   dashed;
+
+  /* ── Feedback ── APP failure only.
+     There is deliberately no token for a body state being wrong. */
+  --feedback-error:  var(--red-600);
+
+  /* ── Type ── */
+  --font-serif: 'Newsreader', Georgia, serif;
+  --font-sans:  'Inter', -apple-system, system-ui, sans-serif;
+
+  /* Every size is rem, so the whole scale moves from ONE root value.
+     That is the entire mechanism for system font scaling — see §Text size.
+     FLOOR: nothing below 0.875rem (14px). Not a guideline.
+     Six sizes, deliberately. 13px and 15px were removed rather than kept
+     "for small labels" — an unused small size is a temptation. */
+  --text-display:  2rem;      /* 32 — serif, screen titles */
+  --text-title:    1.5rem;    /* 24 — serif, section titles */
+  --text-heading:  1.1875rem; /* 19 — sans 600 */
+  --text-body:     1.0625rem; /* 17 — sans 400. Base is 17, not 16. */
+  --text-small:    1rem;      /* 16 — secondary content */
+  --text-label:    0.875rem;  /* 14 — THE FLOOR. Timestamps, meta. */
+
+  --leading-tight: 1.2;
+  --leading-body:  1.55;
+
+  /* ── Motion ── minimal for MVP, but the structure needs to exist now.
+     Every duration must have a reduced-motion path (see media query below). */
+  --motion-fast:  120ms;  /* state change: press, toggle, chip select */
+  --motion-base:  200ms;  /* enter / exit: sheet, card, snackbar */
+  --motion-slow:  320ms;  /* full-screen transition */
+  --ease-out:     cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out:  cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Data visualisation ──
+     Trends / Analyze. Same rules as everywhere: no gradient severity scales,
+     no red-green, nothing that ranks a day against another day. */
+  --viz-ink:           var(--ink-500);        /* default single series */
+  --viz-grid:          var(--paper-200);      /* gridlines — decorative */
+  --viz-axis:          var(--paper-400);      /* axis rule */
+  --viz-axis-label:    var(--text-muted);     /* 4.96:1 — real text, must pass */
+  --viz-band:          rgba(51, 60, 85, .07); /* dose-window / time-of-day shading */
+  --viz-annotation:    var(--paper-500);      /* 3.2:1 — reference lines */
+
+  /* Missing data. The most important viz token in this product.
+     A gap must NEVER render as zero — "didn't log" is not "didn't happen",
+     and `unknown` is not the number 0. [entry-schema.md §basis] */
+  --viz-missing:       var(--paper-300);
+  --viz-missing-style: dashed;
+
+  /* ── Space ── 4px base */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  /* ── Radius ── */
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   16px;
+  --radius-full: 999px;
+
+  /* ── Touch ── non-negotiable minimum. Three PD motor types must all
+     be able to hit it. [C-glossary: rigid / tremor / mixed] */
+  --touch-min: 48px;
+}
+
+/* Reduced motion. Vestibular sensitivity is common, and PD medication
+   side-effects can include dizziness — this matters more here than usual. */
+@media (prefers-reduced-motion: reduce) {
+  :root { --motion-fast: 0ms; --motion-base: 0ms; --motion-slow: 0ms; }
+  *, *::before, *::after { animation-duration: .01ms !important;
+    transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+
+/* ─── page styling for this sheet ─────────────────────────────────── */
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: var(--space-8) var(--space-6) var(--space-12);
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 880px; margin: 0 auto; }
+h1 { font-family: var(--font-serif); font-size: var(--text-display);
+     line-height: var(--leading-tight); font-weight: 400; margin: 0 0 var(--space-2); }
+h2 { font-family: var(--font-serif); font-size: var(--text-title);
+     line-height: var(--leading-tight); font-weight: 400;
+     margin: var(--space-12) 0 var(--space-2);
+     padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-subtle); }
+h3 { font-size: var(--text-heading); font-weight: 600; margin: var(--space-6) 0 var(--space-2); }
+p  { margin: 0 0 var(--space-3); max-width: 62ch; color: var(--text-secondary); }
+.lede { font-size: var(--text-body); color: var(--text-muted); margin-bottom: var(--space-4); }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+       font-size: 0.85em; background: var(--surface-sunken);
+       padding: 2px 5px; border-radius: var(--radius-sm); }
+.label { font-size: var(--text-label); font-weight: 500; letter-spacing: .02em;
+         text-transform: uppercase; color: var(--text-muted); }
+
+.ramp { display: flex; border-radius: var(--radius-md); overflow: hidden;
+        margin: var(--space-3) 0 var(--space-6); border: 1px solid var(--border-subtle); }
+.ramp div { flex: 1; height: 56px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+        gap: var(--space-3); margin: var(--space-3) 0 var(--space-6); }
+.tok { background: var(--surface-card); border: 1px solid var(--border-subtle);
+       border-radius: var(--radius-md); padding: var(--space-3); }
+.tok .sw { height: 40px; border-radius: var(--radius-sm); margin-bottom: var(--space-2);
+           border: 1px solid rgba(0,0,0,.06); }
+.tok .nm { font-family: ui-monospace, monospace; font-size: 12px; color: var(--text-primary); }
+.tok .vl { font-family: ui-monospace, monospace; font-size: 11px; color: var(--text-muted); }
+.tok .us { font-size: 12px; color: var(--text-muted); margin-top: var(--space-1);
+           line-height: 1.4; }
+
+.card { background: var(--surface-card); border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg); padding: var(--space-6); margin: var(--space-4) 0; }
+.note { background: var(--surface-raised); border-left: 3px solid var(--accent-quiet);
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        padding: var(--space-4); margin: var(--space-4) 0; }
+.note p:last-child { margin-bottom: 0; }
+
+table { width: 100%; border-collapse: collapse; margin: var(--space-3) 0 var(--space-6); }
+th, td { text-align: left; padding: var(--space-2) var(--space-3);
+         border-bottom: 1px solid var(--border-subtle); font-size: var(--text-small);
+         vertical-align: top; }
+th { font-size: var(--text-label); text-transform: uppercase; letter-spacing: .02em;
+     color: var(--text-muted); font-weight: 500; }
+td code { font-size: 12px; }
+
+.dots { display: flex; gap: var(--space-6); flex-wrap: wrap; align-items: flex-start;
+        margin: var(--space-4) 0; }
+.dotcase { text-align: center; width: 108px; }
+.dot { width: 18px; height: 18px; border-radius: 50%; margin: 0 auto var(--space-2); }
+.dotcase .label { display: block; margin-bottom: 2px; }
+.dotcase small { font-size: 12px; color: var(--text-muted); line-height: 1.35; display: block; }
+
+.type-row { display: flex; align-items: baseline; gap: var(--space-4);
+            padding: var(--space-3) 0; border-bottom: 1px solid var(--border-subtle); }
+.type-row .meta { font-family: ui-monospace, monospace; font-size: 11px;
+                  color: var(--text-muted); width: 150px; flex-shrink: 0; }
+
+.spacer { background: var(--accent-quiet); height: 20px; border-radius: 2px; }
+.sp-row { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2); }
+.sp-row .meta { font-family: ui-monospace, monospace; font-size: 12px;
+                color: var(--text-muted); width: 110px; }
+
+.btn { font-family: var(--font-sans); font-size: var(--text-body); font-weight: 500;
+       min-height: var(--touch-min); padding: 0 var(--space-6);
+       border-radius: var(--radius-md); border: 1px solid transparent; cursor: pointer; }
+.btn-primary { background: var(--accent); color: var(--on-accent); }
+.btn-quiet { background: var(--surface-raised); color: var(--text-primary);
+             border-color: var(--border-interactive); }
+.btn:focus-visible { outline: var(--focus-ring-width) solid var(--focus-ring);
+                     outline-offset: var(--focus-ring-offset); }
+.absent { color: var(--text-muted); }
+.absent li { margin-bottom: var(--space-2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<span class="label">Proposal · v0 · 2026-08-05</span>
+<h1>DoseEgg Design Tokens</h1>
+<p class="lede">A first token set to react to, not a finished system. ~30 names total —
+deliberately small. Every name here should survive a change of palette; if renaming a
+value forces renaming a token, the token was named wrong.</p>
+
+<div class="note">
+<p><strong>Palette decided 2026-08-05 — "Oat + petrol."</strong> Chosen over ten
+alternatives across four exploration sheets. The organising idea is <strong>temperature
+tension</strong>: a warm-undertoned ground against a cool-undertoned ink. Every palette
+where accent and neutrals shared a temperature read as flat — harmony turned out to be the
+opposite of interest.</p>
+<p>1. <strong>Oat neutrals.</strong> Warm, but pulled back from cream — greyer, less yellow.
+Keeps the paper feel without the familiar AI-product association.</p>
+<p>2. <strong>One low-chroma petrol accent.</strong> Deep blue-teal, cool against the warm
+ground. Contrast carries emphasis instead of hue — which means colour can never accidentally
+rate anything. The palette enforcing the no-verdict rule structurally.</p>
+<p>3. <strong>Serif headlines, sans body — still provisional.</strong> Type options come
+next, including a sans-chrome / serif-for-the-user's-words inversion. Unlike the palette,
+this one hasn't been properly explored yet.</p>
+<p style="margin-bottom:0"><em>Component and layout treatments in these examples are
+placeholders — the UI language is not decided, only the tokens.</em></p>
+</div>
+
+<h2>Primitives</h2>
+<p>Raw values. Nothing in a component ever references these directly — they exist so each
+value is written down once.</p>
+
+<h3>Paper — warm neutrals</h3>
+<div class="ramp">
+  <div style="background:var(--paper-0)"></div><div style="background:var(--paper-50)"></div>
+  <div style="background:var(--paper-100)"></div><div style="background:var(--paper-200)"></div>
+  <div style="background:var(--paper-300)"></div><div style="background:var(--paper-400)"></div>
+  <div style="background:var(--paper-500)"></div><div style="background:var(--paper-600)"></div>
+  <div style="background:var(--paper-700)"></div><div style="background:var(--paper-800)"></div>
+  <div style="background:var(--paper-900)"></div>
+</div>
+
+<h3>Ink — the accent</h3>
+<div class="ramp" style="max-width:340px">
+  <div style="background:var(--ink-400)"></div><div style="background:var(--ink-500)"></div>
+  <div style="background:var(--ink-600)"></div><div style="background:var(--ink-700)"></div>
+</div>
+
+<h2>Semantic tokens</h2>
+<p>What components use. Named by role.</p>
+
+<h3>Surfaces</h3>
+<p>Three levels, not Material's six. If you can't name what a fourth level is for, you
+don't need it.</p>
+<div class="grid">
+  <div class="tok"><div class="sw" style="background:var(--surface-page)"></div>
+    <div class="nm">--surface-page</div><div class="vl">paper-50</div>
+    <div class="us">App background</div></div>
+  <div class="tok"><div class="sw" style="background:var(--surface-card)"></div>
+    <div class="nm">--surface-card</div><div class="vl">paper-0</div>
+    <div class="us">Entries, sheets</div></div>
+  <div class="tok"><div class="sw" style="background:var(--surface-raised)"></div>
+    <div class="nm">--surface-raised</div><div class="vl">paper-100</div>
+    <div class="us">The dose confirmation card</div></div>
+  <div class="tok"><div class="sw" style="background:var(--surface-sunken)"></div>
+    <div class="nm">--surface-sunken</div><div class="vl">paper-200</div>
+    <div class="us">Inputs, wells</div></div>
+</div>
+
+<h3>Text &amp; borders</h3>
+<div class="grid">
+  <div class="tok"><div class="sw" style="background:var(--text-primary)"></div>
+    <div class="nm">--text-primary</div><div class="vl">paper-900</div>
+    <div class="us">Entry content</div></div>
+  <div class="tok"><div class="sw" style="background:var(--text-secondary)"></div>
+    <div class="nm">--text-secondary</div><div class="vl">paper-700</div>
+    <div class="us">Supporting detail</div></div>
+  <div class="tok"><div class="sw" style="background:var(--text-muted)"></div>
+    <div class="nm">--text-muted</div><div class="vl">paper-600</div>
+    <div class="us">Timestamps, labels</div></div>
+  <div class="tok"><div class="sw" style="background:var(--border-subtle)"></div>
+    <div class="nm">--border-subtle</div><div class="vl">paper-200</div>
+    <div class="us">Default separator</div></div>
+  <div class="tok"><div class="sw" style="background:var(--border-strong)"></div>
+    <div class="nm">--border-strong</div><div class="vl">paper-300</div>
+    <div class="us">Outlined controls</div></div>
+  <div class="tok"><div class="sw" style="background:var(--accent)"></div>
+    <div class="nm">--accent</div><div class="vl">ink-500</div>
+    <div class="us">Primary action. Actions, not meaning.</div></div>
+</div>
+
+<div class="card">
+  <button class="btn btn-primary">Taken</button>
+  <button class="btn btn-quiet" style="margin-left:var(--space-2)">Didn't take</button>
+  <button class="btn btn-quiet" style="margin-left:var(--space-2)">Snooze</button>
+  <p style="margin:var(--space-4) 0 0; font-size:var(--text-small)">All three at
+  <code>--touch-min</code> (48px). Note the middle button — the schema needs
+  <code>declined</code> to be reachable, so the card has to offer it.</p>
+</div>
+
+<h2>Entry marks</h2>
+<p>Timeline dots and type indicators. <strong>Categorical, not a scale.</strong> Chosen at
+near-equal lightness so no entry type looks more severe or more urgent than another —
+a symptom must not appear "worse" than a meal.</p>
+<div class="dots">
+  <div class="dotcase"><div class="dot" style="background:var(--mark-dose)"></div>
+    <span class="label">Dose</span><small>--mark-dose</small></div>
+  <div class="dotcase"><div class="dot" style="background:var(--mark-symptom)"></div>
+    <span class="label">Symptom</span><small>--mark-symptom</small></div>
+  <div class="dotcase"><div class="dot" style="background:var(--mark-activity)"></div>
+    <span class="label">Activity</span><small>--mark-activity</small></div>
+  <div class="dotcase"><div class="dot" style="background:var(--mark-meal)"></div>
+    <span class="label">Meal</span><small>--mark-meal</small></div>
+  <div class="dotcase"><div class="dot" style="background:var(--mark-note)"></div>
+    <span class="label">Note</span><small>--mark-note</small></div>
+</div>
+
+<h2>Epistemic state</h2>
+<p>Mirrors the <code>basis</code> field in <code>docs/entry-schema.md</code>. Expressed as
+<strong>fill and outline, never as hue</strong> — so it reads as <em>certainty</em>, not as
+<em>quality</em>. This is the token layer enforcing the export safety rule: an assumed dose
+cannot be styled to look taken, because there is no token that would let it.</p>
+<div class="dots">
+  <div class="dotcase">
+    <div class="dot" style="background:var(--mark-dose)"></div>
+    <span class="label">Asserted</span><small>Solid. The user said so.</small></div>
+  <div class="dotcase">
+    <div class="dot" style="background:transparent;border:2px solid var(--entry-assumed-border)"></div>
+    <span class="label">Assumed</span><small>Hollow. Proposed, no answer.</small></div>
+  <div class="dotcase">
+    <div class="dot" style="background:transparent;border:2px dashed var(--entry-unknown-border)"></div>
+    <span class="label">Unknown</span><small>Dashed. We cannot know.</small></div>
+  <div class="dotcase">
+    <div class="dot" style="background:var(--surface-card);border:2px solid var(--mark-dose);position:relative">
+    </div>
+    <span class="label">Declined</span><small>Ringed. Reported not taken.</small></div>
+</div>
+
+<h2>Typography</h2>
+<div class="type-row"><span class="meta">--text-display · serif</span>
+  <span style="font-family:var(--font-serif);font-size:var(--text-display)">Today</span></div>
+<div class="type-row"><span class="meta">--text-title · serif</span>
+  <span style="font-family:var(--font-serif);font-size:var(--text-title)">Yesterday's record</span></div>
+<div class="type-row"><span class="meta">--text-heading · 600</span>
+  <span style="font-size:var(--text-heading);font-weight:600">Levodopa</span></div>
+<div class="type-row"><span class="meta">--text-body · 17px</span>
+  <span style="font-size:var(--text-body)">Started while reading. Passed after resting.</span></div>
+<div class="type-row"><span class="meta">--text-small · 15px</span>
+  <span style="font-size:var(--text-small)">Oatmeal and green tea.</span></div>
+<div class="type-row"><span class="meta">--text-label · 13px</span>
+  <span class="label">7:30 AM</span></div>
+<p style="margin-top:var(--space-4)">Base body is <strong>17px, not 16</strong>. A
+deliberate call for an audience that skews older and may have visual as well as motor
+symptoms — one step up costs nothing and helps everyone.</p>
+
+<h2>Space, radius, touch</h2>
+<div class="sp-row"><span class="meta">--space-1 · 4</span><div class="spacer" style="width:4px"></div></div>
+<div class="sp-row"><span class="meta">--space-2 · 8</span><div class="spacer" style="width:8px"></div></div>
+<div class="sp-row"><span class="meta">--space-3 · 12</span><div class="spacer" style="width:12px"></div></div>
+<div class="sp-row"><span class="meta">--space-4 · 16</span><div class="spacer" style="width:16px"></div></div>
+<div class="sp-row"><span class="meta">--space-6 · 24</span><div class="spacer" style="width:24px"></div></div>
+<div class="sp-row"><span class="meta">--space-8 · 32</span><div class="spacer" style="width:32px"></div></div>
+<div class="sp-row"><span class="meta">--space-12 · 48</span><div class="spacer" style="width:48px"></div></div>
+
+<table style="margin-top:var(--space-6)">
+<tr><th>Token</th><th>Value</th><th>Use</th></tr>
+<tr><td><code>--radius-sm</code></td><td>6px</td><td>Chips, tags, inputs</td></tr>
+<tr><td><code>--radius-md</code></td><td>10px</td><td>Buttons, small cards</td></tr>
+<tr><td><code>--radius-lg</code></td><td>16px</td><td>Entry cards, sheets</td></tr>
+<tr><td><code>--radius-full</code></td><td>999px</td><td>Dots, avatars only</td></tr>
+<tr><td><code>--touch-min</code></td><td>48px</td><td><strong>Every interactive target.</strong> Not a guideline.</td></tr>
+</table>
+
+<h2>Text size &amp; system scaling</h2>
+<p>Every size in the scale is <code>rem</code>, which means all of it moves from a single
+root value. That is the whole mechanism — <strong>never build a second hardcoded set of
+sizes.</strong> Two sets double the maintenance and drift apart within a month.</p>
+
+<pre style="background:var(--surface-sunken);padding:var(--space-4);border-radius:var(--radius-md);overflow-x:auto;font-size:var(--text-label);line-height:1.6"><code style="background:none;padding:0">html { font-size: 100%; }        /* one knob */
+html[data-text-scale="large"]  { font-size: 112.5%; }   /* 17px → 19px */
+html[data-text-scale="larger"] { font-size: 125%;   }   /* 17px → 21px */</code></pre>
+
+<p><strong>Who owns text size — the OS or the app?</strong> Both, and in a WebView it is
+messier than native. This is a real accessibility cost of the Capacitor decision, worth
+knowing now rather than discovering later:</p>
+<table>
+<tr><th>Platform</th><th>Situation</th></tr>
+<tr><td>iOS native</td><td>Dynamic Type. Nearly free.</td></tr>
+<tr><td>iOS WKWebView</td><td><code>font: -apple-system-body</code> in CSS <em>does</em> follow
+Dynamic Type — it's been in WebKit for years. But WKWebView has no
+<code>adjustsFontForContentSizeCategory</code>, so changing the setting mid-session needs
+native code listening for the content-size-change notification. Open Capacitor issue (#7770).</td></tr>
+<tr><td>Android WebView</td><td>Applies the system font scale to <code>textZoom</code> by
+default; can be read explicitly via <code>Settings.System.FONT_SCALE</code> +
+<code>WebSettings.setTextZoom()</code>.</td></tr>
+</table>
+
+<p><strong>So: do both.</strong> Follow the system scale where it works, <em>and</em> ship an
+in-app text-size control. The second isn't redundancy — someone may want large text in a
+medication journal without enlarging their entire phone, and for this audience reading
+ability genuinely varies between an ON and an OFF period within the same day. A setting they
+can change in thirty seconds is a real feature, not a fallback.</p>
+<p>And design to survive it: WCAG 1.4.4 requires 200% resize without loss. No fixed-height
+text containers, no truncation, no single-line assumptions.</p>
+
+<h2>Data visualisation</h2>
+<p>Trends / Analyze will need charts, and chart structure is expensive to change later — so
+the tokens exist now even though the screens don't.</p>
+<div class="grid">
+  <div class="tok"><div class="sw" style="background:var(--viz-ink)"></div>
+    <div class="nm">--viz-ink</div><div class="us">Default single series</div></div>
+  <div class="tok"><div class="sw" style="background:var(--viz-grid)"></div>
+    <div class="nm">--viz-grid</div><div class="us">Gridlines, decorative</div></div>
+  <div class="tok"><div class="sw" style="background:var(--viz-axis)"></div>
+    <div class="nm">--viz-axis</div><div class="us">Axis rule</div></div>
+  <div class="tok"><div class="sw" style="background:var(--viz-band)"></div>
+    <div class="nm">--viz-band</div><div class="us">Dose-window shading</div></div>
+  <div class="tok"><div class="sw" style="background:var(--viz-missing)"></div>
+    <div class="nm">--viz-missing</div><div class="us"><strong>Gaps. Never zero.</strong></div></div>
+</div>
+
+<h3>The rule that matters most</h3>
+<p>A day with no data must never be drawn as a value. Here is why, with the same week
+rendered both ways — Wednesday was not logged:</p>
+
+<div style="display:flex;gap:var(--space-6);flex-wrap:wrap;margin:var(--space-4) 0">
+<div class="card" style="flex:1;min-width:290px;margin:0">
+  <span class="label" style="color:var(--feedback-error)">✗ Missing drawn as zero</span>
+  <svg viewBox="0 0 300 145" style="width:100%;height:auto;margin-top:var(--space-3)" role="img" aria-label="Line chart where the unlogged day drops to zero, appearing as the best day of the week">
+    <line x1="20" y1="124" x2="290" y2="124" stroke="var(--viz-axis)" stroke-width="1"/>
+    <polyline points="25,72 67,56 109,88 151,120 193,40 235,72 277,56"
+      fill="none" stroke="var(--viz-ink)" stroke-width="2.5" stroke-linejoin="round"/>
+    <circle cx="151" cy="120" r="4.5" fill="var(--feedback-error)"/>
+    <text x="151" y="140" text-anchor="middle" font-size="11" fill="var(--feedback-error)" font-family="Inter,sans-serif">Wed</text>
+  </svg>
+  <p style="font-size:var(--text-label);margin:var(--space-2) 0 0">Wednesday now reads as the
+  <em>best day of the week</em> — zero symptoms. It's a lie, and it's the kind that ends up
+  in front of a neurologist.</p>
+</div>
+<div class="card" style="flex:1;min-width:290px;margin:0">
+  <span class="label" style="color:var(--accent)">✓ Missing drawn as a gap</span>
+  <svg viewBox="0 0 300 145" style="width:100%;height:auto;margin-top:var(--space-3)" role="img" aria-label="Line chart where the unlogged day is shown as a dashed gap with an open marker, not as a value">
+    <line x1="20" y1="124" x2="290" y2="124" stroke="var(--viz-axis)" stroke-width="1"/>
+    <polyline points="25,72 67,56 109,88" fill="none" stroke="var(--viz-ink)" stroke-width="2.5" stroke-linejoin="round"/>
+    <polyline points="193,40 235,72 277,56" fill="none" stroke="var(--viz-ink)" stroke-width="2.5" stroke-linejoin="round"/>
+    <line x1="109" y1="88" x2="193" y2="40" stroke="var(--viz-missing)" stroke-width="2" stroke-dasharray="4 4"/>
+    <circle cx="151" cy="64" r="5" fill="var(--surface-card)" stroke="var(--viz-missing)" stroke-width="2" stroke-dasharray="3 2"/>
+    <text x="151" y="140" text-anchor="middle" font-size="11" fill="var(--text-muted)" font-family="Inter,sans-serif">Wed · no entry</text>
+  </svg>
+  <p style="font-size:var(--text-label);margin:var(--space-2) 0 0">The gap is visible and
+  labelled. The reader sees absence of <em>data</em>, not absence of <em>symptoms</em>.
+  Same dashed-hollow language as the <code>unknown</code> entry state.</p>
+</div>
+</div>
+
+<h3>Series colour — same lesson as the entry marks</h3>
+<p>Maximum four series. Always paired with direct labelling or shape, never a colour-only
+legend — for the same colour-vision reason established above. And no severity gradients: a
+sequential colour scale <em>is</em> a ranking, which is a verdict. [C-08]</p>
+
+<h2>Deliberately absent</h2>
+<p>What a token set refuses to name matters as much as what it names. None of these exist,
+and adding one should require a decision, not a convenience:</p>
+<ul class="absent">
+<li><strong>No <code>success</code> / <code>error</code> / <code>warning</code> for health data.</strong>
+<code>--feedback-error</code> exists for app failures only — bad input, network down. There is
+no token for a body being wrong.</li>
+<li><strong>No severity scale.</strong> No <code>severity-1…5</code>, no red-amber-green.
+A scale invites ranking, and ranking is a verdict. [C-08]</li>
+<li><strong>No <code>adherence</code> or completion colour.</strong> There is nothing to
+score. [C-08]</li>
+<li><strong>No hover-only states.</strong> Touch has no hover. Press states only.</li>
+<li><strong>No elevation/shadow scale yet.</strong> Borders and surface tone carry
+separation. Shadows can come later if something genuinely needs to float — and each one
+should be argued for.</li>
+</ul>
+
+<h2>Accessibility audit — 2026-08-05</h2>
+<p>WCAG 2.1 AA, computed not estimated. Fixes below are already applied above.</p>
+
+<h3>Text contrast — all pass</h3>
+<table>
+<tr><th>Token</th><th>on page</th><th>on card</th><th>on raised</th><th>on sunken</th></tr>
+<tr><td><code>--text-primary</code></td><td>16.97</td><td>17.68</td><td>15.97</td><td>14.49</td></tr>
+<tr><td><code>--text-secondary</code></td><td>9.24</td><td>9.63</td><td>8.70</td><td>7.89</td></tr>
+<tr><td><code>--text-muted</code></td><td>4.96</td><td>5.17</td><td>4.67</td><td><strong>4.24 ⚠</strong></td></tr>
+<tr><td><code>--accent</code></td><td>10.51</td><td>10.95</td><td>9.89</td><td>8.98</td></tr>
+<tr><td><code>--on-accent</code> on accent</td><td colspan="4">10.95</td></tr>
+</table>
+<p><strong>One usage rule:</strong> <code>--text-muted</code> on <code>--surface-sunken</code>
+is 4.24:1 — below the 4.5 threshold. Muted text is not permitted on sunken surfaces at body
+size. Use <code>--text-secondary</code> there.</p>
+
+<h3>Fixed — non-text contrast (1.4.11)</h3>
+<p>The original <code>--border-strong</code> (paper-300) was <strong>1.36:1</strong> and the
+unknown-state dot (paper-400) was <strong>1.86:1</strong>. Both fail the 3:1 requirement for
+component boundaries — which meant <em>the epistemic indicators were invisible to a low-vision
+user.</em> Given that this distinction is what stops an assumed dose reading as taken, that was
+the most serious finding in the audit.</p>
+<p>Fixed by splitting borders into <code>--border-subtle</code> (decorative only) and
+<code>--border-interactive</code> at paper-500 (<strong>3.2:1</strong>), and moving both
+epistemic outlines onto it.</p>
+
+<h3>Fixed — focus indicator (2.4.7)</h3>
+<p>No focus tokens existed. Added <code>--focus-ring</code> / <code>-width</code> /
+<code>-offset</code>. Not optional here: tremor makes touch unreliable, so keyboard and
+switch-control paths matter more for this audience than for most.</p>
+
+<h3>Unresolved by colour — the entry marks</h3>
+<p>Simulated under all three types of colour-vision deficiency, the five marks collapse:</p>
+<table>
+<tr><th>Pair</th><th>Protanopia</th><th>Deuteranopia</th><th>Tritanopia</th></tr>
+<tr><td>symptom / note</td><td>1.01</td><td>1.09</td><td>1.02</td></tr>
+<tr><td>activity / note</td><td>1.04</td><td>1.05</td><td>1.00</td></tr>
+<tr><td>symptom / activity</td><td>1.05</td><td>1.14</td><td>1.02</td></tr>
+</table>
+<p>1.00:1 means <em>identical</em>. This is not a fixable palette problem — it's a direct
+consequence of the design goal. Equal lightness is what makes the marks unranked, and equal
+lightness is also what makes them indistinguishable. Pulling them apart in lightness would
+reintroduce a visual hierarchy among entry types, which is the thing we were avoiding.</p>
+<p><strong>So colour is demoted to the secondary channel.</strong> Icon or shape always carries
+the entry type; colour reinforces it for people who can see it. This is better product design
+anyway — an icon says "meal" directly, whereas a colour requires learning a legend.</p>
+
+<h3>Touch targets — pass</h3>
+<p><code>--touch-min</code> at 48px clears WCAG 2.5.5 (44px) with margin. Keep the margin;
+44 is a floor for the general population, not for tremor.</p>
+
+<h2>Icons — decided 2026-08-05: Phosphor</h2>
+<p>Icons <em>carry</em> entry type rather than decorating it, because colour failed the
+colour-vision test. Chosen over Lucide on two grounds: Phosphor ships a native
+<code>fill</code> weight, which gives the solid/hollow pair the epistemic states need without
+building a mechanism to maintain; and its <code>bold</code> weight is a real accessibility
+lever, since thin strokes fail first for low vision. Comparison and the size tests live in
+<code>icon-candidates.html</code>.</p>
+<table>
+<tr><th>Use</th><th>Weight</th><th>Why</th></tr>
+<tr><td>Asserted entries</td><td><code>ph-fill</code></td><td>Solid — the user said so</td></tr>
+<tr><td>Assumed / unknown</td><td><code>ph</code> (regular)</td><td>Hollow, inside a ringed container</td></tr>
+<tr><td>Large-text mode</td><td><code>ph-bold</code></td><td>Pairs with the in-app text size control</td></tr>
+</table>
+
+<h2>Still open</h2>
+<ul class="absent">
+<li><strong>Symptom icon</strong> — <code>ph-waveform</code> is the current pick for
+neutrality (<code>pulse</code> reads clinical, <code>brain</code> names the disease on every
+log), but it may read as "audio". Test with P01; it's the icon seen on the worst days.</li>
+<li><strong>Freezing of gait</strong> has no icon in any family. Likely a custom glyph. [C-04]</li>
+<li><strong>Dyskinesia and tremor must not share an icon</strong> — opposite states. [C-01]</li>
+<li><strong>Dark mode</strong> unaddressed. The two-layer structure supports it (swap Layer 2,
+leave Layer 1 alone), but the values don't exist.</li>
+<li><strong>Motion tokens</strong> don't exist, and when they do they need a
+<code>prefers-reduced-motion</code> path.</li>
+<li><strong>Newsreader vs. Instrument Serif</strong> — worth trying both against real entries.</li>
+<li><strong>Screen reader names</strong> for timeline dots — needs to be specified when the
+components get built, not at token level.</li>
+</ul>
+
+</div>
+</body>
+</html>

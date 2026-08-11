@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoseEgg — Exploration 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #FAF6F1;
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  padding: 48px 32px 72px;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 52px;
+}
+
+.page-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #E07B3F;
+  margin-bottom: 10px;
+}
+
+.page-title {
+  font-family: 'Fraunces', serif;
+  font-size: 32px;
+  color: #1A1210;
+  margin-bottom: 12px;
+  font-weight: 400;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: #7A6A60;
+  max-width: 480px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+.options-grid {
+  display: flex;
+  gap: 48px;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.option-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.option-label {
+  text-align: center;
+  max-width: 220px;
+}
+
+.option-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #E07B3F;
+  margin-bottom: 6px;
+}
+
+.option-name {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  color: #1A1210;
+  margin-bottom: 8px;
+  font-weight: 400;
+}
+
+.option-desc {
+  font-size: 12px;
+  color: #7A6A60;
+  line-height: 1.65;
+}
+
+.option-hint {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 11px;
+  color: #C8BDB6;
+  background: #F0EAE4;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+/* ── Phone Frame ── */
+.phone {
+  width: 230px;
+  height: 480px;
+  background: #1C1410;
+  border-radius: 40px;
+  padding: 9px;
+  box-shadow:
+    0 24px 64px rgba(26,18,16,0.22),
+    0 4px 16px rgba(26,18,16,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  position: relative;
+}
+
+.phone-screen {
+  width: 100%;
+  height: 100%;
+  background: #FFFCF9;
+  border-radius: 31px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.dynamic-island {
+  width: 72px;
+  height: 22px;
+  background: #1C1410;
+  border-radius: 12px;
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.screen-top-spacer { height: 36px; flex-shrink: 0; }
+
+/* ── Colors ── */
+:root {
+  --brand: #E07B3F;
+  --brand-light: #FFF3EC;
+  --brand-mid: #F4A573;
+  --text-primary: #1A1210;
+  --text-secondary: #7A6A60;
+  --text-muted: #C8BDB6;
+  --surface: #FFFCF9;
+  --surface-2: #FAF6F1;
+  --border: #EDE6DF;
+  --med: #5C9E70; --med-bg: #E8F5EC;
+  --act: #D4A017; --act-bg: #FEF9E8;
+  --food: #C96B2A; --food-bg: #FEF0E6;
+  --note: #6B8CAE; --note-bg: #EAF1F8;
+  --mood: #9B6BAE; --mood-bg: #F4EEF8;
+}
+
+/* ── Shared nav ── */
+.bottom-nav {
+  flex-shrink: 0;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding-bottom: 4px;
+}
+
+.nav-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 10px;
+}
+
+.nav-tab .ni { font-size: 16px; }
+.nav-tab .nt { font-size: 9px; color: var(--text-muted); font-weight: 500; }
+.nav-tab.active .nt { color: var(--brand); font-weight: 600; }
+
+/* ── Entry type chips ── */
+.entry-types {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.entry-type {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 6px 2px;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+.entry-type:hover { background: var(--surface-2); }
+
+.etype-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+}
+
+.etype-label {
+  font-size: 8.5px;
+  color: var(--text-secondary);
+  text-align: center;
+  font-weight: 500;
+}
+
+/* ── Bottom sheet (shared) ── */
+.sheet-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(26,18,16,0.35);
+  z-index: 15;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+  border-radius: 31px;
+}
+.sheet-overlay.open { opacity: 1; pointer-events: all; }
+
+.bottom-sheet {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: white;
+  border-radius: 22px 22px 0 0;
+  z-index: 20;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+  padding-bottom: 52px;
+}
+.bottom-sheet.open { transform: translateY(0); }
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 12px auto 0;
+}
+
+/* ═══════════════════════════════
+   OPTION A — Today First
+═══════════════════════════════ */
+
+.a-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.a-header {
+  padding: 6px 16px 8px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.a-date {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  color: var(--text-primary);
+  font-weight: 400;
+}
+
+.a-date-sub { font-size: 10px; color: var(--text-muted); }
+.a-count { font-size: 10px; color: var(--text-muted); }
+
+.a-timeline {
+  flex: 1;
+  overflow: hidden;
+  padding: 2px 0;
+}
+
+.tl-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 5px 16px;
+}
+
+.tl-item.planned { opacity: 0.35; }
+
+.tl-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.tl-body { display: flex; flex-direction: column; gap: 2px; }
+.tl-time { font-size: 9px; color: var(--text-muted); font-weight: 500; }
+.tl-text { font-size: 11px; color: var(--text-primary); font-weight: 500; }
+
+.tl-tag {
+  display: inline-block;
+  font-size: 8.5px;
+  padding: 1.5px 7px;
+  border-radius: 20px;
+  font-weight: 500;
+  margin-top: 1px;
+  width: fit-content;
+}
+
+.on-moment {
+  margin: 3px 14px;
+  background: var(--brand-light);
+  border-left: 2px solid var(--brand);
+  border-radius: 0 8px 8px 0;
+  padding: 6px 10px;
+}
+
+.on-moment-text {
+  font-size: 11px;
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.on-moment-sub { font-size: 9px; color: #C96B2A; margin-top: 1px; }
+
+/* FAB */
+.fab {
+  position: absolute;
+  bottom: 58px;
+  right: 14px;
+  width: 42px;
+  height: 42px;
+  background: var(--brand);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(224,123,63,0.45);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 12;
+}
+.fab:hover { transform: scale(1.06); box-shadow: 0 6px 18px rgba(224,123,63,0.5); }
+.fab-plus {
+  font-size: 22px;
+  color: white;
+  line-height: 1;
+  font-weight: 300;
+  transition: transform 0.25s;
+}
+.fab.open .fab-plus { transform: rotate(45deg); }
+
+/* Sheet A inner */
+.sheet-a-inner { padding: 16px 16px 8px; }
+.sheet-title { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; text-align: center; font-weight: 500; }
+
+/* ═══════════════════════════════
+   OPTION B — Quick Dock
+═══════════════════════════════ */
+
+.b-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.b-header { padding: 6px 16px 10px; flex-shrink: 0; }
+.b-greeting {
+  font-family: 'Fraunces', serif;
+  font-size: 15px;
+  color: var(--text-primary);
+  font-weight: 400;
+}
+.b-name { color: var(--brand); }
+.b-date { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+.status-card {
+  margin: 0 12px;
+  background: var(--text-primary);
+  border-radius: 16px;
+  padding: 13px 14px;
+  flex-shrink: 0;
+}
+
+.sc-eyebrow {
+  font-size: 9px;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.sc-state {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  color: white;
+  margin-bottom: 8px;
+  font-weight: 400;
+}
+.sc-on { color: var(--brand); }
+
+.sc-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+.sc-pill {
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.55);
+}
+.sc-pill.done { background: rgba(224,123,63,0.3); color: #F4C97A; }
+
+.b-recent {
+  flex: 1;
+  padding: 10px 14px 4px;
+  overflow: hidden;
+}
+
+.section-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+  margin-bottom: 7px;
+}
+
+.log-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--surface-2);
+}
+
+.log-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.log-info { flex: 1; }
+.log-text { font-size: 10.5px; color: var(--text-primary); font-weight: 500; }
+.log-time { font-size: 9px; color: var(--text-muted); }
+.log-ago { font-size: 9px; color: var(--text-muted); }
+
+/* Quick dock */
+.quick-dock {
+  margin: 8px 12px 6px;
+  background: white;
+  border-radius: 16px;
+  padding: 8px 4px;
+  display: flex;
+  justify-content: space-around;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07), 0 0 0 1px var(--border);
+  flex-shrink: 0;
+}
+
+.dock-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+.dock-btn:hover { background: var(--surface-2); }
+
+.dock-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.dock-label { font-size: 8px; color: var(--text-muted); font-weight: 500; }
+
+.b-bottom-nav {
+  flex-shrink: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+/* Quick entry sheet B */
+.quick-entry {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: white;
+  border-radius: 22px 22px 0 0;
+  padding: 0 16px 56px;
+  z-index: 20;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+}
+.quick-entry.open { transform: translateY(0); }
+
+.qe-handle {
+  width: 36px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 12px auto 14px;
+}
+
+.qe-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.qe-icon {
+  width: 34px; height: 34px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.qe-title {
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  color: var(--text-primary);
+  font-weight: 400;
+}
+
+.qe-field {
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 9px 12px;
+  margin-bottom: 8px;
+}
+
+.qe-field-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 6px;
+}
+
+.qe-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+
+.qe-chip {
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: white;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.qe-chip.sel { background: var(--brand); border-color: var(--brand); color: white; }
+
+.qe-btn {
+  width: 100%;
+  background: var(--brand);
+  color: white;
+  border: none;
+  border-radius: 11px;
+  padding: 11px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+/* ═══════════════════════════════
+   OPTION C — Log as Tab
+═══════════════════════════════ */
+
+.c-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.c-header { padding: 6px 14px 10px; flex-shrink: 0; }
+.c-title {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  color: var(--text-primary);
+  font-weight: 400;
+}
+.c-sub { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+.c-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  padding: 0 12px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.c-card {
+  background: white;
+  border-radius: 13px;
+  padding: 10px 11px;
+  border: 1px solid var(--border);
+}
+
+.c-card.hi { background: var(--brand-light); border-color: rgba(224,123,63,0.2); }
+.c-card-icon { font-size: 14px; margin-bottom: 4px; }
+.c-card-value {
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  color: var(--text-primary);
+  font-weight: 400;
+}
+.c-card-label { font-size: 9px; color: var(--text-muted); margin-top: 1px; }
+
+.c-recent { flex: 1; padding: 0 14px; overflow: hidden; }
+
+/* Log tab screen C */
+.c-log-screen {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.c-log-header {
+  padding: 8px 14px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.c-log-title {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  color: var(--text-primary);
+  font-weight: 400;
+}
+
+.c-log-sub { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+.c-log-list {
+  flex: 1;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.c-log-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  border-radius: 12px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.c-log-item:hover { border-color: var(--brand); }
+
+.c-log-item-icon {
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.c-log-info { flex: 1; }
+.c-log-name { font-size: 11.5px; font-weight: 600; color: var(--text-primary); }
+.c-log-hint { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+.c-log-arrow { font-size: 14px; color: var(--text-muted); }
+
+/* 4-tab nav */
+.bottom-nav-c {
+  flex-shrink: 0;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding-bottom: 4px;
+}
+
+.nav-tab-c {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+.nav-tab-c.active { background: var(--brand-light); }
+.nav-tab-c .ni { font-size: 15px; }
+.nav-tab-c .nt { font-size: 8.5px; color: var(--text-muted); font-weight: 500; }
+.nav-tab-c.active .nt { color: var(--brand); font-weight: 600; }
+
+</style>
+</head>
+<body>
+<a href="../index.html" style="position:fixed;top:12px;left:12px;z-index:9999;background:rgba(255,255,255,0.92);border:1px solid rgba(0,0,0,0.12);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:#333;text-decoration:none;box-shadow:0 1px 6px rgba(0,0,0,0.1);backdrop-filter:blur(4px);">← Home</a>
+
+<div class="page-header">
+  <div class="page-eyebrow">DoseEgg · Design Exploration</div>
+  <h1 class="page-title">Exploration 1</h1>
+  <p class="page-subtitle">Three different philosophies for the same problem. Tap the interactive elements on each phone to see the key interaction.</p>
+</div>
+
+<div class="options-grid">
+
+  <!-- ═══ OPTION A ═══ -->
+  <div class="option-wrapper">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="dynamic-island"></div>
+
+        <div class="a-screen">
+          <div class="screen-top-spacer"></div>
+          <div class="a-header">
+            <div>
+              <div class="a-date">Today</div>
+              <div class="a-date-sub">Wednesday, May 6</div>
+            </div>
+            <div class="a-count">3 logs</div>
+          </div>
+
+          <div class="a-timeline">
+            <div class="tl-item planned">
+              <div class="tl-dot" style="background:var(--med)"></div>
+              <div class="tl-body">
+                <div class="tl-time">08:00</div>
+                <div class="tl-text">Levodopa 100mg</div>
+                <span class="tl-tag" style="background:var(--med-bg);color:var(--med)">Planned</span>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot" style="background:var(--mood)"></div>
+              <div class="tl-body">
+                <div class="tl-time">08:20</div>
+                <div class="tl-text">Feeling stiff this morning</div>
+                <span class="tl-tag" style="background:var(--mood-bg);color:var(--mood)">Check-in</span>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot" style="background:var(--med)"></div>
+              <div class="tl-body">
+                <div class="tl-time">10:30</div>
+                <div class="tl-text">Levodopa 100mg</div>
+                <span class="tl-tag" style="background:var(--med-bg);color:var(--med)">Confirmed</span>
+              </div>
+            </div>
+            <div class="on-moment">
+              <div class="on-moment-text">✨ Meds kicked in</div>
+              <div class="on-moment-sub">11:05 · 35 min after dose</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot" style="background:var(--food)"></div>
+              <div class="tl-body">
+                <div class="tl-time">12:15</div>
+                <div class="tl-text">Lunch — low protein</div>
+                <span class="tl-tag" style="background:var(--food-bg);color:var(--food)">Diet</span>
+              </div>
+            </div>
+            <div class="tl-item planned">
+              <div class="tl-dot" style="background:var(--med)"></div>
+              <div class="tl-body">
+                <div class="tl-time">14:00</div>
+                <div class="tl-text">Levodopa 100mg</div>
+                <span class="tl-tag" style="background:var(--med-bg);color:var(--med)">Upcoming</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bottom-nav">
+            <div class="nav-tab active">
+              <span class="ni">📅</span>
+              <span class="nt">Today</span>
+            </div>
+            <div class="nav-tab">
+              <span class="ni">📈</span>
+              <span class="nt">Trends</span>
+            </div>
+            <div class="nav-tab">
+              <span class="ni">👤</span>
+              <span class="nt">Me</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAB -->
+        <div class="fab" id="fab-a" onclick="toggleA()">
+          <span class="fab-plus">+</span>
+        </div>
+
+        <!-- Overlay + Sheet A -->
+        <div class="sheet-overlay" id="overlay-a" onclick="toggleA()"></div>
+        <div class="bottom-sheet" id="sheet-a">
+          <div class="sheet-handle"></div>
+          <div class="sheet-a-inner">
+            <div class="sheet-title">What are you logging?</div>
+            <div class="entry-types">
+              <div class="entry-type">
+                <div class="etype-icon" style="background:var(--med-bg)">💊</div>
+                <div class="etype-label">Meds</div>
+              </div>
+              <div class="entry-type">
+                <div class="etype-icon" style="background:var(--act-bg)">🏃</div>
+                <div class="etype-label">Activity</div>
+              </div>
+              <div class="entry-type">
+                <div class="etype-icon" style="background:var(--food-bg)">🥗</div>
+                <div class="etype-label">Food</div>
+              </div>
+              <div class="entry-type">
+                <div class="etype-icon" style="background:var(--note-bg)">📝</div>
+                <div class="etype-label">Note</div>
+              </div>
+              <div class="entry-type">
+                <div class="etype-icon" style="background:var(--mood-bg)">😊</div>
+                <div class="etype-label">Feeling</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="option-label">
+      <div class="option-tag">Option A</div>
+      <div class="option-name">Today First</div>
+      <div class="option-desc">The timeline IS the app. Planned doses auto-appear; you confirm or edit. The FAB floats above everything — always one tap to log anything.</div>
+      <div class="option-hint">Tap the orange button →</div>
+    </div>
+  </div>
+
+  <!-- ═══ OPTION B ═══ -->
+  <div class="option-wrapper">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="dynamic-island"></div>
+
+        <div class="b-screen">
+          <div class="screen-top-spacer"></div>
+          <div class="b-header">
+            <div class="b-greeting">Good afternoon, <span class="b-name">Sarah</span></div>
+            <div class="b-date">Wednesday · Last log 2h ago</div>
+          </div>
+
+          <div class="status-card">
+            <div class="sc-eyebrow">Current state</div>
+            <div class="sc-state"><span class="sc-on">ON</span> — feeling good</div>
+            <div class="sc-pills">
+              <div class="sc-pill done">Dose 1 ✓</div>
+              <div class="sc-pill done">Dose 2 ✓</div>
+              <div class="sc-pill">Dose 3 ~14:00</div>
+            </div>
+          </div>
+
+          <div class="b-recent">
+            <div class="section-label" style="margin-top:10px;">Recent</div>
+            <div class="log-row">
+              <div class="log-dot" style="background:var(--med)"></div>
+              <div class="log-info">
+                <div class="log-text">Levodopa 100mg</div>
+                <div class="log-time">10:30</div>
+              </div>
+              <div class="log-ago">3h ago</div>
+            </div>
+            <div class="log-row">
+              <div class="log-dot" style="background:var(--food)"></div>
+              <div class="log-info">
+                <div class="log-text">Lunch — low protein</div>
+                <div class="log-time">12:15</div>
+              </div>
+              <div class="log-ago">1.5h ago</div>
+            </div>
+          </div>
+
+          <div class="quick-dock">
+            <div class="dock-btn" onclick="openB('med')">
+              <div class="dock-icon" style="background:var(--med-bg)">💊</div>
+              <div class="dock-label">Meds</div>
+            </div>
+            <div class="dock-btn" onclick="openB('act')">
+              <div class="dock-icon" style="background:var(--act-bg)">🏃</div>
+              <div class="dock-label">Activity</div>
+            </div>
+            <div class="dock-btn" onclick="openB('food')">
+              <div class="dock-icon" style="background:var(--food-bg)">🥗</div>
+              <div class="dock-label">Food</div>
+            </div>
+            <div class="dock-btn" onclick="openB('note')">
+              <div class="dock-icon" style="background:var(--note-bg)">📝</div>
+              <div class="dock-label">Note</div>
+            </div>
+            <div class="dock-btn" onclick="openB('mood')">
+              <div class="dock-icon" style="background:var(--mood-bg)">😊</div>
+              <div class="dock-label">Feeling</div>
+            </div>
+          </div>
+
+          <div class="b-bottom-nav">
+            <div class="nav-tab active">
+              <span class="ni" style="font-size:14px;">🏠</span>
+              <span class="nt" style="color:var(--brand);font-weight:600;font-size:9px;">Home</span>
+            </div>
+            <div class="nav-tab">
+              <span class="ni" style="font-size:14px;">🗓</span>
+              <span class="nt">History</span>
+            </div>
+            <div class="nav-tab">
+              <span class="ni" style="font-size:14px;">👤</span>
+              <span class="nt">Me</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Overlay + Quick Entry Sheet B -->
+        <div class="sheet-overlay" id="overlay-b" onclick="closeB()"></div>
+        <div class="quick-entry" id="qe-b">
+          <div class="qe-handle"></div>
+          <div id="qe-header-b"></div>
+          <div id="qe-body-b"></div>
+        </div>
+
+      </div>
+    </div>
+    <div class="option-label">
+      <div class="option-tag">Option B</div>
+      <div class="option-name">Quick Dock</div>
+      <div class="option-desc">Home shows your current state at a glance. The 5 entry types live in a persistent dock — always visible, each opening a focused mini-form for just that type.</div>
+      <div class="option-hint">Tap any dock icon →</div>
+    </div>
+  </div>
+
+  <!-- ═══ OPTION C ═══ -->
+  <div class="option-wrapper">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="dynamic-island"></div>
+
+        <div class="c-screen">
+          <div class="screen-top-spacer"></div>
+
+          <!-- Home view -->
+          <div id="c-home">
+            <div class="c-header">
+              <div class="c-title">My Day</div>
+              <div class="c-sub">Wednesday, May 6 · 3 logs</div>
+            </div>
+            <div class="c-grid">
+              <div class="c-card hi">
+                <div class="c-card-icon">✨</div>
+                <div class="c-card-value">ON</div>
+                <div class="c-card-label">Current state</div>
+              </div>
+              <div class="c-card">
+                <div class="c-card-icon">💊</div>
+                <div class="c-card-value">2 / 4</div>
+                <div class="c-card-label">Doses today</div>
+              </div>
+              <div class="c-card">
+                <div class="c-card-icon">🏃</div>
+                <div class="c-card-value">30 min</div>
+                <div class="c-card-label">Activity</div>
+              </div>
+              <div class="c-card">
+                <div class="c-card-icon">🥗</div>
+                <div class="c-card-value">Low</div>
+                <div class="c-card-label">Protein</div>
+              </div>
+            </div>
+            <div class="c-recent">
+              <div class="section-label">Recent</div>
+              <div class="log-row" style="margin-top:6px">
+                <div class="log-dot" style="background:var(--med)"></div>
+                <div class="log-info">
+                  <div class="log-text">Levodopa 100mg</div>
+                  <div class="log-time">10:30</div>
+                </div>
+                <div class="log-ago">3h ago</div>
+              </div>
+              <div class="log-row">
+                <div class="log-dot" style="background:var(--food)"></div>
+                <div class="log-info">
+                  <div class="log-text">Lunch — low protein</div>
+                  <div class="log-time">12:15</div>
+                </div>
+                <div class="log-ago">1.5h ago</div>
+              </div>
+              <div class="log-row">
+                <div class="log-dot" style="background:var(--mood)"></div>
+                <div class="log-info">
+                  <div class="log-text">Feeling great — ON</div>
+                  <div class="log-time">11:05</div>
+                </div>
+                <div class="log-ago">2.5h ago</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Log tab view -->
+          <div class="c-log-screen" id="c-log">
+            <div class="c-log-header">
+              <div class="c-log-title">Add Entry</div>
+              <div class="c-log-sub">What happened just now?</div>
+            </div>
+            <div class="c-log-list">
+              <div class="c-log-item">
+                <div class="c-log-item-icon" style="background:var(--med-bg)">💊</div>
+                <div class="c-log-info">
+                  <div class="c-log-name">Medication</div>
+                  <div class="c-log-hint">Log a dose</div>
+                </div>
+                <div class="c-log-arrow">›</div>
+              </div>
+              <div class="c-log-item">
+                <div class="c-log-item-icon" style="background:var(--act-bg)">🏃</div>
+                <div class="c-log-info">
+                  <div class="c-log-name">Activity</div>
+                  <div class="c-log-hint">Workout or movement</div>
+                </div>
+                <div class="c-log-arrow">›</div>
+              </div>
+              <div class="c-log-item">
+                <div class="c-log-item-icon" style="background:var(--food-bg)">🥗</div>
+                <div class="c-log-info">
+                  <div class="c-log-name">Food & Protein</div>
+                  <div class="c-log-hint">Meal or snack</div>
+                </div>
+                <div class="c-log-arrow">›</div>
+              </div>
+              <div class="c-log-item">
+                <div class="c-log-item-icon" style="background:var(--note-bg)">📝</div>
+                <div class="c-log-info">
+                  <div class="c-log-name">Note / Symptom</div>
+                  <div class="c-log-hint">How you're feeling</div>
+                </div>
+                <div class="c-log-arrow">›</div>
+              </div>
+              <div class="c-log-item">
+                <div class="c-log-item-icon" style="background:var(--mood-bg)">😊</div>
+                <div class="c-log-info">
+                  <div class="c-log-name">Quick Check-in</div>
+                  <div class="c-log-hint">State right now</div>
+                </div>
+                <div class="c-log-arrow">›</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bottom-nav-c">
+            <div class="nav-tab-c active" id="ct-home" onclick="switchC('home')">
+              <span class="ni">🏠</span>
+              <span class="nt">Home</span>
+            </div>
+            <div class="nav-tab-c" id="ct-log" onclick="switchC('log')">
+              <span class="ni">✏️</span>
+              <span class="nt">Log</span>
+            </div>
+            <div class="nav-tab-c" id="ct-trends" onclick="switchC('trends')">
+              <span class="ni">📈</span>
+              <span class="nt">Trends</span>
+            </div>
+            <div class="nav-tab-c" id="ct-me" onclick="switchC('me')">
+              <span class="ni">👤</span>
+              <span class="nt">Me</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="option-label">
+      <div class="option-tag">Option C</div>
+      <div class="option-name">Log as Tab</div>
+      <div class="option-desc">Home is a summary dashboard. Logging lives in its own tab — a clear menu of entry types. Review and input are deliberately separated.</div>
+      <div class="option-hint">Tap the ✏️ Log tab →</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Option A ──
+function toggleA() {
+  const sheet = document.getElementById('sheet-a');
+  const overlay = document.getElementById('overlay-a');
+  const fab = document.getElementById('fab-a');
+  const isOpen = sheet.classList.contains('open');
+  sheet.classList.toggle('open');
+  overlay.classList.toggle('open');
+  fab.classList.toggle('open');
+}
+
+// ── Option B ──
+const entryConfigs = {
+  med: {
+    icon: '💊', bg: 'var(--med-bg)', title: 'Log Medication',
+    html: `
+      <div class="qe-field">
+        <div class="qe-field-label">Medication</div>
+        <div class="qe-chips">
+          <div class="qe-chip sel">Levodopa 100mg</div>
+          <div class="qe-chip">Levodopa 50mg</div>
+        </div>
+      </div>
+      <div class="qe-field">
+        <div class="qe-field-label">Time</div>
+        <div class="qe-chips">
+          <div class="qe-chip sel">Now · 13:42</div>
+          <div class="qe-chip">Custom</div>
+        </div>
+      </div>
+      <button class="qe-btn">Log Dose</button>`
+  },
+  act: {
+    icon: '🏃', bg: 'var(--act-bg)', title: 'Log Activity',
+    html: `
+      <div class="qe-field">
+        <div class="qe-field-label">Type</div>
+        <div class="qe-chips">
+          <div class="qe-chip">Walk</div>
+          <div class="qe-chip sel">Exercise</div>
+          <div class="qe-chip">Stretching</div>
+        </div>
+      </div>
+      <div class="qe-field">
+        <div class="qe-field-label">Duration</div>
+        <div class="qe-chips">
+          <div class="qe-chip">15 min</div>
+          <div class="qe-chip sel">30 min</div>
+          <div class="qe-chip">1 hr</div>
+        </div>
+      </div>
+      <button class="qe-btn">Log Activity</button>`
+  },
+  food: {
+    icon: '🥗', bg: 'var(--food-bg)', title: 'Log Food',
+    html: `
+      <div class="qe-field">
+        <div class="qe-field-label">Protein level</div>
+        <div class="qe-chips">
+          <div class="qe-chip sel">Low</div>
+          <div class="qe-chip">Medium</div>
+          <div class="qe-chip">High</div>
+        </div>
+      </div>
+      <div class="qe-field">
+        <div class="qe-field-label">Meal</div>
+        <div class="qe-chips">
+          <div class="qe-chip">Breakfast</div>
+          <div class="qe-chip sel">Lunch</div>
+          <div class="qe-chip">Dinner</div>
+          <div class="qe-chip">Snack</div>
+        </div>
+      </div>
+      <button class="qe-btn">Log Meal</button>`
+  },
+  note: {
+    icon: '📝', bg: 'var(--note-bg)', title: 'Add Note',
+    html: `
+      <div class="qe-field">
+        <div class="qe-field-label">Symptom tag</div>
+        <div class="qe-chips">
+          <div class="qe-chip">Tremor</div>
+          <div class="qe-chip sel">Stiffness</div>
+          <div class="qe-chip">Fatigue</div>
+        </div>
+      </div>
+      <div class="qe-field" style="min-height:44px;">
+        <div class="qe-field-label">Note</div>
+        <div style="font-size:11px;color:var(--text-muted);padding-top:4px;">Tap to write…</div>
+      </div>
+      <button class="qe-btn">Save Note</button>`
+  },
+  mood: {
+    icon: '😊', bg: 'var(--mood-bg)', title: 'Check-in',
+    html: `
+      <div class="qe-field">
+        <div class="qe-field-label">How are you right now?</div>
+        <div class="qe-chips" style="justify-content:center;gap:6px;padding:4px 0;">
+          <div class="qe-chip" style="font-size:17px;padding:3px 8px;">😞</div>
+          <div class="qe-chip" style="font-size:17px;padding:3px 8px;">😐</div>
+          <div class="qe-chip sel" style="font-size:17px;padding:3px 8px;">🙂</div>
+          <div class="qe-chip" style="font-size:17px;padding:3px 8px;">😊</div>
+        </div>
+      </div>
+      <div class="qe-field">
+        <div class="qe-field-label">State</div>
+        <div class="qe-chips">
+          <div class="qe-chip sel">ON — moving well</div>
+          <div class="qe-chip">OFF — feeling slow</div>
+        </div>
+      </div>
+      <button class="qe-btn">Save Check-in</button>`
+  }
+};
+
+function openB(type) {
+  const cfg = entryConfigs[type];
+  document.getElementById('qe-header-b').innerHTML = `
+    <div class="qe-header">
+      <div class="qe-icon" style="background:${cfg.bg}">${cfg.icon}</div>
+      <div class="qe-title">${cfg.title}</div>
+    </div>`;
+  document.getElementById('qe-body-b').innerHTML = cfg.html;
+  document.getElementById('qe-b').classList.add('open');
+  document.getElementById('overlay-b').classList.add('open');
+}
+
+function closeB() {
+  document.getElementById('qe-b').classList.remove('open');
+  document.getElementById('overlay-b').classList.remove('open');
+}
+
+// ── Option C ──
+function switchC(tab) {
+  ['home','log','trends','me'].forEach(t => {
+    document.getElementById('ct-' + t).classList.remove('active');
+  });
+  document.getElementById('ct-' + tab).classList.add('active');
+
+  const homeEl = document.getElementById('c-home');
+  const logEl = document.getElementById('c-log');
+
+  if (tab === 'log') {
+    homeEl.style.display = 'none';
+    logEl.style.display = 'flex';
+  } else {
+    homeEl.style.display = 'block';
+    logEl.style.display = 'none';
+  }
+}
+</script>
+</body>
+</html>

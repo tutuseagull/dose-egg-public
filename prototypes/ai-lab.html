@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>DoseEgg · AI Lab · Local model test</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #FFFFFF;
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  color: #111;
+}
+
+/* ── Demo bar ── */
+.demo-bar {
+  background: #222;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 6px 8px;
+  padding-top: calc(6px + env(safe-area-inset-top));
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.demo-bar .db-label { opacity: 0.85; }
+.demo-btn {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: white;
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 10px;
+  padding: 3px 9px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.demo-btn.active { background: white; color: #222; }
+.demo-btn:active { opacity: 0.7; }
+
+/* ── Engine status ── */
+.engine-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 20px;
+  border-bottom: 1px solid #EBEBEB;
+  flex-wrap: wrap;
+}
+.engine-status { font-size: 12px; color: #888; display: flex; align-items: center; gap: 6px; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #DDD; flex-shrink: 0; }
+.status-dot.ok { background: #2E9E5B; }
+.status-dot.busy { background: #E8A13C; }
+.status-dot.err { background: #D24B3F; }
+.engine-detail { font-size: 11px; color: #BBB; }
+.text-btn {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  background: none;
+  border: 1.5px solid #333;
+  border-radius: 16px;
+  padding: 5px 14px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.text-btn:disabled { opacity: 0.35; cursor: default; }
+.text-btn:active:not(:disabled) { opacity: 0.7; }
+
+/* ── Setup panel ── */
+.setup {
+  margin: 10px 16px;
+  border: 1px dashed #CCC;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #555;
+}
+.setup summary { font-size: 12px; font-weight: 700; color: #333; cursor: pointer; }
+.setup code {
+  background: #F4F4F4;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 11.5px;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+}
+.setup p { margin-top: 8px; }
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  gap: 6px;
+  padding: 12px 16px 4px;
+  flex-shrink: 0;
+}
+.tab {
+  font-size: 13px;
+  font-weight: 600;
+  color: #999;
+  background: none;
+  border: 1.5px solid #E4E4E4;
+  border-radius: 18px;
+  padding: 7px 15px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.tab.active { color: white; background: #222; border-color: #222; }
+.tab:active { opacity: 0.7; }
+
+.panel { display: none; padding: 10px 16px 60px; flex: 1; }
+.panel.active { display: block; }
+.panel-hint { font-size: 12.5px; color: #999; line-height: 1.5; margin: 4px 2px 12px; }
+
+/* ── Free-text input ── */
+.log-input-wrap { display: flex; flex-direction: column; gap: 8px; }
+textarea.log-input {
+  width: 100%;
+  min-height: 74px;
+  border: 1.5px solid #222;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-family: inherit;
+  resize: vertical;
+  color: #111;
+}
+textarea.log-input:focus { outline: none; }
+.chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  font-size: 12px;
+  color: #777;
+  background: #F5F5F5;
+  border: none;
+  border-radius: 14px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.chip:active { background: #EAEAEA; }
+
+/* ── Buttons ── */
+.c-btn {
+  font-size: 14px;
+  padding: 9px 20px;
+  border: 1.5px solid #333;
+  border-radius: 22px;
+  background: white;
+  cursor: pointer;
+  font-weight: 500;
+  font-family: inherit;
+  min-height: 40px;
+}
+.c-btn.primary { background: #222; color: white; border-color: #222; }
+.c-btn:disabled { opacity: 0.35; cursor: default; }
+.c-btn:active:not(:disabled) { opacity: 0.7; }
+
+/* ── Confirmation cards ── */
+.confirm-card {
+  margin: 10px 0 0;
+  border: 1.5px solid #222;
+  border-radius: 12px;
+  padding: 12px 14px;
+  animation: cardIn 0.25s ease;
+}
+@keyframes cardIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.confirm-q { font-size: 14px; font-weight: 600; color: #111; margin-bottom: 3px; }
+.confirm-time { font-size: 11px; color: #999; margin-bottom: 9px; }
+.confirm-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+.confirm-card input {
+  font-size: 14px;
+  font-family: inherit;
+  border: none;
+  border-bottom: 1px solid #DDD;
+  padding: 2px 0;
+  color: #111;
+  width: 100%;
+}
+.confirm-card input:focus { outline: none; border-bottom-color: #222; }
+.confirm-card input.time-input { width: 72px; font-size: 12px; color: #666; }
+
+/* ── Timeline of confirmed entries ── */
+.day-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #CCCCCC;
+  padding: 16px 4px 3px;
+}
+.tl-entry { display: flex; align-items: flex-start; gap: 12px; padding: 9px 4px; }
+.tl-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid #222;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+.tl-dot.filled { background: #222; }
+.tl-body { flex: 1; }
+.tl-label { font-size: 14.5px; color: #111; }
+.tl-note { font-size: 12px; color: #999; margin-top: 1px; }
+.tl-time { font-size: 12px; color: #BBB; flex-shrink: 0; margin-top: 2px; }
+
+/* ── AI output block ── */
+.ai-output {
+  margin-top: 12px;
+  border: 1px solid #E4E4E4;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: #222;
+  white-space: pre-wrap;
+}
+.ai-output:empty { display: none; }
+.ai-disclaimer {
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: #999;
+  line-height: 1.5;
+}
+.thinking { font-size: 13px; color: #999; margin-top: 12px; display: none; }
+.thinking.on { display: block; }
+.thinking::after {
+  content: '';
+  display: inline-block;
+  width: 1em;
+  animation: dots 1.2s steps(4, end) infinite;
+}
+@keyframes dots { 0% { content: ''; } 25% { content: '·'; } 50% { content: '··'; } 75% { content: '···'; } }
+
+.sample-note { font-size: 11.5px; color: #BBB; margin: 10px 2px 0; }
+.err-msg { font-size: 12.5px; color: #D24B3F; margin-top: 10px; line-height: 1.5; }
+.gen-meta { font-size: 11px; color: #BBB; margin-top: 6px; font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
+.gen-meta:empty { display: none; }
+
+/* ── Admin panel ── */
+.admin-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.admin-field label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #999;
+  margin-bottom: 4px;
+}
+.admin-field select {
+  width: 100%;
+  font-size: 13px;
+  font-family: inherit;
+  color: #111;
+  padding: 8px 10px;
+  border: 1.5px solid #E4E4E4;
+  border-radius: 10px;
+  background: white;
+}
+.admin-field .field-hint { font-size: 11px; color: #BBB; margin-top: 4px; line-height: 1.45; }
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <span class="db-label">AI Lab · runs on this device</span>
+  <button class="demo-btn" id="btn-webllm" onclick="setEngine('webllm')">In-browser</button>
+  <button class="demo-btn" id="btn-ollama" onclick="setEngine('ollama')">Ollama</button>
+</div>
+
+<div class="engine-row">
+  <div class="engine-status">
+    <span class="status-dot" id="status-dot"></span>
+    <span id="status-text">No engine loaded</span>
+    <span class="engine-detail" id="status-detail"></span>
+  </div>
+  <button class="text-btn" id="btn-load" onclick="loadEngine()">Load model</button>
+</div>
+
+<details class="setup">
+  <summary>Admin — model switch</summary>
+  <div class="admin-grid">
+    <div class="admin-field">
+      <label>In-browser model (WebLLM)</label>
+      <select id="sel-webllm"></select>
+      <div class="field-hint">Bigger = better language, longer download. Changing the model needs a re-load.</div>
+    </div>
+    <div class="admin-field">
+      <label>Ollama model</label>
+      <select id="sel-ollama"><option value="">— load Ollama engine first —</option></select>
+      <div class="field-hint">Lists whatever you've pulled (<code>ollama pull qwen3:8b</code>, <code>gemma3:12b</code>…). Switching is instant.</div>
+    </div>
+  </div>
+  <p>Every AI reply below is stamped with the model and generation time, so you can compare models on the same task. Your selection is remembered on this browser.</p>
+</details>
+
+<details class="setup">
+  <summary>Setup — how the two engines work</summary>
+  <p><strong>In-browser (WebLLM):</strong> downloads a small open model (Qwen 2.5, 1.5B) once (~950 MB) and runs it inside this page with WebGPU. Nothing you type ever leaves this device. Needs a recent Mac/PC and Chrome, Edge, or Safari 18+. Phones mostly not supported yet.</p>
+  <p><strong>Ollama (this computer):</strong> better quality, needs Ollama installed. In Terminal: <code>brew install ollama</code>, then <code>ollama pull qwen2.5:3b</code>. To let this page talk to it, start it with <code>OLLAMA_ORIGINS="*" ollama serve</code>. Also private — the model runs on your machine, no internet needed.</p>
+  <p><strong>Tip:</strong> if the page is opened as a local file and Ollama refuses to connect, serve the folder instead: <code>cd prototypes && python3 -m http.server 8000</code>, then open <code>http://localhost:8000/ai-lab.html</code>.</p>
+</details>
+
+<div class="tabs">
+  <button class="tab active" data-tab="log" onclick="setTab('log')">Log</button>
+  <button class="tab" data-tab="summary" onclick="setTab('summary')">Doctor visit</button>
+  <button class="tab" data-tab="patterns" onclick="setTab('patterns')">Patterns</button>
+</div>
+
+<!-- ── TAB 1: natural-language logging ── -->
+<div class="panel active" id="panel-log">
+  <p class="panel-hint">Write your day in your own words. The AI suggests entries — nothing is saved until you confirm each one.</p>
+  <div class="log-input-wrap">
+    <textarea class="log-input" id="log-text" placeholder="e.g. took my morning dose around 8:30, walked to the market, felt stiff after lunch"></textarea>
+    <div class="chip-row">
+      <button class="chip" onclick="fillExample(0)">morning dose + walk</button>
+      <button class="chip" onclick="fillExample(1)">stiff afternoon</button>
+      <button class="chip" onclick="fillExample(2)">中文 example</button>
+    </div>
+    <button class="c-btn primary" id="btn-parse" onclick="runParse()" disabled>Suggest entries</button>
+  </div>
+  <div class="thinking" id="think-log">Reading your note</div>
+  <div class="err-msg" id="err-log"></div>
+  <div class="gen-meta" id="meta-log"></div>
+  <div id="card-area"></div>
+  <div id="confirmed-area"></div>
+</div>
+
+<!-- ── TAB 2: doctor summary ── -->
+<div class="panel" id="panel-summary">
+  <p class="panel-hint">Turns the past week of entries into a draft you could bring to a neurologist visit. It only describes what was logged — it never guesses.</p>
+  <button class="c-btn primary" id="btn-summary" onclick="runSummary()" disabled>Draft visit summary</button>
+  <div class="thinking" id="think-summary">Reading the week</div>
+  <div class="err-msg" id="err-summary"></div>
+  <div class="ai-output" id="out-summary"></div>
+  <div class="ai-disclaimer" id="disc-summary" style="display:none">Draft written by an on-device AI from your entries. Please read it and change anything that doesn't sound right before sharing.</div>
+  <div class="gen-meta" id="meta-summary"></div>
+  <p class="sample-note">Using 7 days of sample entries for this test.</p>
+</div>
+
+<!-- ── TAB 3: patterns ── -->
+<div class="panel" id="panel-patterns">
+  <p class="panel-hint">The AI looks across the week and notes things that happened near each other. These are observations, not conclusions — and days with no entries are simply unknown, not empty.</p>
+  <button class="c-btn primary" id="btn-patterns" onclick="runPatterns()" disabled>Look across the week</button>
+  <div class="thinking" id="think-patterns">Looking across days</div>
+  <div class="err-msg" id="err-patterns"></div>
+  <div class="ai-output" id="out-patterns"></div>
+  <div class="ai-disclaimer" id="disc-patterns" style="display:none">Noticed by an on-device AI. A week is a small window — patterns may not hold.</div>
+  <div class="gen-meta" id="meta-patterns"></div>
+  <p class="sample-note">Using 7 days of sample entries for this test.</p>
+</div>
+
+<script type="module">
+/* ═══════════════ SAMPLE DATA — one week ═══════════════ */
+const SAMPLE_WEEK = [
+  { day: "Mon", entries: [
+    { time:"07:50", type:"med", label:"Levodopa dose", note:"" },
+    { time:"09:30", type:"activity", label:"Walk in the park", note:"about 30 min" },
+    { time:"13:40", type:"symptom", label:"Stiffness", note:"left arm, after lunch" },
+    { time:"14:00", type:"med", label:"Levodopa dose", note:"" },
+    { time:"23:10", type:"rest", label:"Went to bed", note:"" } ]},
+  { day: "Tue", entries: [
+    { time:"08:20", type:"med", label:"Levodopa dose", note:"a little later than usual" },
+    { time:"12:30", type:"symptom", label:"Tremor", note:"right hand, during lunch" },
+    { time:"14:05", type:"med", label:"Levodopa dose", note:"" },
+    { time:"16:00", type:"activity", label:"Grocery shopping", note:"" } ]},
+  { day: "Wed", entries: [
+    { time:"07:45", type:"med", label:"Levodopa dose", note:"" },
+    { time:"10:00", type:"activity", label:"Tai chi class", note:"felt loose afterwards" },
+    { time:"14:00", type:"med", label:"Levodopa dose", note:"" } ]},
+  { day: "Thu", entries: [
+    { time:"08:00", type:"med", label:"Levodopa dose", note:"" },
+    { time:"11:30", type:"symptom", label:"Slowness", note:"hard to start moving before next dose" },
+    { time:"13:55", type:"med", label:"Levodopa dose", note:"" },
+    { time:"20:30", type:"note", label:"Short night before", note:"slept about 5 hours" } ]},
+  { day: "Fri", entries: [
+    { time:"07:55", type:"med", label:"Levodopa dose", note:"" },
+    { time:"09:00", type:"activity", label:"Walk in the park", note:"" },
+    { time:"14:00", type:"med", label:"Levodopa dose", note:"" } ]},
+  { day: "Sat", entries: [
+    { time:"09:10", type:"med", label:"Levodopa dose", note:"slept in" },
+    { time:"12:00", type:"symptom", label:"Stiffness", note:"before the dose kicked in" },
+    { time:"15:00", type:"activity", label:"Lunch with friends", note:"" } ]},
+  { day: "Sun", entries: [
+    { time:"08:00", type:"med", label:"Levodopa dose", note:"" },
+    { time:"14:00", type:"med", label:"Levodopa dose", note:"" },
+    { time:"17:00", type:"activity", label:"Gardening", note:"about an hour" } ]},
+];
+
+const EXAMPLES = [
+  "took my morning dose around 8:30, then walked to the market with my wife",
+  "meds started wearing off around 1, really stiff, hard to get up from the chair. took my 2pm dose a bit early",
+  "早上八点吃了药，九点左右药效上来了，中午off了大概一小时，右手有点抖"
+];
+
+/* ═══════════════ TONE RULES (shared system prompt) ═══════════════ */
+const SYSTEM_PROMPT = `You help a person with Parkinson's keep a personal daily journal.
+Rules you must always follow:
+- Neutral, warm, plain language. Like a quiet notebook, not a coach.
+- Never praise, grade, score, or judge. No "great job", no "you should".
+- Never give medical advice. Never suggest changing medication or doses.
+- Only describe what is in the data. If something was not logged, it is unknown — not absent.
+- Keep it short.`;
+
+/* ═══════════════ PD KNOWLEDGE LAYER ═══════════════
+   Compact glossary + few-shot examples injected into prompts.
+   Sourced from docs/glossary.html and levodopa-thresholds.html.
+   Curated, not exhaustive — long prompts make small models worse. */
+const PD_GLOSSARY = `Parkinson's terms the person may use (English / 中文):
+- ON state 开期: medication working, movement fluid ("on了", "药效上来了", "meds kicked in")
+- OFF state 关期: medication worn off or not yet working — stiff, slow, frozen ("off了", "药效过了")
+- Wearing-off 剂末现象: effect fading before the next dose is due
+- Tremor 震颤 / 手抖: shaking, typically in OFF state
+- Dyskinesia 异动症: involuntary writhing or twisting movements, typically at PEAK dose — the opposite state from tremor. Never merge the two.
+- Bradykinesia 运动迟缓: slowness, difficulty starting a movement
+- Rigidity 僵直: stiffness
+- Freezing of gait 冻结步态: feet suddenly stuck / "glued" to the floor
+- Chest tightness 胸闷: a real PD non-motor symptom, worth logging
+- Protein-heavy meals can affect levodopa absorption — keep meal details mentioned near doses.
+Important: recognize these terms, but keep the person's own words in the note. Never infer an ON/OFF state they did not describe.`;
+
+const FEW_SHOT = `Example note: "took my pill at 9 and felt shaky before lunch"
+Example reply: [{"type":"med","label":"Took pill","time":"09:00","note":""},{"type":"symptom","label":"Tremor","time":null,"note":"felt shaky before lunch"}]
+Example note: "meds wearing off around 1pm, so stiff I couldn't get up from the chair"
+Example reply: [{"type":"state","label":"Wearing-off","time":"13:00","note":"so stiff, couldn't get up from the chair"}]
+Example note: "八点吃药，九点药效上来了，中午off了一小时"
+Example reply: [{"type":"med","label":"吃药","time":"08:00","note":""},{"type":"state","label":"开期 On","time":"09:00","note":"药效上来了"},{"type":"state","label":"关期 Off","time":"12:00","note":"off了大概一小时"}]
+Example note: "feet got glued at the kitchen doorway this morning, scary. big steak lunch then took my 2pm dose"
+Example reply: [{"type":"symptom","label":"Freezing of gait","time":null,"note":"feet glued at the kitchen doorway, scary"},{"type":"meal","label":"Steak lunch","time":null,"note":"protein-heavy, before 2pm dose"},{"type":"med","label":"Took dose","time":"14:00","note":""}]`;
+
+/* ═══════════════ ENGINE LAYER ═══════════════ */
+const WEBLLM_MODELS = [
+  { id: "Qwen2.5-1.5B-Instruct-q4f16_1-MLC", label: "Qwen 2.5 · 1.5B (~950 MB, fast)" },
+  { id: "Qwen2.5-3B-Instruct-q4f16_1-MLC",   label: "Qwen 2.5 · 3B (~1.9 GB, better)" },
+  { id: "Llama-3.2-1B-Instruct-q4f16_1-MLC", label: "Llama 3.2 · 1B (~700 MB, fastest)" },
+  { id: "Llama-3.2-3B-Instruct-q4f16_1-MLC", label: "Llama 3.2 · 3B (~1.8 GB)" },
+  { id: "Phi-3.5-mini-instruct-q4f16_1-MLC", label: "Phi 3.5 mini · 3.8B (~2.2 GB)" },
+  { id: "gemma-2-2b-it-q4f16_1-MLC",         label: "Gemma 2 · 2B (~1.4 GB)" },
+];
+const OLLAMA_BASE = "http://localhost:11434";
+let engineType = null;      // 'webllm' | 'ollama'
+let webllmEngine = null;
+let webllmLoadedModel = null;
+let ollamaModel = null;
+let ready = false;
+let lastGen = null;         // { model, ms }
+
+const $ = id => document.getElementById(id);
+const dot = $("status-dot"), stext = $("status-text"), sdetail = $("status-detail");
+
+/* remembered choices (admin) */
+const store = {
+  get: k => { try { return localStorage.getItem("ailab-" + k); } catch { return null; } },
+  set: (k, v) => { try { localStorage.setItem("ailab-" + k, v); } catch {} }
+};
+
+/* populate WebLLM select */
+const selWebllm = $("sel-webllm"), selOllama = $("sel-ollama");
+WEBLLM_MODELS.forEach(m => selWebllm.add(new Option(m.label, m.id)));
+selWebllm.value = store.get("webllm-model") || WEBLLM_MODELS[0].id;
+selWebllm.onchange = () => {
+  store.set("webllm-model", selWebllm.value);
+  if (engineType === "webllm" && selWebllm.value !== webllmLoadedModel) {
+    setReady(false);
+    setStatus("", "Model changed — press Load model");
+  }
+};
+selOllama.onchange = () => {
+  if (!selOllama.value) return;
+  ollamaModel = selOllama.value;
+  store.set("ollama-model", ollamaModel);
+  if (engineType === "ollama" && ready) setStatus("ok", "Ready — Ollama", ollamaModel + " · runs on this computer");
+};
+
+function setStatus(state, text, detail = "") {
+  dot.className = "status-dot " + state;
+  stext.textContent = text;
+  sdetail.textContent = detail;
+}
+function setReady(v) {
+  ready = v;
+  ["btn-parse","btn-summary","btn-patterns"].forEach(id => $(id).disabled = !v);
+}
+
+window.setEngine = function(type) {
+  engineType = type;
+  $("btn-webllm").classList.toggle("active", type === "webllm");
+  $("btn-ollama").classList.toggle("active", type === "ollama");
+  setReady(false);
+  setStatus("", type === "webllm"
+    ? "In-browser model selected — press Load model"
+    : "Ollama selected — press Load model");
+};
+
+window.loadEngine = async function() {
+  if (!engineType) { setStatus("err", "Choose an engine first (top bar)"); return; }
+  $("btn-load").disabled = true;
+  try {
+    if (engineType === "webllm") await loadWebLLM();
+    else await loadOllama();
+    setReady(true);
+  } catch (e) {
+    setStatus("err", "Couldn't load", e.message.slice(0, 120));
+  }
+  $("btn-load").disabled = false;
+};
+
+async function loadWebLLM() {
+  if (!navigator.gpu) throw new Error("This browser has no WebGPU — try Chrome or Edge, or use Ollama.");
+  const modelId = selWebllm.value;
+  const label = WEBLLM_MODELS.find(m => m.id === modelId)?.label || modelId;
+  setStatus("busy", "Downloading model", "first time per model — see size in admin panel");
+  const webllm = await import("https://esm.run/@mlc-ai/web-llm");
+  webllmEngine = await webllm.CreateMLCEngine(modelId, {
+    initProgressCallback: p => setStatus("busy", "Loading model", Math.round(p.progress * 100) + "%")
+  });
+  webllmLoadedModel = modelId;
+  setStatus("ok", "Ready — in-browser", label + " · data stays on this device");
+}
+
+async function loadOllama() {
+  setStatus("busy", "Connecting to Ollama");
+  const res = await fetch(OLLAMA_BASE + "/api/tags").catch(() => {
+    throw new Error("Can't reach Ollama at localhost:11434. Is it running? See Setup above.");
+  });
+  const data = await res.json();
+  const models = (data.models || []).map(m => m.name);
+  if (!models.length) throw new Error("Ollama is running but has no models. Run: ollama pull qwen3:8b");
+  selOllama.innerHTML = "";
+  models.forEach(m => selOllama.add(new Option(m, m)));
+  const saved = store.get("ollama-model");
+  ollamaModel = models.includes(saved) ? saved
+    : models.find(m => /qwen|llama|gemma|phi|mistral/i.test(m)) || models[0];
+  selOllama.value = ollamaModel;
+  setStatus("ok", "Ready — Ollama", ollamaModel + " · runs on this computer");
+}
+
+async function chat(userPrompt) {
+  const messages = [
+    { role: "system", content: SYSTEM_PROMPT },
+    { role: "user", content: userPrompt }
+  ];
+  const t0 = performance.now();
+  let content, modelName;
+  if (engineType === "webllm") {
+    const r = await webllmEngine.chat.completions.create({ messages, temperature: 0.2, max_tokens: 700 });
+    content = r.choices[0].message.content;
+    modelName = WEBLLM_MODELS.find(m => m.id === webllmLoadedModel)?.label.split(" (")[0] || webllmLoadedModel;
+  } else {
+    const r = await fetch(OLLAMA_BASE + "/api/chat", {
+      method: "POST",
+      body: JSON.stringify({ model: ollamaModel, messages, stream: false, options: { temperature: 0.2 } })
+    });
+    if (!r.ok) throw new Error("Ollama error " + r.status);
+    content = (await r.json()).message.content;
+    modelName = ollamaModel;
+  }
+  lastGen = { model: modelName, ms: performance.now() - t0 };
+  return content;
+}
+
+function stampMeta(id) {
+  if (lastGen) $(id).textContent = lastGen.model + " · " + (lastGen.ms / 1000).toFixed(1) + "s";
+}
+
+/* ═══════════════ TABS ═══════════════ */
+window.setTab = function(name) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === name));
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+  $("panel-" + name).classList.add("active");
+};
+
+/* ═══════════════ FEATURE 1 — parse free text into entries ═══════════════ */
+window.fillExample = i => { $("log-text").value = EXAMPLES[i]; };
+
+function extractJSON(text) {
+  const start = text.indexOf("["), end = text.lastIndexOf("]");
+  if (start === -1 || end === -1) throw new Error("no JSON array in reply");
+  return JSON.parse(text.slice(start, end + 1));
+}
+
+window.runParse = async function() {
+  const text = $("log-text").value.trim();
+  if (!text) return;
+  $("err-log").textContent = ""; $("meta-log").textContent = "";
+  $("card-area").innerHTML = "";
+  $("think-log").classList.add("on");
+  $("btn-parse").disabled = true;
+  const now = new Date().toTimeString().slice(0, 5);
+  const prompt = `Turn this journal note into structured entries.
+${PD_GLOSSARY}
+Reply with ONLY a JSON array, nothing else. Each item:
+{"type":"med"|"symptom"|"state"|"activity"|"meal"|"rest"|"note","label":"2-5 word label","time":"HH:MM or null","note":"short detail or empty string"}
+"state" is for ON/OFF/wearing-off mentions. Current time is ${now} (for phrases like "an hour ago"). Labels in the same language the note is written in.
+${FEW_SHOT}
+Note: "${text.replace(/"/g, "'")}"`;
+  try {
+    const reply = await chat(prompt);
+    stampMeta("meta-log");
+    const entries = extractJSON(reply);
+    if (!entries.length) throw new Error("empty");
+    entries.forEach(renderConfirmCard);
+  } catch (e) {
+    $("err-log").textContent = "The model's reply couldn't be read as entries — try again, or rephrase slightly. (" + e.message.slice(0, 80) + ")";
+  }
+  $("think-log").classList.remove("on");
+  $("btn-parse").disabled = false;
+};
+
+const TYPE_WORD = { med: "Medication", symptom: "Symptom", state: "On/Off state", activity: "Activity", meal: "Meal", rest: "Rest", note: "Note" };
+
+function renderConfirmCard(entry) {
+  const card = document.createElement("div");
+  card.className = "confirm-card";
+  card.innerHTML = `
+    <div class="confirm-q"><input value="${esc(entry.label || "Entry")}"></div>
+    <div class="confirm-time">${TYPE_WORD[entry.type] || "Note"} · <input class="time-input" value="${esc(entry.time || "")}" placeholder="time?">${entry.note ? " · " + esc(entry.note) : ""}</div>
+    <div class="confirm-actions">
+      <button class="c-btn primary">Add to today</button>
+      <button class="c-btn">Skip</button>
+    </div>`;
+  const [okBtn, skipBtn] = card.querySelectorAll(".c-btn");
+  okBtn.onclick = () => {
+    const label = card.querySelector(".confirm-q input").value;
+    const time = card.querySelector(".time-input").value;
+    addConfirmed({ ...entry, label, time });
+    card.remove();
+  };
+  skipBtn.onclick = () => card.remove();
+  $("card-area").appendChild(card);
+}
+
+function addConfirmed(entry) {
+  let area = $("confirmed-area");
+  if (!area.querySelector(".day-label")) {
+    area.innerHTML = `<div class="day-label">Today</div>`;
+  }
+  const row = document.createElement("div");
+  row.className = "tl-entry";
+  row.innerHTML = `
+    <div class="tl-dot ${entry.type === "med" ? "filled" : ""}"></div>
+    <div class="tl-body">
+      <div class="tl-label">${esc(entry.label)}</div>
+      ${entry.note ? `<div class="tl-note">${esc(entry.note)}</div>` : ""}
+    </div>
+    <div class="tl-time">${esc(entry.time || "")}</div>`;
+  area.appendChild(row);
+}
+
+function esc(s) { return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+/* ═══════════════ FEATURE 2 — doctor visit summary ═══════════════ */
+function weekAsText() {
+  return SAMPLE_WEEK.map(d =>
+    d.day + ":\n" + d.entries.map(e => `  ${e.time} ${e.type} — ${e.label}${e.note ? " (" + e.note + ")" : ""}`).join("\n")
+  ).join("\n");
+}
+
+window.runSummary = async function() {
+  $("err-summary").textContent = ""; $("out-summary").textContent = "";
+  $("disc-summary").style.display = "none"; $("meta-summary").textContent = "";
+  $("think-summary").classList.add("on"); $("btn-summary").disabled = true;
+  const prompt = `Here is one week of journal entries. Write a short summary the person can bring to a neurologist appointment.
+${PD_GLOSSARY}
+Structure: 1) medication times this week, 2) symptoms and ON/OFF states noticed, each with timing relative to doses where the entries show it (timing of symptoms relative to doses is the most useful detail for a neurologist), 3) activities. Plain sentences, no bullet symbols needed, under 150 words.
+Use the standard term with the person's own words kept in quotes where they help. Describe only what is in the entries. Days or hours with no entries are unknown, not symptom-free. Do not interpret, do not advise.
+Entries:\n${weekAsText()}`;
+  try {
+    $("out-summary").textContent = (await chat(prompt)).trim();
+    stampMeta("meta-summary");
+    $("disc-summary").style.display = "block";
+  } catch (e) {
+    $("err-summary").textContent = "Couldn't generate: " + e.message.slice(0, 120);
+  }
+  $("think-summary").classList.remove("on"); $("btn-summary").disabled = false;
+};
+
+/* ═══════════════ FEATURE 3 — patterns across the week ═══════════════ */
+window.runPatterns = async function() {
+  $("err-patterns").textContent = ""; $("out-patterns").textContent = "";
+  $("disc-patterns").style.display = "none"; $("meta-patterns").textContent = "";
+  $("think-patterns").classList.add("on"); $("btn-patterns").disabled = true;
+  const prompt = `Here is one week of journal entries. Point out 2 or 3 things that appeared near each other in time, as gentle observations.
+${PD_GLOSSARY}
+Timing relative to doses is the most interesting kind of nearness (e.g. symptoms before a dose vs. after, meals near doses).
+Each observation: one sentence about what was noticed and on which days, hedged ("On two days...", "seems to", "might"). Never say the person did well or badly. Never suggest what to do about it.
+End with one sentence about what this week's entries can NOT tell us (small sample, unlogged time is unknown).
+Entries:\n${weekAsText()}`;
+  try {
+    $("out-patterns").textContent = (await chat(prompt)).trim();
+    stampMeta("meta-patterns");
+    $("disc-patterns").style.display = "block";
+  } catch (e) {
+    $("err-patterns").textContent = "Couldn't generate: " + e.message.slice(0, 120);
+  }
+  $("think-patterns").classList.remove("on"); $("btn-patterns").disabled = false;
+};
+
+/* default engine hint */
+setStatus("", "Choose an engine above, then Load model");
+</script>
+</body>
+</html>

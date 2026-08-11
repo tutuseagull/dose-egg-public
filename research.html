@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoseEgg — Research</title>
+<style>
+  :root {
+    --bg: #FAF7F0;
+    --card: #FFFFFF;
+    --text: #2A2823;
+    --text-muted: #6B665C;
+    --text-soft: #8E8779;
+    --divider: #E8E1D2;
+    --accent-bio: #5F7E6E;
+    --accent-bio-soft: rgba(95, 126, 110, 0.09);
+    --accent-bio-border: rgba(95, 126, 110, 0.2);
+    --accent-log: #7A6080;
+    --accent-log-soft: rgba(122, 96, 128, 0.08);
+    --accent-log-border: rgba(122, 96, 128, 0.2);
+    --tag-bg: rgba(42, 40, 35, 0.06);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Georgia", "Times New Roman", serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 64px 40px 96px;
+  }
+
+  /* ─── Back link ─── */
+  .back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    margin-bottom: 48px;
+    transition: color 0.15s;
+  }
+  .back:hover { color: var(--text); }
+  .back::before { content: '←'; font-size: 14px; }
+
+  /* ─── Header ─── */
+  header {
+    margin-bottom: 64px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--divider);
+  }
+
+  .eyebrow {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--text-soft);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    font-size: 38px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    margin: 0 0 14px 0;
+    line-height: 1.2;
+    color: var(--text);
+  }
+
+  .subtitle {
+    font-size: 17px;
+    color: var(--text-muted);
+    margin: 0;
+    max-width: 560px;
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  .meta {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-size: 12px;
+    color: var(--text-soft);
+    margin-top: 18px;
+  }
+
+  /* ─── Section ─── */
+  .section {
+    margin-bottom: 72px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+
+  .section-num {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+  }
+
+  h2 {
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .section-intro {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin: 10px 0 32px 0;
+    padding-left: 0;
+    max-width: 640px;
+    line-height: 1.65;
+    font-style: italic;
+  }
+
+  /* ─── Group label ─── */
+  .group-label {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--text-soft);
+    margin: 36px 0 14px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--divider);
+  }
+  .group-label:first-of-type { margin-top: 0; }
+
+  /* ─── Study card ─── */
+  .study {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--divider);
+  }
+  .study:last-child { border-bottom: none; }
+
+  .study-title {
+    font-size: 15px;
+    font-weight: 400;
+    font-family: "Georgia", serif;
+    margin: 0 0 5px 0;
+    line-height: 1.4;
+  }
+
+  .study-title a {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-color: var(--divider);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 0.15s, color 0.15s;
+  }
+  .study-title a:hover {
+    text-decoration-color: var(--text-muted);
+  }
+
+  .study-meta {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-size: 11px;
+    color: var(--text-soft);
+    margin-bottom: 9px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .study-meta .sep { opacity: 0.4; }
+
+  .tag {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--tag-bg);
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .tag.passive { background: rgba(95, 126, 110, 0.1); color: #3E6055; }
+  .tag.active  { background: rgba(181, 118, 77, 0.1); color: #7A4A1E; }
+  .tag.landmark { background: rgba(122, 96, 128, 0.1); color: #5A3E68; }
+
+  .study-insight {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0 0 8px 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  }
+
+  .study-insight strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .study-takeaway {
+    font-size: 13px;
+    color: var(--text-soft);
+    line-height: 1.55;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-style: italic;
+    padding-left: 10px;
+    border-left: 2px solid var(--divider);
+  }
+
+  /* ─── Design implication callout ─── */
+  .implication {
+    margin: 40px 0;
+    padding: 20px 24px;
+    border-radius: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .implication.bio {
+    background: var(--accent-bio-soft);
+    border: 1px solid var(--accent-bio-border);
+  }
+
+  .implication.log {
+    background: var(--accent-log-soft);
+    border: 1px solid var(--accent-log-border);
+  }
+
+  .implication-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 8px;
+  }
+
+  .implication.bio .implication-label { color: var(--accent-bio); }
+  .implication.log .implication-label { color: var(--accent-log); }
+
+  .implication ul {
+    margin: 8px 0 0 0;
+    padding: 0 0 0 16px;
+  }
+
+  .implication li {
+    margin-bottom: 5px;
+  }
+  .implication li:last-child { margin-bottom: 0; }
+
+  /* ─── Theme table ─── */
+  .theme-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 4px 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-size: 12.5px;
+  }
+  .theme-table caption {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--text-soft);
+    margin-bottom: 12px;
+  }
+  .theme-table th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-soft);
+    border-bottom: 1px solid var(--divider);
+    padding: 0 16px 8px 0;
+    vertical-align: bottom;
+  }
+  .theme-table td {
+    vertical-align: top;
+    padding: 11px 16px 11px 0;
+    border-bottom: 1px solid var(--divider);
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .theme-table td:first-child {
+    color: var(--text);
+    font-weight: 600;
+    width: 24%;
+  }
+  .theme-table td:last-child {
+    font-style: italic;
+    color: var(--text-soft);
+    width: 34%;
+  }
+  .theme-table tr:last-child td { border-bottom: none; }
+
+  @media (max-width: 640px) {
+    .theme-table, .theme-table thead, .theme-table tbody, .theme-table tr, .theme-table td { display: block; width: 100%; }
+    .theme-table thead { display: none; }
+    .theme-table td { padding: 2px 0; border-bottom: none; }
+    .theme-table td:first-child { margin-top: 14px; }
+    .theme-table tr { padding-bottom: 12px; border-bottom: 1px solid var(--divider); display: block; }
+  }
+
+  /* ─── Footer ─── */
+  footer {
+    margin-top: 72px;
+    padding-top: 24px;
+    border-top: 1px solid var(--divider);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-size: 12px;
+    color: var(--text-soft);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 640px) {
+    .page { padding: 40px 20px 64px; }
+    h1 { font-size: 28px; }
+    h2 { font-size: 22px; }
+  }
+
+  @media print {
+    body { background: white; }
+    .back, .back { display: none; }
+    .page { padding: 24px; max-width: none; }
+  }
+</style>
+</head>
+<body>
+<a href="index.html" class="back" style="position:fixed;top:16px;left:20px;z-index:999;background:rgba(250,247,240,0.92);padding:5px 14px;border-radius:20px;border:1px solid var(--divider);backdrop-filter:blur(4px);">Home</a>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">DoseEgg · Research</div>
+    <h1>Supporting Studies</h1>
+    <p class="subtitle">Research that informs two core product questions: what the body tells us passively, and how people sustain the habit of daily self-tracking.</p>
+    <p class="meta">Compiled May 2026 · 24 sources · Four topic areas</p>
+  </header>
+
+
+  <!-- ══════════════════════════════════════════
+       SECTION 1 — BIOMETRICS
+  ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>Passive Biometrics for PD Monitoring</h2>
+    </div>
+    <p class="section-intro">Can wearables or phone sensors detect a patient's ON/OFF state without them having to log it? Which signals are validated, which are too noisy, and what role does self-report still play?</p>
+
+    <div class="group-label">Wrist Accelerometer — Most Clinically Mature</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6779790/" target="_blank">Personal KinetiGraph (PKG) in Routine Clinical Care</a></div>
+      <div class="study-meta">
+        <span>Frontiers in Neurology · 2019</span>
+        <span class="sep">·</span>
+        <span class="tag passive">Passive</span>
+        <span class="tag">FDA-cleared</span>
+      </div>
+      <p class="study-insight">The PKG wrist device continuously measures tremor, bradykinesia, and dyskinesia. In clinical use it altered physician treatment plans for <strong>32% of patients</strong> — and detected motor fluctuations that patients themselves had not reported in 33–50% of cases. Self-report alone systematically under-captures motor state.</p>
+      <p class="study-takeaway">Patients are not reliable reporters of their own motor fluctuations — not because they're inattentive, but because the fluctuations happen below the threshold of conscious awareness. Passive sensing fills a genuine gap that no amount of better UX can solve.</p>
+    </div>
+
+    <div class="study">
+      <a href="https://www.science.org/doi/10.1126/scitranslmed.abd7865" target="_blank" class="study-title" style="display:block;color:var(--text);text-decoration:underline;text-decoration-color:var(--divider);text-underline-offset:3px;font-family:Georgia,serif;font-size:15px;line-height:1.4;font-weight:400;margin-bottom:5px;">MM4PD: Continuous Motor Monitoring via Apple Watch</a>
+      <div class="study-meta">
+        <span>Science Translational Medicine</span>
+        <span class="sep">·</span>
+        <span class="tag passive">Passive</span>
+        <span class="tag landmark">Landmark</span>
+      </div>
+      <p class="study-insight">Across 225 PD patients followed for up to 6 months, the MM4PD system using Apple Watch accelerometer + gyroscope correlated with in-clinic tremor ratings (r = 0.80) and matched clinician ON/OFF assessment in <strong>94% of participants</strong>. Rune Labs later received FDA 510(k) clearance for this approach.</p>
+      <p class="study-takeaway">Mainstream consumer hardware is now clinically accurate enough for motor monitoring in a real-world setting. The gap between a research device and a device already on the patient's wrist has closed significantly.</p>
+    </div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://www.ajmc.com/view/apple-watch-effective-in-monitoring-symptoms-of-parkinson-disease" target="_blank">Apple Watch FDA Clearance for Ambulatory PD Monitoring</a></div>
+      <div class="study-meta"><span>AJMC Coverage</span></div>
+      <p class="study-insight">Context and coverage of the FDA 510(k) clearance for smartwatch-based continuous PD motor monitoring — confirming this is a regulatory-cleared path, not speculative.</p>
+      <p class="study-takeaway">Regulatory clearance signals that the clinical evidence bar has been met. This matters for any app planning to integrate smartwatch data — it's building on validated infrastructure, not unproven territory.</p>
+    </div>
+
+
+    <div class="group-label">Gait Analysis — Strongest ON/OFF Discriminator While Moving</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5191112/" target="_blank">Assessing Motor Fluctuations via a Single Wrist Sensor</a></div>
+      <div class="study-meta">
+        <span>PMC</span>
+        <span class="sep">·</span>
+        <span class="tag passive">Passive</span>
+      </div>
+      <p class="study-insight">A single wrist- or waist-worn IMU running hierarchical ML has achieved <strong>&gt;90% accuracy</strong> distinguishing ON from OFF states based on gait features. Critical caveat: this only works while the patient is walking — inactivity cannot be classified reliably.</p>
+      <p class="study-takeaway">Gait is among the most information-dense signals in neurodegenerative disease monitoring — but only observable when someone is moving. Any system that treats absence of movement as data will misread it.</p>
+    </div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://www.jmir.org/2025/1/e69422" target="_blank">Wearables for Early PD Diagnosis — Systematic Review</a></div>
+      <div class="study-meta"><span>JMIR · 2025</span></div>
+      <p class="study-insight">Gait is the most studied wearable signal in PD research, appearing in 31% of studies reviewed. Confirms clinical consensus that gait-based sensing is the most mature passive signal for motor state assessment.</p>
+      <p class="study-takeaway">The research community has converged on gait as the most tractable passive signal. That convergence is itself useful signal — it means the methods are relatively mature and replicable.</p>
+    </div>
+
+
+    <div class="group-label">Posture & Inactivity — Too Noisy Alone</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://bmcneurol.biomedcentral.com/articles/10.1186/s12883-021-02101-2" target="_blank">Activity Profiles and Physical Inactivity in PD</a></div>
+      <div class="study-meta"><span>BMC Neurology · 2021</span></div>
+      <p class="study-insight">PD patients are prone to inactivity from motor, mental, and emotional symptoms simultaneously — making it impossible to attribute lying down or stillness to medication state alone. <strong>Lying down is not a validated OFF signal.</strong> Researchers use activity thresholds (&gt;2.5 METs sustained) combined with medication timing context, not posture classification.</p>
+      <p class="study-takeaway">Stillness is ambiguous in every human body, not just PD patients. Designing around inactivity as a signal requires resolving the cause — and that resolution almost always needs context that only the patient can provide.</p>
+    </div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3225631/" target="_blank">Physical Inactivity in Parkinson's Disease</a></div>
+      <div class="study-meta"><span>NIH PMC</span></div>
+      <p class="study-insight">Broader review of why PD patients are disproportionately inactive — supporting why passive inactivity signals are unreliable without self-report context to anchor them.</p>
+      <p class="study-takeaway">Inactivity in chronic neurological conditions is multi-causal — motor, emotional, and environmental factors all contribute. This complexity is why simple activity metrics designed for healthy populations don't transfer cleanly.</p>
+    </div>
+
+
+    <div class="group-label">Keystroke Rhythm — Passive, Clinically Validated on Smartphone</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://www.science.org/doi/10.1126/sciadv.adt6631" target="_blank">Keystroke Dynamics for PD Diagnosis</a></div>
+      <div class="study-meta">
+        <span>Science Advances · 2025</span>
+        <span class="sep">·</span>
+        <span class="tag passive">Passive</span>
+        <span class="tag landmark">Landmark</span>
+      </div>
+      <p class="study-insight">Normal typing patterns on a touchscreen passively capture PD motor decline. Achieved <strong>AUC 0.81</strong> — outperforming some clinical finger-tapping tests — with no active user task required. Anyone typing on their phone is generating this signal.</p>
+      <p class="study-takeaway">The most powerful health signals may already be embedded in behaviors people do anyway. Designing for passive capture — where the sensor is invisible and the data is a byproduct of normal use — is a fundamentally different paradigm from asking someone to complete a task.</p>
+    </div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://www.jmir.org/2018/3/e89/" target="_blank">neuroQWERTY: Typing Patterns Detect PD Motor Decline</a></div>
+      <div class="study-meta">
+        <span>JMIR · 2018</span>
+        <span class="sep">·</span>
+        <span class="tag passive">Passive</span>
+      </div>
+      <p class="study-insight">MIT-led project showing PD patients exhibit longer inter-key delays, reduced tap count, and irregular timing rhythms during natural typing — captured without any deliberate test or active logging.</p>
+      <p class="study-takeaway">The phone keyboard is the most underrated neurological sensor in everyday life. This research opened the door to a class of passive monitoring where the data collection device is something the patient already owns and uses daily.</p>
+    </div>
+
+
+    <div class="group-label">Voice — Sensitive but Requires Triggered Capture</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://www.nature.com/articles/s41531-025-00953-w" target="_blank">Multimodal Smartphone Biomarkers: Voice, Gait, Finger Tapping</a></div>
+      <div class="study-meta">
+        <span>npj Parkinson's Disease · 2025</span>
+        <span class="sep">·</span>
+        <span class="tag active">Active prompt</span>
+      </div>
+      <p class="study-insight">Single-modality voice models achieved AUC 0.88; a multimodal model combining voice, gait, and tapping reached 0.86. However voice capture requires deliberate mic access or always-on mic — a significant privacy and battery concern for a consumer app. More suitable as an optional active daily check-in than background sensing.</p>
+      <p class="study-takeaway">Voice is one of the earliest and most sensitive markers of PD — but collecting it at scale in a consumer context runs into real privacy and trust barriers that accuracy alone doesn't overcome. Sensitivity of a signal and acceptability of its capture are separate problems.</p>
+    </div>
+
+
+    <div class="group-label">HRV & Sleep — Disease Burden, Not Real-Time State</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://www.frontiersin.org/journals/aging-neuroscience/articles/10.3389/fnagi.2025.1530240/full" target="_blank">Wearable HRV in Parkinson's Disease</a></div>
+      <div class="study-meta">
+        <span>Frontiers in Aging Neuroscience · 2025</span>
+        <span class="sep">·</span>
+        <span class="tag passive">Passive</span>
+      </div>
+      <p class="study-insight">HRV is consistently lower in PD vs controls; validated via wearable ECG over 72-hour periods. <strong>Best for weekly trend tracking, not intra-day ON/OFF detection</strong> — reflects autonomic dysfunction burden, not moment-to-moment medication state.</p>
+      <p class="study-takeaway">Not all signals operate on the same time scale. HRV tells you something about the week, not the hour. Matching the signal's resolution to the question being asked is as important as the signal's accuracy.</p>
+    </div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://www.nature.com/articles/s41746-024-01144-2" target="_blank">Non-Motor Digital Biomarkers in PD</a></div>
+      <div class="study-meta"><span>npj Digital Medicine · 2024</span></div>
+      <p class="study-insight">Review of non-motor signals including sleep quality, autonomic function, and mood captured via wearables. Sleep-stage HRV (especially REM) has been linked to PD risk and progression — supporting weekly pattern analysis rather than daily state detection.</p>
+      <p class="study-takeaway">PD is not only a motor disease — the non-motor symptoms (sleep, mood, autonomic function) often matter as much to quality of life. Wearables that only track movement miss a significant part of the picture.</p>
+    </div>
+
+    <div class="implication bio">
+      <div class="implication-label">DoseEgg implication</div>
+      No single passive sensor reliably distinguishes ON from OFF when a patient is resting or inactive. The clinically validated approach is always multi-signal — and <strong>self-reported medication timing is the anchor that makes passive biometrics interpretable</strong>. DoseEgg's confirmation-card logging is not a workaround; it is the layer that gives sensor data meaning. Apple Watch integration in v2 is clinically validated and FDA-cleared — not speculative.
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       SECTION 2 — LOGGING MOTIVATION
+  ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>The Psychology of Daily Self-Tracking</h2>
+    </div>
+    <p class="section-intro">How do people sustain the habit of logging their health every day — especially when the condition is progressive and traditional "improvement" framing doesn't apply?</p>
+
+    <div class="group-label">Why People Stop — The Foundational Warning</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://www.jmir.org/2015/8/e202/" target="_blank">"You Get Reminded You're a Sick Person": Patient Perspectives on Health Information Technology</a></div>
+      <div class="study-meta">
+        <span>Ancker et al. · JMIR · 2015</span>
+        <span class="sep">·</span>
+        <span class="tag landmark">256 citations</span>
+      </div>
+      <p class="study-insight">The most-cited study in chronic-illness self-tracking, drawn from patient interviews. Four findings: (1) tracking is experienced as <strong>work</strong>, not a neutral act; (2) personal medical data are <strong>not simply objective facts</strong> — they provoke strong positive and negative emotions, value judgments, and divergent interpretations; (3) patients track for different purposes — sense-making, self-management, and reporting to the doctor; and (4) patients notice that <strong>physicians trust technologically measured data (lab reports) over patients' self-tracked data</strong>. Logging built around symptoms forces daily confrontation with illness identity — the leading cause of voluntary dropout.</p>
+      <p class="study-takeaway">An app that makes people feel worse about their condition — even while clinically accurate — is not a good health product; the emotional experience of the tool is part of the health outcome, not separate from it. And finding (4) is a direct warning for DoseEgg's doctor export: self-tracked data can be quietly discounted by clinicians, so the export has to be structured and framed to earn clinical trust — not just handed over as a raw log.</p>
+
+      <table class="theme-table">
+        <caption>Table 1 — Major themes in personal health information tracking (Ancker et al.)</caption>
+        <thead>
+          <tr><th>Theme</th><th>Summary</th><th>Representative quotes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Data carry emotional &amp; moral weight</td>
+            <td>Data are not merely objective facts but prompt strong positive and negative emotions, as well as value judgments.</td>
+            <td>"You get reminded you're a sick person" · "I'm not a good patient"</td>
+          </tr>
+          <tr>
+            <td>Multiple purposes &amp; uses</td>
+            <td>Patients use data for a variety of purposes — active self-management, making sense of their condition, and reporting to the doctor.</td>
+            <td>"I'll [check] it if I'm feeling lightheaded"</td>
+          </tr>
+          <tr>
+            <td>(Un)reliability of self-tracked data</td>
+            <td>Patients often notice that physicians do not trust their self-tracked data.</td>
+            <td>"[The doctors] looked at [my logs] very superficially…they seem to rely on your A1c numbers"</td>
+          </tr>
+          <tr>
+            <td>Tracking feels like work</td>
+            <td>Tracking is time-consuming and sometimes emotionally draining.</td>
+            <td>"It's too cumbersome for me"</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+
+    <div class="group-label">Mental Models That Sustain Logging</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://dl.acm.org/doi/10.1145/3173574.3173602" target="_blank">Flexible and Mindful Self-Tracking: Designing Wearables for Chronic Illness</a></div>
+      <div class="study-meta"><span>Ayobi et al. · CHI · 2018</span></div>
+      <p class="study-insight">People with chronic illness who sustained self-tracking long-term saw their log as <strong>authoring their own story</strong>, not feeding a database. Rigid templates and mandatory fields were the primary dropout trigger. Self-expression through the act of logging — not just the data output — was a core motivation. The detective and narrative frames both draw on this.</p>
+      <p class="study-takeaway">The act of recording something is itself meaningful — not just the record. When tracking feels like expression rather than extraction, people sustain it. Flexibility and optional fields are not just UX niceties; they are the mechanism by which people develop a personal relationship with the tool.</p>
+    </div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://www.facetsjournal.com/doi/10.1139/facets-2024-0324" target="_blank">eCARE-PD: Patient Co-Design Study</a></div>
+      <div class="study-meta"><span>FACETS Journal · 2024</span></div>
+      <p class="study-insight">PD patients who stayed engaged with self-tracking described themselves as <strong>"active in my care"</strong> — ownership language, not achievement language. The identity of being someone who understands their condition sustained logging better than any in-app reward. Connects to identity-based habituation: the behavior confirms who you are, not what you want to achieve.</p>
+      <p class="study-takeaway">For people managing a condition they didn't choose, agency becomes central. Products that reinforce a sense of active participation — rather than passive monitoring — tap into something more durable than any reward mechanic.</p>
+    </div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://arxiv.org/pdf/2402.00121" target="_blank">Self-Determination Theory in Behavior Change Technology</a></div>
+      <div class="study-meta"><span>Interacting with Computers · 2024</span></div>
+      <p class="study-insight">Self-determination theory identifies autonomy, competence, and relatedness as the durable motivators — not external rewards. For chronic illness tracking, <strong>autonomy (I chose to understand my condition) and competence (I know more about my body than before) are the reliable levers</strong>. Gamification triggers extrinsic motivation, which degrades over time and fails under duress.</p>
+      <p class="study-takeaway">Extrinsic motivation (points, streaks, badges) works for low-stakes habits in healthy populations. Under the stress of illness, it collapses — because the person has larger concerns than maintaining a streak. Intrinsic motivation — rooted in understanding and autonomy — is far more resilient.</p>
+    </div>
+
+
+    <div class="group-label">Minimum Viable Logging — Reducing the Effort Floor</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8817212/" target="_blank">Mobile Apps for PD Self-Care — Systematic Review</a></div>
+      <div class="study-meta"><span>JMIR mHealth · 2022</span></div>
+      <p class="study-insight">The single biggest usability barrier in PD self-tracking apps was <strong>simple forgetfulness, not resistance</strong>. Contextual triggers tied to medication events (which PD patients already track) worked dramatically better than time-based reminders. Under 2 minutes per session and 5 fields or fewer are the thresholds for sustained adherence.</p>
+      <p class="study-takeaway">Most people don't stop logging because they stopped caring — they stop because the habit wasn't embedded in something they already do. The lesson for any logging-dependent product: attach the behavior to an existing anchor, don't create a new one from scratch.</p>
+    </div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://www.nature.com/articles/s44401-025-00017-4" target="_blank">Strategies for Motivating Adherence in Digital Chronic Illness Self-Care</a></div>
+      <div class="study-meta"><span>npj Health Systems · 2025</span></div>
+      <p class="study-insight">43% of patients assigned a health tracking app never started using it. "Lack of motivation" was the primary reason — and patients defined motivation as <strong>"I don't see what this does for me."</strong> Logging fatigue is ultimately a value clarity problem. The insight must be visible and early.</p>
+      <p class="study-takeaway">Logging fatigue is often misdiagnosed as a UX problem — too many fields, too many steps. It's more often a value problem: people can't answer "why am I doing this?" If the payoff is abstract or delayed, no amount of friction reduction will fix it.</p>
+    </div>
+
+
+    <div class="group-label">What Keeps PD Patients Logging Specifically</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10192863/" target="_blank">Personalized Monitoring in PD: Patient and Clinician Perspectives</a></div>
+      <div class="study-meta"><span>Frontiers in Neurology · 2023</span></div>
+      <p class="study-insight">Patients stayed motivated long-term when their neurologist explicitly referenced their self-tracking data at appointments. <strong>The data being used in clinical care is more motivating than any in-app feature.</strong> The doctor-validation loop is the strongest PD-specific retention mechanism found in the literature.</p>
+      <p class="study-takeaway">Retention is a social problem as much as a design problem. When someone else — especially someone with authority in your care — treats your data as meaningful, the act of collecting it becomes meaningful too. No in-app feature competes with that.</p>
+    </div>
+
+
+    <div class="group-label">Logging When Progress Isn't Possible</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://www.jmir.org/2015/8/e202/" target="_blank">"You Get Reminded You're a Sick Person" (revisited for design language)</a></div>
+      <div class="study-meta"><span>Ancker et al. · 2015</span></div>
+      <p class="study-insight">The Ancker paper's design implication for progressive conditions: <strong>never surface a trend line that only goes one direction without framing it as useful information.</strong> Language to avoid: "worse than last week," "below average," "declined since last month." Language that works: "on days like this, X tends to happen," "your notes show this pattern," "your doctor will want to know this."</p>
+      <p class="study-takeaway">Designing for progressive conditions requires rethinking what "good data" looks like. A bad day is not a failure state — it is often the most clinically informative data point. The product's job is to make the user feel that way too.</p>
+    </div>
+
+    <div class="implication log">
+      <div class="implication-label">DoseEgg implication</div>
+      Three non-negotiable design principles from the research:
+      <ul>
+        <li><strong>Zero-failure logging.</strong> No streaks, no missed-day shaming, no "you haven't logged in 3 days" nudges. The floor log is one tap. Missing days costs nothing. Return is always welcomed.</li>
+        <li><strong>The insight is the reward, not the act of logging.</strong> Deliver a meaningful correlation within the first 5–7 days. The data must be visibly useful, or logging stops.</li>
+        <li><strong>Never show only decline.</strong> Bad symptom days are informative days. The log is a map, not a report card.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 3 — DATA OWNERSHIP & AGENCY
+  ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>Patient Data Ownership & Agency</h2>
+    </div>
+    <p class="section-intro">Who holds the data, who decides how it's shared, and what changes when the patient — not an institution — is the one in control. The infrastructure and ethics behind treating people as primary data holders, not data sources.</p>
+
+    <div class="group-label">Participant-Controlled Data Platforms</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://academic.oup.com/gigascience/article/8/6/giz076/5523201" target="_blank">Open Humans: A Community-Based Ecosystem for Personal Data</a></div>
+      <div class="study-meta">
+        <span>Tzovaras et al. · GigaScience · 2019</span>
+        <span class="sep">·</span>
+        <span class="tag">Data ownership</span>
+      </div>
+      <p class="study-insight">Open Humans lets individuals aggregate personal data across streams — genetics, wearable activity, GPS, continuous glucose — and grant <strong>granular, revocable sharing authorizations</strong> for each project. By positioning participants as the primary data holders rather than data sources, it breaks down data silos and enables both academic and patient-led research. Its core argument: people want to decide who can see their data, under what circumstances, and what can be done with it.</p>
+      <p class="study-takeaway">Ownership of one's health data is itself a form of agency, not just a privacy setting. When the patient holds and controls the record — and chooses what to share with a doctor or a study — the data carries a different psychological weight than data extracted by an institution. Control and motivation are linked.</p>
+    </div>
+
+    <div class="group-label">Learning From Aggregated Patient Data</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC2956230/" target="_blank">Sharing Health Data for Better Outcomes on PatientsLikeMe</a></div>
+      <div class="study-meta">
+        <span>Wicks et al. · JMIR · 2010</span>
+        <span class="sep">·</span>
+        <span class="tag landmark">275 citations</span>
+      </div>
+      <p class="study-insight">A survey of 1,323 members across six communities — including Parkinson's — on a platform where patients share patient-reported outcomes and find others matched on demographic and clinical profile. <strong>72% found it helpful for understanding a symptom they'd experienced</strong>, 57% for understanding treatment side effects, and 42% found a peer who helped them understand what a specific treatment was actually like to take. Comfort with sharing personal health data rose with use, and the more features a member used, the more benefit they reported.</p>
+      <p class="study-takeaway">The value patients drew was understanding and peer context — "what is this treatment actually like" — not competitive optimization or scoreboards. Aggregated, peer-matched data answered lived-experience questions a clinic visit can't. The lesson for DoseEgg: collective data should serve recognition ("others like me see this too"), not ranking.</p>
+    </div>
+
+    <div class="implication bio">
+      <div class="implication-label">DoseEgg implication</div>
+      DoseEgg's logging produces a longitudinal record the patient owns and chooses to share — most urgently, the doctor export. This positions the patient as the primary data holder, which the research links directly to the autonomy and "active in my care" motivators in Section 2. Granular, patient-controlled sharing (to a neurologist now, to research later) is both an ethical stance and a retention driver — not a compliance afterthought. And as PatientsLikeMe shows, aggregated peer data has real value for PD patients — but only when it's framed as shared recognition, never as a leaderboard.
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       SECTION 4 — CONTEXT & SYSTEMS
+  ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>Context &amp; Systems</h2>
+    </div>
+    <p class="section-intro">Health doesn't happen in isolation from the life and systems around it. How the broader context — social, economic, environmental — and the way data moves between care settings shape what a patient record can actually tell us.</p>
+
+    <div class="group-label">Context as Clinical Data — Linking Across Care & Community</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://aspe.hhs.gov/enhancing-patient-centered-outcomes-research-pcor-creating-national-small-area-social-determinants" target="_blank">A National Small-Area Social Determinants of Health Data Platform (PCOR)</a></div>
+      <div class="study-meta">
+        <span>AHRQ / ASPE · 2019–2022</span>
+        <span class="sep">·</span>
+        <span class="tag">Context data</span>
+      </div>
+      <p class="study-insight">A federal effort built a standardized longitudinal database of social determinants — economic context, education, physical infrastructure, social and health-care context — at county, ZIP, and census-tract level, because <strong>the context surrounding a patient is itself clinically meaningful and was trapped in incompatible silos</strong>. Its sibling project, the patient-facing <em>eCare Plan</em>, builds a longitudinal record of an individual's prioritized concerns, goals, and status that follows them across home, clinic, and research settings.</p>
+      <p class="study-takeaway">Context is not background to the clinical data — it is clinical data. A symptom log gains meaning only alongside the life it sits in. And the most useful patient record is one longitudinal thread that travels with the person across every setting where they're seen, rather than fragments held by each institution.</p>
+    </div>
+
+    <div class="implication bio">
+      <div class="implication-label">DoseEgg implication</div>
+      Two threads land directly on DoseEgg. First, "medication + context" is not a product gimmick — federal PCOR infrastructure treats context as essential clinical signal, which supports logging life factors (sleep, activity, stress, environment) alongside doses. Second, the eCare Plan's patient-facing longitudinal record, designed to travel across care settings, is a direct analog to DoseEgg's doctor export: one continuous patient-held thread is more useful to a clinician than fragments. Together they make the case that a log of doses plus life context, owned by the patient and carried across settings, is exactly the kind of record modern outcomes research is being rebuilt to value.
+    </div>
+  </div>
+
+  <footer>
+    <span>DoseEgg · Research reference · May 2026</span>
+    <span>24 sources · Compiled for internal use</span>
+  </footer>
+
+</div>
+</body>
+</html>

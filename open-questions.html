@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoseEgg — Open Questions</title>
+<style>
+  :root {
+    --bg: #FAF7F0;
+    --card: #FFFFFF;
+    --text: #2A2823;
+    --text-muted: #6B665C;
+    --text-soft: #8E8779;
+    --divider: #E8E1D2;
+    --open: #B5764D;
+    --open-soft: rgba(181, 118, 77, 0.08);
+    --open-border: rgba(181, 118, 77, 0.2);
+    --decided: #7A9269;
+    --decided-soft: rgba(122, 146, 105, 0.08);
+    --decided-border: rgba(122, 146, 105, 0.2);
+    --future: #5F8090;
+    --future-soft: rgba(95, 128, 144, 0.08);
+    --future-border: rgba(95, 128, 144, 0.2);
+    --research: #876D5F;
+    --research-soft: rgba(135, 109, 95, 0.08);
+    --research-border: rgba(135, 109, 95, 0.2);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 56px 40px 80px;
+  }
+
+  /* ─── Header ─── */
+  header {
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--divider);
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--text-soft);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .meta { color: var(--text-soft); font-size: 12px; margin-top: 14px; font-style: italic; }
+
+  /* ─── Legend ─── */
+  .legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 44px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ─── Feature block ─── */
+  .feature-block {
+    margin-bottom: 52px;
+  }
+
+  .feature-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+
+  .feature-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .feature-tag.future { background: var(--future-soft); color: var(--future); border: 1px solid var(--future-border); }
+  .feature-tag.mvp { background: var(--decided-soft); color: var(--decided); border: 1px solid var(--decided-border); }
+  .feature-tag.exploring { background: var(--open-soft); color: var(--open); border: 1px solid var(--open-border); }
+
+  h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .feature-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 6px 0 20px 0;
+    max-width: 680px;
+    line-height: 1.6;
+  }
+
+  /* ─── Question card ─── */
+  .questions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .q {
+    background: var(--card);
+    border: 1px solid var(--divider);
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .q-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  .q-status.open    { background: var(--open); }
+  .q-status.decided { background: var(--decided); }
+  .q-status.future  { background: var(--future); }
+  .q-status.research { background: var(--research); }
+
+  .q-body {}
+
+  .q-text {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text);
+    margin: 0 0 4px 0;
+    line-height: 1.5;
+  }
+
+  .q-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.55;
+  }
+
+  .q-note strong { color: var(--text); font-weight: 600; }
+
+  .q-label {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+
+  .q-label.open     { background: var(--open-soft);     color: var(--open);     border: 1px solid var(--open-border); }
+  .q-label.decided  { background: var(--decided-soft);  color: var(--decided);  border: 1px solid var(--decided-border); }
+  .q-label.future   { background: var(--future-soft);   color: var(--future);   border: 1px solid var(--future-border); }
+  .q-label.research { background: var(--research-soft); color: var(--research); border: 1px solid var(--research-border); }
+
+  /* ─── Section divider ─── */
+  .section-divider {
+    height: 1px;
+    background: var(--divider);
+    margin: 40px 0 44px 0;
+  }
+
+  /* ─── Footer ─── */
+  footer {
+    margin-top: 64px;
+    padding-top: 20px;
+    border-top: 1px solid var(--divider);
+    font-size: 11px;
+    color: var(--text-soft);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  @media (max-width: 640px) {
+    .page { padding: 36px 20px 60px; }
+    h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+<a href="index.html" style="position:fixed;top:12px;left:12px;z-index:9999;background:rgba(250,247,240,0.92);border:1px solid rgba(0,0,0,0.1);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:#555;text-decoration:none;backdrop-filter:blur(4px);">← Home</a>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">DoseEgg · Working Doc</div>
+    <h1>Open Questions</h1>
+    <p class="subtitle">A running log of product and design questions — by feature area. Updated as decisions are made. This page holds <strong>unknowns only</strong>: feature requirements live in the <span class="unpublished">Feature Backlog</span>, interaction decisions (D-xx) in the <span class="unpublished">Daily Loop Flow</span>, and rules (C-xx) in <span class="unpublished">Design Constraints</span>. When a question gets answered, it's marked Decided here with a pointer to where the answer now lives.</p>
+    <p class="meta">Last updated July 2026</p>
+  </header>
+
+  <div class="legend">
+    <div class="legend-item"><span class="dot" style="background:var(--open)"></span> Open — needs a decision</div>
+    <div class="legend-item"><span class="dot" style="background:var(--decided)"></span> Decided</div>
+    <div class="legend-item"><span class="dot" style="background:var(--future)"></span> Future / post-MVP</div>
+    <div class="legend-item"><span class="dot" style="background:var(--research)"></span> Needs external input</div>
+  </div>
+
+
+  <!-- ══════════════════════
+       FEATURE: SMART SYMPTOM TAGGING
+  ══════════════════════ -->
+  <div class="feature-block">
+    <div class="feature-head">
+      <span class="feature-tag future">Post-MVP</span>
+      <h2>Smart Symptom Tagging — Learning from Free Logs</h2>
+    </div>
+    <p class="feature-desc">
+      If a patient repeatedly describes the same symptom in free-form notes, the app could recognize the pattern and offer it as a quick-log option in the future. Example: a user who often writes "upper body ON, lower body OFF" — over time, this becomes a one-tap entry. The feature reduces logging friction for recurring symptoms without requiring the user to set it up manually. <em>Feature status now tracked in the <span class="unpublished">Feature Backlog</span>; the manual forerunner — custom "+ my own" chips (D-13) — is already in prototype testing, and both prototypes ship a starting library of PD state chips.</em>
+    </p>
+
+    <div class="questions">
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">How do users describe a symptom in a short, loggable format?</p>
+          <p class="q-note">Free-form notes are flexible but hard to pattern-match. Structured tags are scannable but rigid. Is there a middle ground — e.g. a short phrase the user writes once and the app learns to recognize? What does the UX of "naming a symptom" actually look like?</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">If there are many symptom types, how does a user find and track the right one?</p>
+          <p class="q-note">A long list of tags becomes a search problem. Short tags may not carry enough meaning. Long tags are awkward to tap. Options to explore: searchable tag library, user-created tags, AI-suggested tags from note text, or symptom templates based on common PD experiences.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">Can the app identify recurring patterns without using an LLM?</p>
+          <p class="q-note">Simple frequency counting (same phrase 3+ times → suggest as quick-log) requires no AI and no data leaving the device. Fuzzy matching catches minor variations. Lightweight on-device NLP clustering is more powerful but adds complexity. A full cloud LLM is most capable but raises consent and privacy concerns. <strong>Recommendation: start with frequency + fuzzy match, design data model to support ML later.</strong></p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status future"></span>
+        <div class="q-body">
+          <span class="q-label future">Future</span>
+          <p class="q-text">When does a suggested tag become a permanent part of the user's symptom library?</p>
+          <p class="q-note">At some threshold of repetition, the app could promote a free-form note into a named symptom the user can track over time. Who decides — the user, the app, or both? And how does a user retire a symptom that's no longer relevant?</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status future"></span>
+        <div class="q-body">
+          <span class="q-label future">Future</span>
+          <p class="q-text">Should the app ship with a starting library of known PD symptoms?</p>
+          <p class="q-note">Common PD symptoms (tremor, rigidity, bradykinesia, dyskinesia, ON/OFF, freezing of gait, fatigue) could be pre-loaded as quick-log options rather than waiting for the user to describe them. This reduces early friction but may feel clinical or overwhelming if the list is too long.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+
+  <!-- ══════════════════════
+       FEATURE: AI IN THE APP
+  ══════════════════════ -->
+  <div class="feature-block">
+    <div class="feature-head">
+      <span class="feature-tag exploring">Exploring</span>
+      <h2>AI Use — Consent, Ethics, and Legal Boundaries</h2>
+    </div>
+    <p class="feature-desc">
+      DoseEgg uses AI in at least two distinct ways: on-demand (user initiates a task — photo logging, report generation) and potentially ambient (background analysis of logs to find patterns). These two modes carry very different ethical and legal implications. This area tracks the open questions around how to use AI responsibly, what users need to consent to, and what the app needs to have in place before ambient AI is appropriate.
+    </p>
+
+    <div class="questions">
+
+      <div class="q">
+        <span class="q-status research"></span>
+        <div class="q-body">
+          <span class="q-label research">Needs input</span>
+          <p class="q-text">Should onboarding ask users to choose an AI comfort level — and does the "confirm as I go" tier deserve to exist?</p>
+          <p class="q-note">Proposed model (July 2026): <strong>Tier 1</strong> — block all AI (the app works fully without it; this is the baseline the daily-loop flow is designed against). <strong>Tier 2</strong> — full AI experience, permission granted everywhere. <strong>Tier 3</strong> — wants the AI-powered experience but confirms where AI is used, via just-in-time prompts at first use of each feature (a tour of AI touchpoints was considered and dropped — tours are forgettable and consent given in a tour is weakly informed). Two mechanisms remain on the table: <strong>upfront</strong> (choose a tier at onboarding) vs. <strong>just-in-time</strong> (no onboarding question; per-feature prompts with "don't ask again"). Open validation questions: (1) Can users meaningfully choose a tier at onboarding, before seeing the product? (2) Is tier 2 a real tier, or just tier 3 with all prompts pre-accepted? <strong>Decided either way:</strong> an <strong>AI settings page</strong> — every AI touchpoint listed with its current on/off state, so "deny all" / "allow all" is one gesture and individual features are reversible any time. It doubles as the honest disclosure surface the user-agreement question below asks for.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">What AI uses require explicit user consent at the moment of use vs. one-time agreement?</p>
+          <p class="q-note">On-demand AI (photo logging, report generation) is naturally consent-at-the-moment — the user presses a button. Ambient AI (reading logs continuously to find patterns) is harder: the user agreed once, but are they thinking about it every time they log? <strong>Working principle:</strong> ambient AI should be an opt-in feature, not on by default, with a clear explanation of what it does and where data goes.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status research"></span>
+        <div class="q-body">
+          <span class="q-label research">Needs input</span>
+          <p class="q-text">Is ambient AI analysis of personal health logs ethical and legal in the US?</p>
+          <p class="q-note">Key questions for a health lawyer or privacy expert: (1) Does continuous AI reading of health logs trigger HIPAA obligations? (2) If logs are sent to a third-party AI API (OpenAI, Anthropic), is a Business Associate Agreement required? (3) What does the FTC require around disclosing AI use in consumer health apps? This needs external legal input before building.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">On-device vs. cloud AI — which model runs where, and what does the user need to know?</p>
+          <p class="q-note">Pattern detection from log frequency can run entirely on-device — no data leaves the phone, no third-party AI. This sidesteps most privacy and HIPAA concerns. Cloud AI (for report generation, semantic understanding) sends data to an external server. Users should know which is which. <strong>Design principle:</strong> on-device first for passive features; cloud AI only on explicit user action.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">What does the user agreement need to say about AI, and how prominent should it be?</p>
+          <p class="q-note">Health app users — especially those managing a neurological condition — are often more privacy-aware than typical consumers. Burying AI disclosure in terms of service risks a trust breach when users realize it later. <strong>Working principle:</strong> be calm but clear. "DoseEgg can optionally learn from your notes to make logging easier over time" is honest without being alarming. The user agreement should state: what AI accesses, when, where data goes, and how to turn it off.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">How do we handle AI "noticing" something that feels clinical — without crossing into medical advice?</p>
+          <p class="q-note">Pattern detection can surface observations ("you've described upper body stiffness 8 times this month") without interpretation ("your medication may not be working in the afternoon"). The line between observation and interpretation is where liability begins. <strong>Design rule:</strong> show the user what was noticed, let them decide what it means. Never frame a pattern as a diagnosis or recommendation.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status future"></span>
+        <div class="q-body">
+          <span class="q-label future">Future</span>
+          <p class="q-text">What foundation needs to be in place before ambient AI is appropriate?</p>
+          <p class="q-note">At minimum: (1) explicit opt-in with plain-language explanation, (2) on-device vs. cloud distinction made clear, (3) transparency layer — show the user what AI has noticed before acting on it, (4) user agreement with clear AI disclosure, (5) legal review of data flow if using cloud AI APIs. This is a Phase 3 or later question — not relevant until the core logging is built and validated.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+
+  <!-- ══════════════════════
+       FEATURE: FREE-FORM LOGGING (MVP)
+  ══════════════════════ -->
+  <div class="feature-block">
+    <div class="feature-head">
+      <span class="feature-tag mvp">MVP</span>
+      <h2>Free-Form Logging</h2>
+    </div>
+    <p class="feature-desc">
+      Users can add any freeform note alongside structured logs. This is the lowest-friction way to capture symptoms or context that doesn't fit a predefined field. The data model for free-form notes should be designed with future pattern detection in mind, even if that feature isn't built yet.
+    </p>
+
+    <div class="questions">
+
+      <div class="q">
+        <span class="q-status decided"></span>
+        <div class="q-body">
+          <span class="q-label decided">Decided</span>
+          <p class="q-text">How should free-form notes be stored to support future pattern detection?</p>
+          <p class="q-note"><strong>Resolved as constraint C-12</strong> (July 2026): discrete timestamped entries, schema reserves fields for token/frequency indexing — see <span class="unpublished">Design Constraints</span>. Original reasoning: flat text blobs are easy to write but hard to analyze later; precise timestamps and discrete entries don't require building pattern detection, they just avoid making it impossible later.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status decided"></span>
+        <div class="q-body">
+          <span class="q-label decided">Decided</span>
+          <p class="q-text">Is free-form logging in MVP scope?</p>
+          <p class="q-note"><strong>Yes — and now prototyped</strong> (July 2026): the How I feel panel's note field, with the never-discard rule (send / Return / dismissal all save) and mic↔send input. See the <span class="unpublished">Daily Loop Flow</span>. Free-form notes are the escape hatch for anything not covered by structured fields.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+
+  <!-- ══════════════════════
+       FEATURE: DATA PURPOSE — WORKING vs REPORTING
+  ══════════════════════ -->
+  <div class="feature-block">
+    <div class="feature-head">
+      <span class="feature-tag exploring">Exploring</span>
+      <h2>Data Purpose — Working Data vs. Reporting Data</h2>
+    </div>
+    <p class="feature-desc">
+      Research on chronic-illness tracking (Ancker et al. 2015) shows the same log serves different purposes: <strong>working data</strong> a patient acts on immediately (e.g. a diabetic checks blood glucose and adjusts food or insulin now), data for <strong>sense-making</strong> (understanding the condition over time), and data for <strong>reporting to the doctor</strong>. In T1D, glucose is genuinely working data. The open question is what role DoseEgg's logs can play for PD — where ON/OFF is plannable but not reliably predictable.
+    </p>
+
+    <div class="questions">
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">Can any DoseEgg data become "working data" the user acts on in the moment?</p>
+          <p class="q-note">T1D works because glucose is read and dosed against in real time. PD is different — ON/OFF is plannable but unpredictable, so a DoseEgg log is mostly sense-making and doctor-reporting. Is there a narrow exception, e.g. "you tend to go OFF ~90 min after this dose, so plan around it"? That would be working data of a planning kind, not a dosing kind. Worth defining what, if anything, qualifies.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">Does chasing prediction / working data push the app toward the optimization framing we're avoiding?</p>
+          <p class="q-note">Predictive "do X now" guidance edges toward the dashboard/performance tone DoseEgg deliberately rejects (journal, not report card). Tension to resolve: deliver genuinely useful timing insight without making the user feel they're being scored or must act. Connects to the moral-framing principle — observation over instruction.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status research"></span>
+        <div class="q-body">
+          <span class="q-label research">Needs input</span>
+          <p class="q-text">What does the T1D / CGM ecosystem teach about these three data purposes?</p>
+          <p class="q-note">Tied to the queued T1D research task. CGM "time in range" is both working data (act now) and reporting data (clinic review). Studying how those tools separate or blend the two — and how they avoid feeling punitive — should inform DoseEgg's equivalent (e.g. a "time in ON" concept).</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+
+  <!-- ══════════════════════
+       FEATURE: INPUT MODEL — TIMELINE vs JOURNAL
+  ══════════════════════ -->
+  <div class="feature-block">
+    <div class="feature-head">
+      <span class="feature-tag exploring">Exploring</span>
+      <h2>Input Model — Structured Timeline vs. Conversational Journal</h2>
+    </div>
+    <p class="feature-desc">
+      Sparked by Ancker et al.'s "tracking is work" theme. Two possible interaction models: (1) a <strong>structured timeline</strong>, activity-focused, Oura-like — the user logs events into fields; (2) a <strong>conversational journal</strong> where the user writes or speaks freely and an AI model distills it into a dry timeline / day summary. The deeper question underneath: a structured UI is biased toward presence ("what did you do?") and may miss the <strong>negative space</strong> — the dose forgotten, the activity skipped because OFF, the rough stretch never recorded — which is often the richest PD signal. And people log least when sickest, exactly when it matters most.
+    </p>
+
+    <div class="questions">
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">Will users log negative space — what they did NOT do, or feeling off — not just what they did?</p>
+          <p class="q-note">Structured fields capture actions (dose taken, workout done). They don't naturally hold absences: forgot meds, skipped activity, a vague OFF period. A freeform sentence ("couldn't get off the couch till noon") encodes OFF + inactivity + mood at once, at lower effort. <strong>Core hypothesis to test:</strong> a journal mode captures negative space that a timeline grid misses.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status decided"></span>
+        <div class="q-body">
+          <span class="q-label decided">Decided</span>
+          <p class="q-text">One app with multiple input depths, rather than two separate models?</p>
+          <p class="q-note"><strong>Yes — this became the daily-loop design</strong> (July 2026): every category has a one-or-two-tap fast path with optional depth, all feeding one timeline — see the <span class="unpublished">Daily Loop Flow</span>. Even a sentence is hard to type mid-OFF, so the lightest tiers matter most. Passive sensing as the lightest tier of all remains open (see Research page, Section 1).</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status research"></span>
+        <div class="q-body">
+          <span class="q-label research">Needs input</span>
+          <p class="q-text">AI distilling a journal into a timeline — does it clear the consent/privacy bar?</p>
+          <p class="q-note"><strong>Partially moved</strong> (July 2026): the feature is now spec'd as <em>smart split</em> — user-initiated on a note the user just wrote, behind the C-15 confirm pattern (AI proposes, user confirms, nothing lands unseen) — which is a much easier consent case than ambient journal-reading. See the flow doc's Note section and the <span class="unpublished">Feature Backlog</span>. What remains for legal/expert input: cloud vs. on-device data flow for the parsing itself.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">How do we capture "what you didn't do" without it reading as confession?</p>
+          <p class="q-note">"You missed your dose" is exactly the "bad patient" moral verdict Ancker warns about. Negative-space capture must stay neutral and observational — the journal framing is gentler than a checklist of misses, but this has to be designed deliberately, not assumed. Ties to the moral-framing principle (observation over judgment).</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+
+  <!-- ══════════════════════
+       FEATURE: EMOTIONAL DESIGN
+  ══════════════════════ -->
+  <div class="feature-block">
+    <div class="feature-head">
+      <span class="feature-tag exploring">Exploring</span>
+      <h2>Emotional Design — Coping, Framing &amp; Positive Engagement</h2>
+    </div>
+    <p class="feature-desc">
+      A direct recommendation from Ancker et al.: engage with the <strong>emotional impact</strong> of medical data, not just display it — don't only motivate progress, but help people cope with negative feelings; avoid exacerbating negative judgments; find creative ways to support positive feelings; and <strong>facilitate personal goal-setting rather than imposing external goals</strong>. Two named technique families: <strong>motivational interviewing</strong> (help patients set personally relevant goals and action plans, rather than adopting their providers' priorities) and <strong>behavioral economics</strong> (framing, defaults, and nudges to support engagement and better decisions). This area is the operational extension of the moral-framing principle.
+    </p>
+
+    <div class="questions">
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">How does the app engage with the emotional weight of data, not just show it?</p>
+          <p class="q-note">Data provokes real emotion (the quote bank is full of it). The product should help users <em>cope</em> with a bad stretch, not just register it — and notice and support good moments without it feeling like a reward mechanic. What does "emotional support" look like in a logging app without tipping into therapy-speak or false cheer?</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">Personal goals vs. external/clinical goals — how does a user set goals that are genuinely theirs?</p>
+          <p class="q-note">Motivational-interviewing principle: personally relevant goals beat imposed ones ("for me," not the provider's target — see the A1c "poster child" quote). How does DoseEgg let someone define what "a good day" means to them, rather than shipping a default target? Connects directly to the "good for you, not good" framing.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status research"></span>
+        <div class="q-body">
+          <span class="q-label research">Needs input</span>
+          <p class="q-text">What can motivational interviewing and behavioral economics contribute — applied ethically?</p>
+          <p class="q-note">Worth a focused review: MI techniques for goal-setting and action plans; behavioral-economics framing/defaults/nudges for engagement. <strong>Tension to hold:</strong> nudges and defaults shade into manipulation and optimization pressure fast — the very tone DoseEgg avoids. The question isn't whether these tools work, but which uses respect autonomy vs. quietly steer.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">Where's the line between a supportive nudge and the report-card / optimization tone we reject?</p>
+          <p class="q-note">A gentle "want to note how the afternoon went?" supports the user; "you're below your streak" judges them. Both are nudges. This block needs a working rule for which side of the line a given pattern sits on. Ties to the no-performance-framing and moral-framing principles.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <footer>
+    <span>DoseEgg · Open Questions · Working doc</span>
+    <span>Last updated June 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>

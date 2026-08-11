@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoseEgg — Prototypes &amp; Design</title>
+<meta name="description" content="Prototypes and design reference for DoseEgg, a medication and context journal for people with Young Onset Parkinson's.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #FAF6EF;
+  font-family: 'Inter', -apple-system, sans-serif;
+  min-height: 100vh;
+  padding: 64px 40px 96px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* ── Header ── */
+header {
+  margin-bottom: 64px;
+}
+
+.header-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #A8906A;
+  margin-bottom: 14px;
+}
+
+.header-eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 1.5px;
+  background: #C8A878;
+  border-radius: 1px;
+}
+
+h1 {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 42px;
+  font-weight: 600;
+  color: #2E2416;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  margin-bottom: 14px;
+}
+
+.subtitle {
+  font-size: 15px;
+  color: #8A7560;
+  line-height: 1.7;
+  max-width: 480px;
+}
+
+/* ── Divider ── */
+.divider {
+  width: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, #D4A574, #C8D4A0);
+  border-radius: 2px;
+  margin: 28px 0 0;
+}
+
+/* ── Section ── */
+section {
+  margin-bottom: 52px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.section-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Per-section accent colours */
+.section--prototypes .section-dot   { background: #7FAF8A; }
+.section--prototypes .section-label { color: #5A8C66; }
+
+.section--comparisons .section-dot   { background: #E0A070; }
+.section--comparisons .section-label { color: #B87840; }
+
+.section--research .section-dot   { background: #B09AC8; }
+.section--research .section-label { color: #7B6496; }
+
+.section--learning .section-dot   { background: #7A9AAA; }
+.section--learning .section-label { color: #4A7080; }
+
+.section--planning .section-dot   { background: #75A5B0; }
+.section--planning .section-label { color: #4A7A8A; }
+
+/* ── Cards ── */
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFDF8;
+  border-radius: 14px;
+  padding: 15px 18px;
+  text-decoration: none;
+  color: inherit;
+  border: 1.5px solid #EDE8DE;
+  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+}
+
+.card:hover {
+  border-color: #D4C8B0;
+  box-shadow: 0 6px 24px rgba(160, 120, 60, 0.1);
+  transform: translateY(-2px);
+}
+
+.card-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* Icon bg tints per section */
+.section--prototypes  .card-icon { background: #EEF5EF; }
+.section--comparisons .card-icon { background: #FDF0E5; }
+.section--research    .card-icon { background: #F2EEF8; }
+.section--learning    .card-icon { background: #EAF1F4; }
+.section--planning    .card-icon { background: #EAF1F3; }
+
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2E2416;
+  margin-bottom: 3px;
+}
+
+.card-meta {
+  font-size: 12px;
+  color: #A8967A;
+  line-height: 1.5;
+}
+
+.card-arrow {
+  font-size: 18px;
+  color: #CEC4B0;
+  flex-shrink: 0;
+  transition: color 0.15s, transform 0.15s;
+}
+.card:hover .card-arrow {
+  color: #A8906A;
+  transform: translateX(2px);
+}
+
+/* ── Badge ── */
+.badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 20px;
+  margin-left: 7px;
+  vertical-align: middle;
+  background: #E8F2EA;
+  color: #5A8C66;
+}
+
+/* ── Footer ── */
+footer {
+  margin-top: 72px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: #C0B09A;
+}
+footer::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: #D8CCBA;
+}
+
+.unpublished { color: #B9AC96; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-eyebrow">DoseEgg</div>
+  <h1>Prototypes &amp; design</h1>
+  <p class="subtitle">
+    A medication and context journal for people living with Young Onset Parkinson's, built
+    around one idea: logging should feel like <em>contributing to your day</em>, not switching
+    into an app. Best opened on a phone.
+  </p>
+</header>
+
+<section class="section--prototypes">
+  <div class="section-head"><div class="section-label">Prototypes</div></div>
+  <div class="card-list">
+    <a class="card" href="prototypes/hifi-daily-loop.html">
+      <div class="card-left">
+        <div class="card-icon">✦</div>
+        <div>
+          <div class="card-title">Today — hi-fi <span class="badge">Newest</span></div>
+          <div class="card-meta">Timeline rail, oat + petrol tokens · Aug 2026</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="prototypes/daily-loop.html">
+      <div class="card-left">
+        <div class="card-icon">🔁</div>
+        <div>
+          <div class="card-title">Daily Loop <span class="badge">Interactive</span></div>
+          <div class="card-meta">Consolidated v1 — every decided item applied</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="prototypes/nav-companion.html">
+      <div class="card-left">
+        <div class="card-icon">🤝</div>
+        <div>
+          <div class="card-title">The Companion <span class="badge">Chosen direction</span></div>
+          <div class="card-meta">Won the navigation comparison, June 2026</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="prototypes/ai-lab.html">
+      <div class="card-left">
+        <div class="card-icon">◍</div>
+        <div>
+          <div class="card-title">AI Lab <span class="badge">Exploration</span></div>
+          <div class="card-meta">AI-assisted logging — draft, review, confirm</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="prototypes/loop-proto-1.html">
+      <div class="card-left">
+        <div class="card-icon">①</div>
+        <div>
+          <div class="card-title">Daily Loop · Proto 1 <span class="badge">Archived</span></div>
+          <div class="card-meta">A/B pair, July 2026 — scannable rows</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="prototypes/loop-proto-2.html">
+      <div class="card-left">
+        <div class="card-icon">②</div>
+        <div>
+          <div class="card-title">Daily Loop · Proto 2 <span class="badge">Archived</span></div>
+          <div class="card-meta">A/B pair, July 2026 — 2×2 grid. This layout won.</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="prototypes/nav-journal.html">
+      <div class="card-left">
+        <div class="card-icon">📓</div>
+        <div>
+          <div class="card-title">The Journal <span class="badge">Archived</span></div>
+          <div class="card-meta">Navigation round 2 — one of three directions</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="prototypes/nav-mirror.html">
+      <div class="card-left">
+        <div class="card-icon">🪞</div>
+        <div>
+          <div class="card-title">The Mirror <span class="badge">Archived</span></div>
+          <div class="card-meta">Navigation round 2 — one of three directions</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="prototypes/nav-directions.html">
+      <div class="card-left">
+        <div class="card-icon">⋔</div>
+        <div>
+          <div class="card-title">All three, side by side <span class="badge">Comparison</span></div>
+          <div class="card-meta">The view used to make the navigation call</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="prototypes/nav-exploration-1.html">
+      <div class="card-left">
+        <div class="card-icon">⊘</div>
+        <div>
+          <div class="card-title">Exploration 1 <span class="badge">Rejected</span></div>
+          <div class="card-meta">First draft — rejected for performance/dashboard framing. Kept as a marked example.</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="prototypes/hifi-widths.html">
+      <div class="card-left">
+        <div class="card-icon">↔</div>
+        <div>
+          <div class="card-title">Hi-fi width study <span class="badge">Study</span></div>
+          <div class="card-meta">Layout across viewport widths</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+  </div>
+</section>
+
+<section class="section--research">
+  <div class="section-head"><div class="section-label">Reference</div></div>
+  <div class="card-list">
+    <a class="card" href="glossary.html">
+      <div class="card-left">
+        <div class="card-icon">📖</div>
+        <div>
+          <div class="card-title">Glossary</div>
+          <div class="card-meta">Parkinson's and product vocabulary</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="research.html">
+      <div class="card-left">
+        <div class="card-icon">🔬</div>
+        <div>
+          <div class="card-title">Research</div>
+          <div class="card-meta">Studies and evidence behind the design</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="reference-products.html">
+      <div class="card-left">
+        <div class="card-icon">🧭</div>
+        <div>
+          <div class="card-title">Reference products</div>
+          <div class="card-meta">What we learn from and move away from</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="open-questions.html">
+      <div class="card-left">
+        <div class="card-icon">❓</div>
+        <div>
+          <div class="card-title">Open questions</div>
+          <div class="card-meta">What is still undecided, by area</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="design-tokens.html">
+      <div class="card-left">
+        <div class="card-icon">🎨</div>
+        <div>
+          <div class="card-title">Design tokens</div>
+          <div class="card-meta">Colour, type and spacing foundations</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+  </div>
+</section>
+
+<footer style="margin-top:56px;padding-top:24px;border-top:1px solid #E8DFD0;font-size:12px;color:#A8967A;line-height:1.7;">
+  Public snapshot. Prototypes use sample data throughout — no real patient data appears in this
+  repository. Research notes, design constraints and the decision log are kept in a private
+  repository. Greyed labels point to pages that are not published here.
+</footer>
+
+</body>
+</html>

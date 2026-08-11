@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>DoseEgg · Daily Loop</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #FFFFFF;
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ── Demo bar ── */
+.demo-bar {
+  background: #222;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 6px 8px;
+  padding-top: calc(6px + env(safe-area-inset-top));
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.demo-bar .db-label { opacity: 0.85; }
+.demo-btn {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: white;
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 10px;
+  padding: 3px 9px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.demo-btn:active { background: rgba(255,255,255,0.3); }
+
+/* ── Top bar ── */
+.top-bar {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #EBEBEB;
+}
+.top-title { font-size: 17px; font-weight: 700; color: #111; }
+.icon-btn { font-size: 16px; color: #888; padding: 6px; }
+.hamburger-btn { font-size: 20px; color: #333; padding: 6px; }
+
+/* ── Card area (single card only, never stacks) ── */
+#card-area { flex-shrink: 0; }
+.confirm-card {
+  margin: 12px 16px 6px;
+  border: 1.5px solid #222;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.confirm-q { font-size: 14px; font-weight: 600; color: #111; margin-bottom: 3px; }
+.confirm-time { font-size: 11px; color: #999; margin-bottom: 9px; }
+.confirm-actions { display: flex; gap: 7px; }
+.c-btn {
+  font-size: 14px;
+  padding: 9px 20px;
+  border: 1.5px solid #333;
+  border-radius: 22px;
+  background: white;
+  cursor: pointer;
+  font-weight: 500;
+  font-family: inherit;
+  min-height: 40px;
+}
+.c-btn.primary { background: #222; color: white; border-color: #222; }
+.c-btn:active { opacity: 0.7; }
+
+/* ── Timeline ── */
+.timeline {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0 90px;
+  -webkit-overflow-scrolling: touch;
+}
+.day-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #CCCCCC;
+  padding: 6px 20px 3px;
+}
+.tl-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 20px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.tl-entry:active { background: #FAFAFA; }
+.tl-entry.dim { opacity: 0.4; }
+.tl-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid #CCCCCC;
+  background: white;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+.tl-dot.filled { background: #333; border-color: #333; }
+.tl-body { display: flex; flex-direction: column; gap: 1px; }
+.tl-time { font-size: 10px; color: #CCCCCC; }
+.tl-text { font-size: 13.5px; color: #222; font-weight: 500; }
+.tl-edited { font-size: 9px; color: #CCC; font-style: italic; }
+.empty-day { padding: 28px 20px; font-size: 13px; color: #BBB; text-align: center; }
+/* first-run empty state — welcoming, no pressure, no "you should log" (C-08) */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 32px;
+  gap: 6px;
+  height: 100%;
+}
+.empty-state .es-mark { font-size: 40px; margin-bottom: 6px; opacity: 0.9; }
+.empty-state .es-title { font-size: 16px; font-weight: 700; color: #333; }
+.empty-state .es-body { font-size: 13px; color: #999; line-height: 1.55; max-width: 260px; }
+.empty-state .es-hint { font-size: 12px; color: #BBB; margin-top: 14px; display: flex; align-items: center; gap: 6px; }
+.empty-state .es-plus { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #999; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; line-height: 1; color: #999; }
+
+/* ── FAB ── */
+.fab-float {
+  position: fixed;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  right: 20px;
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  border: 1.5px solid #222;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 30px;
+  font-weight: 300;
+  line-height: 1;
+  z-index: 10;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  transition: transform 0.15s;
+}
+.fab-float.pressing { transform: scale(1.15); background: #222; color: white; }
+
+/* ── Sheets ── */
+.sheet-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 20;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.sheet-bg.open { opacity: 1; pointer-events: all; }
+.sheet {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  padding: 0 16px calc(28px + env(safe-area-inset-bottom));
+  z-index: 21;
+  transform: translateY(105%);
+  transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+  max-height: 82dvh;
+  overflow-y: auto;
+}
+.sheet.open { transform: translateY(0); }
+.sheet-pull { width: 36px; height: 4px; background: #DDD; border-radius: 2px; margin: 14px auto; }
+.sheet-label {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.6px;
+  color: #CCCCCC; text-align: center;
+  margin-bottom: 14px;
+}
+.sheet-back { font-size: 13px; color: #888; padding: 2px 0 10px; cursor: pointer; }
+
+/* ══ GRID layout (Prototype 2) — big tiles, med & activity on top ══ */
+/* quick row — one-tap doors for lowest-capacity moments (D-04) */
+.quick-row { display: flex; gap: 10px; margin-bottom: 10px; }
+.quick-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 15px 10px;
+  border: 1.5px solid #222;
+  border-radius: 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111;
+  text-align: center;
+}
+.quick-btn:active { background: #222; color: white; }
+.quick-btn .qb-icon { font-size: 17px; }
+.quick-btn.flash { background: #222; color: white; }
+
+.log-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.grid-tile {
+  border: 1px solid #EBEBEB;
+  border-radius: 14px;
+  padding: 18px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 96px;
+  text-align: center;
+}
+.grid-tile:active { background: #F5F5F5; }
+.gt-icon { font-size: 26px; }
+.gt-name { font-size: 13.5px; font-weight: 600; color: #222; }
+
+/* chips inside panels */
+.p-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.p-chip {
+  font-size: 14px;
+  padding: 12px 18px;
+  border: 1.5px solid #CCC;
+  border-radius: 22px;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  min-height: 46px;
+  -webkit-tap-highlight-color: transparent;
+}
+.p-chip:active { background: #222; color: white; border-color: #222; }
+.p-chip.suggested { border-color: #222; font-weight: 600; }
+.p-chip .sug { font-size: 9px; color: #999; display: block; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; }
+.p-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: #CCC; margin: 4px 0 8px; }
+
+.p-note-row { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+.p-note-input {
+  flex: 1;
+  border: 1px solid #DDD;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  -webkit-user-select: text; user-select: text;
+}
+.p-mic {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  border: 1.5px solid #333;
+  background: white;
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.p-mic.send { background: #222; color: white; font-weight: 700; }
+
+/* panel time row */
+.time-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: -2px 0 14px;
+}
+.time-row .tr-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: #CCC; }
+.step-btn.sm { width: 34px; height: 34px; font-size: 15px; }
+.time-row .step-val { min-width: 88px; font-size: 14px; }
+
+/* med list management */
+.manage-link { font-size: 12px; color: #888; cursor: pointer; text-decoration: underline; font-weight: 500; text-transform: none; letter-spacing: 0; }
+.med-x, .med-up {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid #C05A5A;
+  background: white;
+  color: #C05A5A;
+  font-size: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+.med-up { border-color: #999; color: #666; }
+.p-save {
+  width: 100%;
+  margin-top: 12px;
+  padding: 13px;
+  border: 1.5px solid #222;
+  border-radius: 12px;
+  background: #222;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+.mic-hint { font-size: 10px; color: #BBB; text-align: center; margin-top: 8px; }
+
+.p-chip.sel { background: #222; color: white; border-color: #222; font-weight: 600; }
+.p-chip.sel .sug { color: rgba(255,255,255,0.65); }
+.photo-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px;
+  border: 1.5px dashed #999;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  -webkit-tap-highlight-color: transparent;
+}
+.photo-row:active { background: #F5F5F5; }
+.photo-row.has-photo { border-style: solid; border-color: #222; }
+.photo-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px;
+  border: 1.5px dashed #999;
+  border-radius: 14px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  -webkit-tap-highlight-color: transparent;
+}
+.photo-strip:active { background: #F5F5F5; }
+.photo-strip .fb-sub { font-size: 10px; font-weight: 500; color: #AAA; }
+.photo-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 130px;
+  border: 1px solid #EBEBEB;
+  border-radius: 14px;
+  background: #FAFAFA;
+  font-size: 34px;
+}
+
+/* med list rows */
+.log-list { display: flex; flex-direction: column; gap: 6px; }
+.log-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 12px;
+  border: 1px solid #EBEBEB;
+  border-radius: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.log-row:active { background: #F5F5F5; }
+.log-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  border: 1px solid #E5E5E5;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px;
+  flex-shrink: 0;
+}
+.log-name { font-size: 15px; font-weight: 500; color: #222; }
+.log-sub { font-size: 11px; color: #BBB; margin-top: 1px; }
+
+/* entry detail */
+.detail-title { font-size: 16px; font-weight: 700; color: #111; margin-bottom: 2px; }
+.detail-meta { font-size: 11px; color: #AAA; margin-bottom: 14px; }
+.detail-actions { display: flex; gap: 8px; margin-top: 6px; }
+.d-btn {
+  flex: 1;
+  padding: 12px;
+  border: 1.5px solid #333;
+  border-radius: 12px;
+  background: white;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+.d-btn.danger { border-color: #C05A5A; color: #C05A5A; }
+.d-btn:active { opacity: 0.6; }
+
+.stepper-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #F0F0F0; }
+.stepper-name { font-size: 14px; font-weight: 500; color: #333; }
+.stepper-ctrl { display: flex; align-items: center; gap: 14px; }
+.step-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid #333;
+  background: white;
+  font-size: 18px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.step-btn:active { background: #222; color: white; }
+.step-val { font-size: 15px; font-weight: 700; min-width: 64px; text-align: center; }
+.meal-toggle {
+  font-size: 13px;
+  padding: 9px 16px;
+  border: 1.5px solid #CCC;
+  border-radius: 20px;
+  background: white;
+  cursor: pointer;
+  font-family: inherit;
+  color: #555;
+}
+.meal-toggle.on { border-color: #222; color: #111; font-weight: 600; }
+
+.confirm-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 40;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+.confirm-overlay.show { display: flex; }
+.confirm-box {
+  background: white;
+  border-radius: 16px;
+  padding: 24px 22px;
+  max-width: 300px;
+  text-align: center;
+}
+.cb-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.cb-body { font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 16px; }
+.cb-actions { display: flex; gap: 8px; }
+
+/* toast (no undo for permanent delete) */
+.toast {
+  position: fixed;
+  bottom: calc(90px + env(safe-area-inset-bottom));
+  left: 16px; right: 90px;
+  background: #222;
+  color: white;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 30;
+  transform: translateY(20px);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s;
+}
+.toast.show { transform: translateY(0); opacity: 1; pointer-events: all; }
+.undo-btn { color: white; font-weight: 700; font-size: 13px; background: none; border: none; font-family: inherit; cursor: pointer; padding: 4px 8px; text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<a href="../index.html" style="position:fixed;top:calc(34px + env(safe-area-inset-top));left:12px;z-index:9999;background:rgba(255,255,255,0.92);border:1px solid rgba(0,0,0,0.12);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:600;color:#333;text-decoration:none;box-shadow:0 1px 6px rgba(0,0,0,0.1);">← Home</a>
+
+<div class="demo-bar">
+  <span class="db-label">Daily Loop · consolidated v1</span>
+  <button class="demo-btn" onclick="demoAddDose()">+ due dose</button>
+  <button class="demo-btn" onclick="demoEmpty()">empty state</button>
+  <button class="demo-btn" onclick="location.reload()">reset</button>
+</div>
+
+<div class="top-bar">
+  <span class="hamburger-btn">☰</span>
+  <span class="top-title">Today</span>
+  <span class="icon-btn">···</span>
+</div>
+
+<div id="card-area"></div>
+
+<div class="timeline" id="timeline"></div>
+
+<div class="fab-float" id="fab">+</div>
+
+<!-- ══ Log sheet (GRID layout, 6 categories, med first, FOG pinned band) ══ -->
+<div class="sheet-bg" id="sheet-bg" onclick="closeAllSheets()"></div>
+
+<div class="sheet" id="sheet-log">
+  <div class="sheet-pull"></div>
+  <div class="sheet-label">Add to today</div>
+  <!-- D-04: visible one-tap doors for the states that matter most when capacity is lowest.
+       Long-press on the FAB does the same for FOG as a bonus gesture, never the only route. -->
+  <div class="quick-row">
+    <div class="quick-btn" onclick="quickLog('Froze in place')">
+      <span class="qb-icon">🧊</span><span>Froze in place</span>
+    </div>
+    <div class="quick-btn" onclick="quickLog('Low energy')">
+      <span class="qb-icon">🔋</span><span>Low energy</span>
+    </div>
+  </div>
+  <div class="log-grid">
+    <div class="grid-tile" onclick="openPanel('med')"><div class="gt-icon">💊</div><div class="gt-name">Medication</div></div>
+    <div class="grid-tile" onclick="openPanel('activity')"><div class="gt-icon">🏃</div><div class="gt-name">Activity</div></div>
+    <div class="grid-tile" onclick="openPanel('food')"><div class="gt-icon">🥗</div><div class="gt-name">Food &amp; protein</div></div>
+    <div class="grid-tile" onclick="openPanel('symptom')"><div class="gt-icon">✦</div><div class="gt-name">How I feel</div></div>
+  </div>
+  <div class="photo-strip" onclick="photoQuick()">
+    <span style="font-size:20px;">📷</span>
+    <span>Photo <span class="fb-sub">— snap now, caption optional</span></span>
+  </div>
+</div>
+
+<!-- Medication panel -->
+<div class="sheet" id="sheet-med">
+  <div class="sheet-pull"></div>
+  <div class="sheet-back" onclick="backToLog()">‹ Add to today</div>
+  <div class="sheet-label">Medication</div>
+  <div class="time-row"><span class="tr-label">Time</span><button class="step-btn sm" onclick="bumpPanelTime(-15)">−</button><span class="step-val pt-display">now</span><button class="step-btn sm" onclick="bumpPanelTime(15)">+</button></div>
+  <div class="p-section" style="display:flex;justify-content:space-between;align-items:center;"><span>From your plan</span><span class="manage-link" id="med-manage-link" onclick="toggleMedManage()">Edit list</span></div>
+  <div class="log-list" id="med-list"></div>
+  <div class="log-row" style="border-style:dashed;margin-top:6px;" onclick="showMedAdd()"><div class="log-icon">＋</div><div class="log-name" style="color:#888;">Add medication</div></div>
+  <div class="p-note-row" id="med-add-row" style="display:none;margin-top:8px;">
+    <input class="p-note-input" id="med-new" placeholder="Name &amp; dose — e.g. Levodopa 50mg" onkeydown="if(event.key==='Enter')commitNewMed()">
+    <button class="p-mic send" onclick="commitNewMed()">↑</button>
+  </div>
+  <div class="mic-hint">tap a medication to log it at the time above · Edit list to rename, remove, or reorder</div>
+</div>
+
+<!-- Activity panel -->
+<div class="sheet" id="sheet-activity">
+  <div class="sheet-pull"></div>
+  <div class="sheet-back" onclick="backToLog()">‹ Add to today</div>
+  <div class="sheet-label">Activity</div>
+  <div class="time-row"><span class="tr-label">Time</span><button class="step-btn sm" onclick="bumpPanelTime(-15)">−</button><span class="step-val pt-display">now</span><button class="step-btn sm" onclick="bumpPanelTime(15)">+</button></div>
+  <div class="p-chips">
+    <button class="p-chip suggested" onclick="logEntry('Walk — 20 min')"><span class="sug">like usual</span>Walk · 20 min</button>
+    <button class="p-chip" onclick="logEntry('Walk')">Walk</button>
+    <button class="p-chip" onclick="logEntry('Exercise')">Exercise</button>
+    <button class="p-chip" onclick="logEntry('Stretch')">Stretch</button>
+    <button class="p-chip" onclick="logEntry('Housework')">Housework</button>
+    <button class="p-chip" onclick="logEntry('Activity')">+ other</button>
+  </div>
+</div>
+
+<!-- Food panel -->
+<div class="sheet" id="sheet-food">
+  <div class="sheet-pull"></div>
+  <div class="sheet-back" onclick="backToLog()">‹ Add to today</div>
+  <div class="sheet-label">Food &amp; protein</div>
+  <div class="photo-row" id="food-photo-row" onclick="foodPhoto()">
+    <span style="font-size:20px;">📷</span>
+    <span id="food-photo-label">Add a photo</span>
+  </div>
+  <div class="mic-hint" style="margin:2px 0 12px;">with AI on, the camera opens first and estimates the meal for you to confirm</div>
+  <div class="p-note-row" style="margin-bottom:12px;">
+    <input class="p-note-input" id="food-text" placeholder="What did you eat? (optional)">
+  </div>
+  <div class="p-section">Meal <span style="font-weight:500;text-transform:none;letter-spacing:0;">— optional, guessed from the time</span></div>
+  <div class="p-chips" id="meal-chips">
+    <button class="p-chip" onclick="selMeal(this,'Breakfast')">Breakfast</button>
+    <button class="p-chip" onclick="selMeal(this,'Lunch')">Lunch</button>
+    <button class="p-chip" onclick="selMeal(this,'Dinner')">Dinner</button>
+    <button class="p-chip" onclick="selMeal(this,'Snack')">Snack</button>
+    <button class="p-chip" onclick="selMeal(this,'Drink')">Drink</button>
+    <button class="p-chip" onclick="selMeal(this,'Other')">Other</button>
+  </div>
+  <div class="p-section">Protein — optional</div>
+  <div class="p-chips" id="protein-chips">
+    <button class="p-chip" onclick="selProtein(this,'low protein')">Low</button>
+    <button class="p-chip" onclick="selProtein(this,'some protein')">Some</button>
+    <button class="p-chip" onclick="selProtein(this,'high protein')">High</button>
+  </div>
+  <div class="stepper-row" style="border-bottom:none;">
+    <span class="stepper-name">Time</span>
+    <div class="stepper-ctrl">
+      <button class="step-btn" onclick="bumpFoodTime(-15)">−</button>
+      <span class="step-val" id="food-time">—</span>
+      <button class="step-btn" onclick="bumpFoodTime(15)">+</button>
+    </div>
+  </div>
+  <button class="p-save" onclick="saveFood()">Add to today</button>
+  <div class="mic-hint">why protein? it can compete with levodopa for absorption — this is timing info, nothing more</div>
+</div>
+
+<!-- Note / symptom panel (kept separate from check-in) -->
+<div class="sheet" id="sheet-symptom">
+  <div class="sheet-pull"></div>
+  <div class="sheet-back" onclick="backToLog()">‹ Add to today</div>
+  <div class="sheet-label">How I feel</div>
+  <div class="time-row"><span class="tr-label">Time</span><button class="step-btn sm" onclick="bumpPanelTime(-15)">−</button><span class="step-val pt-display">now</span><button class="step-btn sm" onclick="bumpPanelTime(15)">+</button></div>
+  <div class="p-chips">
+    <button class="p-chip" onclick="feelLog(this,'✦ Meds kicked in')">✦ Meds kicked in</button>
+    <button class="p-chip" onclick="feelLog(this,'Wearing off')">Wearing off</button>
+    <button class="p-chip" onclick="feelLog(this,'Shaking (meds worn off)')">Shaking</button>
+    <button class="p-chip" onclick="feelLog(this,'Extra movement (meds strong)')">Extra movement</button>
+    <button class="p-chip" onclick="feelLog(this,'Stiff / slow')">Stiff / slow</button>
+    <button class="p-chip" onclick="feelLog(this,'Feeling good')">Feeling good</button>
+    <button class="p-chip" onclick="feelLog(this,'Low energy')">Low energy</button>
+    <button class="p-chip" id="feel-custom-plus" style="border-style:dashed;color:#888;" onclick="startCustomChip()">+ my own</button>
+  </div>
+  <div class="mic-hint" style="margin:0 0 10px;">tap as many as apply — each one is saved the moment you tap it</div>
+  <div class="mic-hint" style="margin:0 0 10px;">tap as many as apply — each one is saved the moment you tap it</div>
+  <div class="p-section">Or in your own words</div>
+  <div class="p-note-row">
+    <input class="p-note-input" id="symptom-note" placeholder="Write or dictate a note…" onkeydown="if(event.key==='Enter')closeAllSheets()" oninput="noteInput('symptom-note','symptom-btn')">
+    <button class="p-mic" id="symptom-btn" onclick="noteAction('symptom-note')">🎙</button>
+  </div>
+  <div class="mic-hint">🎙 dictate with your keyboard — no AI, nothing leaves your phone. Leaving also saves — words are never lost.</div>
+</div>
+
+<!-- Photo confirm sheet: same skeleton the AI flow needs — AI later just pre-fills the caption -->
+<div class="sheet" id="sheet-photo">
+  <div class="sheet-pull"></div>
+  <div class="sheet-label">Photo</div>
+  <div class="time-row"><span class="tr-label">Time</span><button class="step-btn sm" onclick="bumpPanelTime(-15)">−</button><span class="step-val pt-display">now</span><button class="step-btn sm" onclick="bumpPanelTime(15)">+</button></div>
+  <div class="photo-preview">📷<div style="font-size:11px;color:#BBB;margin-top:6px;">photo captured</div></div>
+  <div class="p-note-row" style="margin-top:12px;">
+    <input class="p-note-input" id="photo-caption" placeholder="Add a caption? (optional)" onkeydown="if(event.key==='Enter')closeAllSheets()">
+  </div>
+  <button class="p-save" onclick="closeAllSheets()">Add to today</button>
+  <div class="mic-hint">with AI on, a suggested caption appears here for you to confirm or fix. Closing also saves — the photo is never lost.</div>
+</div>
+
+<!-- Edit dose sheet -->
+<div class="sheet" id="sheet-editdose">
+  <div class="sheet-pull"></div>
+  <div class="sheet-label">Adjust dose</div>
+  <div class="stepper-row">
+    <span class="stepper-name">Time</span>
+    <div class="stepper-ctrl">
+      <button class="step-btn" onclick="bumpTime(-15)">−</button>
+      <span class="step-val" id="ed-time">10:47</span>
+      <button class="step-btn" onclick="bumpTime(15)">+</button>
+    </div>
+  </div>
+  <div class="stepper-row">
+    <span class="stepper-name">Dose</span>
+    <div class="stepper-ctrl">
+      <button class="step-btn" onclick="bumpDose(-50)">−</button>
+      <span class="step-val" id="ed-dose">100mg</span>
+      <button class="step-btn" onclick="bumpDose(50)">+</button>
+    </div>
+  </div>
+  <div class="stepper-row">
+    <span class="stepper-name">With a meal?</span>
+    <button class="meal-toggle" id="ed-meal" onclick="toggleMeal()">No</button>
+  </div>
+  <button class="p-save" onclick="saveEditedDose()">Save</button>
+</div>
+
+<!-- Entry detail sheet -->
+<div class="sheet" id="sheet-detail">
+  <div class="sheet-pull"></div>
+  <div class="detail-title" id="dt-title">—</div>
+  <div class="detail-meta" id="dt-meta">—</div>
+  <div class="stepper-row">
+    <span class="stepper-name">Time</span>
+    <div class="stepper-ctrl">
+      <button class="step-btn" onclick="detailBump(-15)">−</button>
+      <span class="step-val" id="dt-time">—</span>
+      <button class="step-btn" onclick="detailBump(15)">+</button>
+    </div>
+  </div>
+  <div class="detail-actions">
+    <button class="d-btn danger" onclick="deleteEntry()">Remove</button>
+    <button class="d-btn" onclick="saveDetail()">Done</button>
+  </div>
+</div>
+
+<!-- Planned entry resolve sheet -->
+<div class="sheet" id="sheet-resolve">
+  <div class="sheet-pull"></div>
+  <div class="detail-title" id="rs-title">—</div>
+  <div class="detail-meta">planned · not yet confirmed</div>
+  <div class="confirm-actions" style="margin-top:4px;">
+    <button class="c-btn primary" onclick="resolveYes()">Yes, took it</button>
+    <button class="c-btn" onclick="resolveEdit()">Edit</button>
+    <button class="c-btn" onclick="resolveNo()">No</button>
+  </div>
+</div>
+
+<!-- FOG long-press tip (D-04: bonus gesture, taught at the moment of relevance) -->
+<div class="confirm-overlay" id="fog-tip">
+  <div class="confirm-box">
+    <div style="font-size:30px;margin-bottom:10px;">💡</div>
+    <div class="cb-title">A faster way, for next time</div>
+    <div class="cb-body">You can also press and <b>hold the + button</b> to log “Froze in place” instantly.</div>
+    <div class="cb-actions">
+      <button class="d-btn" onclick="document.getElementById('fog-tip').classList.remove('show')" style="flex:1;">Got it</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span id="toast-text">Added</span>
+  <button class="undo-btn" id="toast-undo" onclick="doUndo()">Undo</button>
+</div>
+
+<script>
+/* ══════════ state ══════════ */
+let entries = [
+  { time: '10:00', text: 'Walk — 20 min', filled: true },
+  { time: '09:40', text: '✦ Meds kicked in', filled: true },
+  { time: '08:15', text: 'Levodopa 100mg', filled: true }
+];
+let yesterdayEntries = [
+  { time: '14:10', text: 'Levodopa 100mg — late', filled: true },
+  { time: '12:00', text: 'Lunch — high protein', filled: true },
+  { time: '08:20', text: 'Levodopa 100mg', filled: true }
+];
+let currentDose = { name: 'Levodopa 100mg', sched: '10:30' };  // one card max, never stacks
+let lastLogged = null, undoTimer = null, detailEntry = null, resolveEntry = null;
+let editReturnsTo = 'card';
+let edTimeMin = 647, edDose = 100, edMeal = false;
+
+function nowTime() {
+  const d = new Date();
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+function minToStr(m) {
+  m = ((m % 1440) + 1440) % 1440;
+  return String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
+}
+function el(id) { return document.getElementById(id); }
+
+/* ══════════ rendering ══════════ */
+function renderTimeline() {
+  const tl = el('timeline');
+  // First-run empty state: nothing anywhere and no pending dose card
+  if (entries.length === 0 && yesterdayEntries.length === 0 && !currentDose) {
+    tl.innerHTML = `<div class="empty-state">
+      <div class="es-mark">🥚</div>
+      <div class="es-title">Your day, as it happens</div>
+      <div class="es-body">Doses, movement, meals, how you feel — whatever you want to remember lands here, in the order it happened.</div>
+      <div class="es-hint"><span class="es-plus">+</span> start whenever you like</div>
+    </div>`;
+    return;
+  }
+  let html = '<div class="day-label">Today</div>';
+  if (entries.length === 0) html += '<div class="empty-day">Nothing logged yet today — the + button is ready when you are.</div>';
+  entries.forEach((e, i) => {
+    const dim = e.dim ? ' dim' : '';
+    const dot = e.filled ? ' filled' : '';
+    const edited = e.edited ? '<div class="tl-edited">edited</div>' : '';
+    const fn = e.dim ? 'openResolve' : 'openDetail';
+    html += `<div class="tl-entry${dim}" onclick="${fn}(${i})">
+      <div class="tl-dot${dot}"></div>
+      <div class="tl-body"><div class="tl-time">${e.time}</div><div class="tl-text">${e.text}</div>${edited}</div>
+    </div>`;
+  });
+  if (yesterdayEntries.length) html += '<div class="day-label" style="margin-top:6px;">Yesterday</div>';
+  yesterdayEntries.forEach((e) => {
+    const dot = e.filled ? ' filled' : '';
+    html += `<div class="tl-entry" style="pointer-events:none;${e.dim?'opacity:0.4;':''}">
+      <div class="tl-dot${dot}"></div>
+      <div class="tl-body"><div class="tl-time">${e.time}</div><div class="tl-text">${e.text}</div></div>
+    </div>`;
+  });
+  tl.innerHTML = html;
+}
+
+function renderCard() {
+  const area = el('card-area');
+  if (currentDose) {
+    area.innerHTML = `<div class="confirm-card">
+      <div class="confirm-q">Did you take ${currentDose.name.split(' ')[0]}?</div>
+      <div class="confirm-time">Scheduled ${currentDose.sched} · now ${nowTime()}</div>
+      <div class="confirm-actions">
+        <button class="c-btn primary" onclick="cardYes()">Yes</button>
+        <button class="c-btn" onclick="cardEdit()">Edit</button>
+        <button class="c-btn" onclick="cardNo()">No</button>
+      </div></div>`;
+  } else {
+    area.innerHTML = '';
+  }
+}
+
+/* ══════════ card actions (D-01: no reason ask · D-02: no stack, quiet collapse) ══════════ */
+function cardYes() {
+  addEntry({ time: nowTime(), text: currentDose.name, filled: true }, currentDose.name + ' — logged');
+  currentDose = null;
+  renderCard();
+}
+function cardNo() {
+  addEntry({ time: nowTime(), text: currentDose.name + ' — skipped', filled: false }, 'Skipped — noted');
+  currentDose = null;
+  renderCard();
+}
+function cardEdit() {
+  editReturnsTo = 'card';
+  const [h, m] = nowTime().split(':').map(Number);
+  edTimeMin = h * 60 + m; edDose = 100; edMeal = false;
+  syncEditSheet();
+  openSheet('sheet-editdose');
+}
+/* demo: jump to the first-run empty state */
+function demoEmpty() {
+  entries = [];
+  yesterdayEntries = [];
+  currentDose = null;
+  renderCard();
+  renderTimeline();
+}
+
+/* new dose due: previous unanswered card quietly collapses into the timeline */
+function demoAddDose() {
+  if (currentDose) {
+    entries.push({ time: currentDose.sched, text: currentDose.name + ' — planned', dim: true });
+    entries.sort((a, b) => b.time.localeCompare(a.time));
+    renderTimeline();
+  }
+  const times = ['14:00', '17:30', '21:00'];
+  currentDose = { name: 'Levodopa 100mg', sched: times[Math.floor(Math.random()*3)] };
+  renderCard();
+}
+
+/* ══════════ edit dose ══════════ */
+function syncEditSheet() {
+  el('ed-time').textContent = minToStr(edTimeMin);
+  el('ed-dose').textContent = edDose + 'mg';
+  const mt = el('ed-meal');
+  mt.textContent = edMeal ? 'Yes' : 'No';
+  mt.classList.toggle('on', edMeal);
+}
+function bumpTime(d) { edTimeMin += d; syncEditSheet(); }
+function bumpDose(d) { edDose = Math.max(50, edDose + d); syncEditSheet(); }
+function toggleMeal() { edMeal = !edMeal; syncEditSheet(); }
+function saveEditedDose() {
+  closeAllSheets();
+  const meal = edMeal ? ' · with meal' : '';
+  if (editReturnsTo === 'card' && currentDose) {
+    addEntry({ time: minToStr(edTimeMin), text: `Levodopa ${edDose}mg${meal}`, filled: true, edited: true }, 'Logged with your changes');
+    currentDose = null;
+    renderCard();
+  } else if (editReturnsTo === 'resolve' && resolveEntry != null) {
+    const e = entries[resolveEntry];
+    e.text = `Levodopa ${edDose}mg${meal}`; e.time = minToStr(edTimeMin);
+    e.dim = false; e.filled = true; e.edited = true;
+    resolveEntry = null;
+    renderTimeline();
+    showToast('Confirmed with your changes', true);
+  }
+}
+
+/* ══════════ logging ══════════ */
+function addEntry(e, toastText) {
+  entries.unshift(e);
+  entries.sort((a, b) => b.time.localeCompare(a.time));
+  renderTimeline();
+  lastLogged = e;
+  showToast(toastText || 'Added to today', true);
+  return entries.indexOf(e);
+}
+/* ── panel time: every panel defaults to now; set it once, everything logged from that panel lands there. ── */
+let panelTimeMin = 0, panelTimeTouched = false;
+function resetPanelTime() {
+  const d = new Date();
+  panelTimeMin = d.getHours() * 60 + d.getMinutes();
+  panelTimeTouched = false;
+  syncPanelTime();
+}
+function syncPanelTime() {
+  document.querySelectorAll('.pt-display').forEach(s => {
+    s.textContent = minToStr(panelTimeMin) + (panelTimeTouched ? '' : ' · now');
+  });
+}
+function bumpPanelTime(d) { panelTimeMin += d; panelTimeTouched = true; syncPanelTime(); }
+function panelTimeStr() { return minToStr(panelTimeMin); }
+function timeEcho() { return panelTimeTouched ? ' · ' + minToStr(panelTimeMin) : ''; }
+
+function logEntry(text) {
+  closeAllSheets();
+  addEntry({ time: panelTimeStr(), text: text, filled: true }, text + ' — added' + timeEcho());
+}
+/* states co-occur: each tap logs instantly, sheet stays open — nothing pending, nothing to lose */
+function feelLog(btn, text) {
+  addEntry({ time: panelTimeStr(), text: text, filled: true }, text + ' — added' + timeEcho());
+  btn.classList.add('sel');
+  setTimeout(() => btn.classList.remove('sel'), 650);
+}
+
+/* ── medication plan: add / edit / remove / reorder ── */
+let meds = ['Levodopa 100mg', 'Rasagiline 1mg'];
+let medManage = false, medEditIdx = null;
+function renderMeds() {
+  el('med-list').innerHTML = meds.map((m, i) => {
+    if (medManage) {
+      return `<div class="log-row" onclick="editMed(${i})">
+        <button class="med-x" onclick="event.stopPropagation();removeMed(${i})">✕</button>
+        <div><div class="log-name">${m}</div><div class="log-sub">tap to rename</div></div>
+        <button class="med-up" style="margin-left:auto;${i === 0 ? 'visibility:hidden;' : ''}" onclick="event.stopPropagation();moveMedUp(${i})">↑</button>
+      </div>`;
+    }
+    return `<div class="log-row" onclick="logMedIdx(${i})"><div class="log-icon">💊</div><div><div class="log-name">${m}</div><div class="log-sub">tap to log</div></div></div>`;
+  }).join('');
+}
+function logMedIdx(i) { logEntry(meds[i]); }
+function toggleMedManage() {
+  medManage = !medManage;
+  medEditIdx = null;
+  el('med-manage-link').textContent = medManage ? 'Done' : 'Edit list';
+  el('med-add-row').style.display = 'none';
+  renderMeds();
+}
+function showMedAdd() {
+  medEditIdx = null;
+  el('med-add-row').style.display = 'flex';
+  el('med-new').value = '';
+  el('med-new').focus();
+}
+function editMed(i) {
+  medEditIdx = i;
+  el('med-add-row').style.display = 'flex';
+  el('med-new').value = meds[i];
+  el('med-new').focus();
+}
+function commitNewMed() {
+  const v = el('med-new').value.trim();
+  if (v) {
+    if (medEditIdx !== null) meds[medEditIdx] = v;
+    else meds.push(v);
+  }
+  medEditIdx = null;
+  el('med-new').value = '';
+  el('med-add-row').style.display = 'none';
+  renderMeds();
+}
+function removeMed(i) { meds.splice(i, 1); renderMeds(); }
+function moveMedUp(i) { if (i > 0) { [meds[i-1], meds[i]] = [meds[i], meds[i-1]]; renderMeds(); } }
+/* ── Food logging (D-11 smart meal default · D-12 protein tone) ── */
+let food = { meal: null, protein: null, photo: false, timeMin: 0 };
+
+function mealDefault() {
+  const h = new Date().getHours();
+  let m = h < 4 ? 'Snack' : h < 11 ? 'Breakfast' : h < 14 ? 'Lunch' : h < 17 ? 'Snack' : h < 21 ? 'Dinner' : 'Snack';
+  if (m !== 'Snack' && entries.some(e => e.text.startsWith(m))) m = 'Snack';
+  return m;
+}
+function initFood() {
+  const d = new Date();
+  food = { meal: mealDefault(), protein: null, photo: false, timeMin: d.getHours() * 60 + d.getMinutes(), touched: false };
+  el('food-text').value = '';
+  el('food-time').textContent = minToStr(food.timeMin);
+  el('food-photo-row').classList.remove('has-photo');
+  el('food-photo-label').textContent = 'Add a photo';
+  document.querySelectorAll('#meal-chips .p-chip').forEach(b => b.classList.toggle('sel', b.textContent.startsWith(food.meal)));
+  document.querySelectorAll('#protein-chips .p-chip').forEach(b => b.classList.remove('sel'));
+}
+function selMeal(btn, m) {
+  food.meal = (food.meal === m) ? null : m;
+  food.touched = true;
+  document.querySelectorAll('#meal-chips .p-chip').forEach(b => b.classList.toggle('sel', b === btn && food.meal !== null));
+}
+function selProtein(btn, p) {
+  food.protein = (food.protein === p) ? null : p;
+  document.querySelectorAll('#protein-chips .p-chip').forEach(b => b.classList.toggle('sel', b === btn && food.protein !== null));
+}
+function bumpFoodTime(d) { food.timeMin += d; el('food-time').textContent = minToStr(food.timeMin); }
+function foodPhoto() {
+  food.photo = !food.photo;
+  el('food-photo-row').classList.toggle('has-photo', food.photo);
+  el('food-photo-label').textContent = food.photo ? 'Photo added ✓' : 'Add a photo';
+}
+/* explicit=true: Save button (default meal alone counts). explicit=false: dismissal —
+   only saves if the user actually entered something, so an untouched panel never logs a phantom meal */
+function commitFood(explicit) {
+  const t = el('food-text').value.trim();
+  const hasInput = t || food.photo || food.protein || food.touched;
+  if (!explicit && !hasInput) return;
+  if (explicit && !hasInput && !food.meal) return;
+  let main = food.meal || 'Food';
+  if (t) main += ' — ' + t;
+  else if (food.photo) main += ' — 📷 photo';
+  if (t && food.photo) main += ' 📷';
+  if (food.protein) main += ' · ' + food.protein;
+  const tm = minToStr(food.timeMin);
+  el('food-text').value = '';
+  food = { meal: null, protein: null, photo: false, timeMin: food.timeMin, touched: false };
+  addEntry({ time: tm, text: main, filled: true }, main + ' — added');
+}
+function saveFood() { commitFood(true); closeAllSheets(); }
+/* free text: ↑ send, Return key, and dismissal all save — typed words are never discarded.
+   Field button: mic when empty (symptom), hidden when empty (check-in), send arrow once text exists. */
+function noteInput(inputId, btnId) {
+  const has = el(inputId).value.trim().length > 0;
+  const b = el(btnId);
+  b.textContent = has ? '↑' : '🎙';
+  b.classList.toggle('send', has);
+}
+function noteAction(inputId) {
+  if (el(inputId).value.trim()) closeAllSheets();
+  else el(inputId).focus();
+}
+/* Custom chips (D-13, carried from the A/B): name a state once, it becomes a permanent chip */
+let customMode = false;
+function startCustomChip() {
+  customMode = true;
+  const n = el('symptom-note');
+  n.placeholder = 'Name it — e.g. “shoulder cramp”';
+  n.focus();
+}
+function flushNote(inputId) {
+  const n = el(inputId);
+  const v = n.value.trim();
+  if (!v) {
+    if (customMode) { customMode = false; n.placeholder = 'Write or dictate a note…'; }
+    noteInput(inputId, 'symptom-btn');
+    return;
+  }
+  n.value = '';
+  if (customMode) {
+    customMode = false;
+    n.placeholder = 'Write or dictate a note…';
+    const plus = el('feel-custom-plus');
+    const b = document.createElement('button');
+    b.className = 'p-chip';
+    b.textContent = v;
+    b.onclick = function() { feelLog(b, v); };
+    plus.parentNode.insertBefore(b, plus);
+    addEntry({ time: panelTimeStr(), text: v, filled: true }, v + ' — added · new chip created');
+  } else {
+    addEntry({ time: panelTimeStr(), text: '“' + v + '”', filled: true }, 'Note saved' + timeEcho());
+  }
+  noteInput(inputId, 'symptom-btn');
+}
+/* Quick row (D-04): one tap, sheet not required. Flashes to confirm, stays put. */
+let fogTipShown = false;
+function quickLog(text) {
+  const d = new Date();
+  panelTimeMin = d.getHours() * 60 + d.getMinutes();
+  panelTimeTouched = false;
+  addEntry({ time: minToStr(panelTimeMin), text: text, filled: true }, text + ' — added');
+  const btns = document.querySelectorAll('.quick-btn');
+  btns.forEach(b => { if (b.textContent.includes(text)) { b.classList.add('flash'); setTimeout(() => b.classList.remove('flash'), 600); } });
+  closeAllSheets();
+  if (text === 'Froze in place' && !fogTipShown) {
+    fogTipShown = true;
+    setTimeout(() => el('fog-tip').classList.add('show'), 900);
+  }
+}
+
+/* Photo strip: capture → confirm sheet with optional caption. Dismissal saves — the photo is never lost. */
+let photoPending = false;
+function photoQuick() {
+  photoPending = true;
+  resetPanelTime();
+  el('photo-caption').value = '';
+  openSheet('sheet-photo');
+}
+function commitPhoto() {
+  if (!photoPending) return;
+  photoPending = false;
+  const c = el('photo-caption').value.trim();
+  el('photo-caption').value = '';
+  addEntry({ time: panelTimeStr(), text: '📷 Photo' + (c ? ' — ' + c : ''), filled: true }, '📷 Photo — added' + timeEcho());
+}
+
+/* toast + undo (undo only for adds, not deletes) */
+function showToast(t, withUndo) {
+  el('toast-text').textContent = t;
+  el('toast-undo').style.display = withUndo ? 'block' : 'none';
+  const bar = el('toast');
+  bar.classList.add('show');
+  clearTimeout(undoTimer);
+  undoTimer = setTimeout(() => bar.classList.remove('show'), 6000);
+}
+function doUndo() {
+  if (lastLogged) {
+    const i = entries.indexOf(lastLogged);
+    if (i >= 0) entries.splice(i, 1);
+    lastLogged = null;
+    renderTimeline();
+  }
+  el('toast').classList.remove('show');
+}
+
+/* ══════════ sheets ══════════ */
+const ALL_SHEETS = ['sheet-log','sheet-med','sheet-activity','sheet-food','sheet-symptom','sheet-photo','sheet-editdose','sheet-detail','sheet-resolve'];
+function openSheet(id) {
+  el('sheet-bg').classList.add('open');
+  ALL_SHEETS.forEach(s => el(s).classList.toggle('open', s === id));
+}
+function closeAllSheets() {
+  if (el('sheet-symptom').classList.contains('open')) flushNote('symptom-note');
+  if (el('sheet-food').classList.contains('open')) commitFood(false);
+  if (el('sheet-photo').classList.contains('open')) commitPhoto();
+  el('sheet-bg').classList.remove('open');
+  ALL_SHEETS.forEach(s => el(s).classList.remove('open'));
+}
+function openPanel(p) {
+  resetPanelTime();
+  if (p === 'food') initFood();
+  if (p === 'med') { medManage = false; el('med-manage-link').textContent = 'Edit list'; el('med-add-row').style.display = 'none'; renderMeds(); }
+  openSheet('sheet-' + p);
+}
+function backToLog() { openSheet('sheet-log'); }
+
+/* ══════════ entry detail (D-06: permanent delete w/ confirm) ══════════ */
+function openDetail(i) {
+  detailEntry = i;
+  const e = entries[i];
+  el('dt-title').textContent = e.text;
+  el('dt-meta').textContent = 'logged at ' + e.time + (e.edited ? ' · edited' : '');
+  el('dt-time').textContent = e.time;
+  openSheet('sheet-detail');
+}
+function detailBump(d) {
+  const [h, m] = el('dt-time').textContent.split(':').map(Number);
+  el('dt-time').textContent = minToStr(h * 60 + m + d);
+}
+function saveDetail() {
+  const e = entries[detailEntry];
+  const nt = el('dt-time').textContent;
+  if (nt !== e.time) { e.time = nt; e.edited = true; }
+  entries.sort((a, b) => b.time.localeCompare(a.time));
+  closeAllSheets();
+  renderTimeline();
+}
+/* D-06 decided: soft delete — entry leaves the timeline, stays in the record, undo offered.
+   No confirm dialog: dialogs punish tremor mis-taps twice (see Rules). */
+function deleteEntry() {
+  const e = entries.splice(detailEntry, 1)[0];
+  closeAllSheets();
+  renderTimeline();
+  lastLogged = null;
+  window._removed = e;
+  showToast('Removed — kept in your records', true);
+  el('toast-undo').onclick = function() {
+    if (window._removed) {
+      entries.push(window._removed);
+      entries.sort((a, b) => b.time.localeCompare(a.time));
+      window._removed = null;
+      renderTimeline();
+    }
+    el('toast').classList.remove('show');
+    this.onclick = doUndo;
+  };
+}
+
+/* ══════════ planned entry resolve ══════════ */
+function openResolve(i) {
+  resolveEntry = i;
+  el('rs-title').textContent = entries[i].text.replace(' — planned', '');
+  openSheet('sheet-resolve');
+}
+function resolveYes() {
+  const e = entries[resolveEntry];
+  e.text = e.text.replace(' — planned', ''); e.dim = false; e.filled = true;
+  resolveEntry = null;
+  closeAllSheets(); renderTimeline();
+  showToast('Confirmed', true);
+}
+function resolveNo() {
+  const e = entries[resolveEntry];
+  e.text = e.text.replace(' — planned', ' — skipped'); e.dim = false; e.filled = false;
+  resolveEntry = null;
+  closeAllSheets(); renderTimeline();
+  showToast('Skipped — noted', true);
+}
+function resolveEdit() {
+  editReturnsTo = 'resolve';
+  const [h, m] = entries[resolveEntry].time.split(':').map(Number);
+  edTimeMin = h * 60 + m; edDose = 100; edMeal = false;
+  syncEditSheet();
+  openSheet('sheet-editdose');
+}
+
+/* FAB: tap opens the sheet, long-press logs FOG (D-04 bonus gesture — the quick row above
+   is the discoverable route; this is the shortcut for people who learn it) */
+const fab = el('fab');
+let pressTimer = null, longFired = false;
+fab.addEventListener('touchstart', () => {
+  longFired = false;
+  fab.classList.add('pressing');
+  pressTimer = setTimeout(() => { longFired = true; fab.classList.remove('pressing'); quickLog('Froze in place'); }, 600);
+}, { passive: true });
+function fabRelease(ev) {
+  clearTimeout(pressTimer);
+  fab.classList.remove('pressing');
+  if (!longFired) openSheet('sheet-log');
+  if (ev && ev.cancelable) ev.preventDefault();
+}
+fab.addEventListener('touchend', fabRelease);
+fab.addEventListener('touchcancel', () => { clearTimeout(pressTimer); fab.classList.remove('pressing'); });
+fab.addEventListener('mousedown', () => {
+  longFired = false;
+  fab.classList.add('pressing');
+  pressTimer = setTimeout(() => { longFired = true; fab.classList.remove('pressing'); quickLog('Froze in place'); }, 600);
+});
+fab.addEventListener('mouseup', fabRelease);
+fab.addEventListener('mouseleave', () => { clearTimeout(pressTimer); fab.classList.remove('pressing'); });
+
+/* init */
+renderCard();
+renderTimeline();
+</script>
+</body>
+</html>

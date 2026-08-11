@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DoseEgg — Today (hi-fi v1)</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<style>
+/* ═══════════════════ LAYER 1 — PRIMITIVES ═══════════════════
+   Oat + petrol. Decided 2026-08-05. See design-tokens.html.        */
+:root{
+  --paper-0:#FFFFFF; --paper-50:#F9F8F5; --paper-100:#F2F1EC; --paper-200:#E8E6DF;
+  --paper-300:#D9D6CC; --paper-400:#BAB6A9; --paper-500:#8D8A7D; --paper-600:#6E6B5F;
+  --paper-700:#46443C; --paper-800:#2A2822; --paper-900:#1A1916;
+  --ink-400:#2F6470; --ink-500:#1F4A52; --ink-600:#163940; --ink-700:#0F282D;
+  --hue-dose:#2E5560; --hue-symptom:#83574A; --hue-activity:#4E6B55;
+  --hue-meal:#84713F; --hue-note:#6A675C;
+  --red-600:#A33A2A;
+}
+/* ═══════════════════ LAYER 2 — SEMANTIC ═══════════════════ */
+:root{
+  --surface-page:var(--paper-50); --surface-card:var(--paper-0);
+  --surface-raised:var(--paper-100); --surface-sunken:var(--paper-200);
+  --text-primary:var(--paper-900); --text-secondary:var(--paper-700);
+  --text-muted:var(--paper-600); --text-inverse:var(--paper-50);
+  --border-subtle:var(--paper-200); --border-interactive:var(--paper-500);
+  --accent:var(--ink-500); --accent-hover:var(--ink-600); --accent-quiet:var(--ink-400);
+  --on-accent:var(--paper-0);
+  --mark-dose:var(--hue-dose); --mark-symptom:var(--hue-symptom);
+  --mark-activity:var(--hue-activity); --mark-meal:var(--hue-meal); --mark-note:var(--hue-note);
+  --focus-ring:var(--ink-500); --focus-ring-width:3px; --focus-ring-offset:2px;
+  --feedback-error:var(--red-600);
+
+  --font-serif:'Newsreader',Georgia,serif;
+  --font-sans:'Inter',-apple-system,system-ui,sans-serif;
+  --text-display:2rem; --text-title:1.5rem; --text-heading:1.1875rem;
+  --text-body:1.0625rem; --text-small:1rem; --text-label:.875rem;
+  --leading-tight:1.2; --leading-body:1.55;
+
+  --motion-fast:120ms; --motion-base:200ms; --motion-slow:320ms;
+  --ease-out:cubic-bezier(.2,0,0,1);
+
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
+  --space-6:24px; --space-8:32px; --space-12:48px;
+  --radius-sm:6px; --radius-md:10px; --radius-lg:16px; --radius-full:999px;
+  --touch-min:48px;
+
+  /* ── tunable while we compare — fold back into the scale once settled ── */
+  --gutter:16px;        /* page side margin */
+  --rail-indent:52px;   /* clears the marker + rail */
+  --card-pad:16px;      /* inside the entry card */
+  --text-meta:.875rem;  /* metadata, chips, timestamps — 14px floor */
+}
+@media (prefers-reduced-motion:reduce){
+  :root{--motion-fast:0ms;--motion-base:0ms;--motion-slow:0ms}
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+
+/* ═══════════════════ base ═══════════════════ */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:100%}
+html[data-text-scale="large"]{font-size:112.5%}
+html[data-text-scale="larger"]{font-size:125%}
+body{margin:0;background:#E4E1DA;font-family:var(--font-sans);
+     font-size:var(--text-body);line-height:var(--leading-body);
+     color:var(--text-primary);-webkit-font-smoothing:antialiased;
+     display:flex;justify-content:center;min-height:100vh}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+:focus-visible{outline:var(--focus-ring-width) solid var(--focus-ring);
+               outline-offset:var(--focus-ring-offset);border-radius:var(--radius-sm)}
+
+/* phone shell — review frame only, not part of the design */
+.shell{width:100%;max-width:420px;background:var(--surface-page);min-height:100vh;
+       position:relative;display:flex;flex-direction:column;
+       box-shadow:0 0 0 1px rgba(0,0,0,.06)}
+
+/* ── demo bar (dev only) ── */
+.demo-bar{display:flex;gap:var(--space-2);padding:var(--space-2) var(--space-3);
+          background:var(--paper-800);align-items:center;flex-wrap:wrap}
+.demo-bar .db{font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+              color:var(--paper-400);margin-right:auto;font-weight:500}
+.demo-btn{font-size:12px;font-weight:500;color:var(--paper-100);
+          background:rgba(255,255,255,.12);padding:5px 10px;border-radius:var(--radius-full)}
+.demo-btn:hover{background:rgba(255,255,255,.2)}
+.tuner{display:none;grid-template-columns:1fr 1fr;gap:var(--space-2) var(--space-3);
+       padding:var(--space-3);background:var(--paper-800);border-top:1px solid rgba(255,255,255,.1)}
+.tuner.open{display:grid}
+.tuner label{font-size:11px;color:var(--paper-400);display:flex;flex-direction:column;gap:3px}
+.tuner select{font-size:12px;padding:4px 6px;border-radius:var(--radius-sm);
+              background:rgba(255,255,255,.1);color:var(--paper-50);border:none;font-family:inherit}
+.tuner select option{background:#2A2822;color:#F2F1EC}
+
+/* ── top bar ── */
+.top{display:flex;align-items:center;justify-content:space-between;
+     padding:var(--space-4) var(--space-4) var(--space-2)}
+.top h1{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
+        line-height:var(--leading-tight);margin:0;color:var(--text-primary)}
+.icon-btn{width:var(--touch-min);height:var(--touch-min);display:flex;align-items:center;
+          justify-content:center;border-radius:var(--radius-full);color:var(--text-muted)}
+.icon-btn i{font-size:22px}
+.icon-btn:hover{background:var(--surface-raised)}
+.top .icon-btn:first-child{margin-left:calc(var(--space-3) * -1)}
+.top .icon-btn:last-child{margin-right:calc(var(--space-3) * -1)}
+
+.scroll{flex:1;overflow-y:auto;padding:0 var(--gutter) 120px}
+
+/* ── confirmation card ── */
+.confirm{background:var(--surface-card);border:1px solid var(--border-subtle);
+         border-radius:var(--radius-lg);padding:var(--space-4);margin-bottom:var(--space-6);
+         animation:rise var(--motion-base) var(--ease-out)}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.confirm-q{font-size:var(--text-heading);font-weight:600;margin-bottom:2px}
+.confirm-meta{font-size:var(--text-label);color:var(--text-muted);margin-bottom:var(--space-4)}
+.c-actions{display:flex;gap:var(--space-2)}
+.c-btn{flex:1;min-height:var(--touch-min);border-radius:var(--radius-md);font-weight:500;
+       font-size:var(--text-small);background:var(--surface-page);
+       border:1px solid var(--border-interactive);color:var(--text-primary);
+       transition:background var(--motion-fast) var(--ease-out)}
+.c-btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.c-btn.primary:hover{background:var(--accent-hover)}
+.c-btn:not(.primary):hover{background:var(--surface-raised)}
+
+/* ── timeline ──────────────────────────────────────────────────
+   A continuous rail, not a stack of rows. The line is the point:
+   it says time passed between these, and that the day is one thing. */
+.day-label{font-size:var(--text-label);letter-spacing:.08em;text-transform:uppercase;
+           color:var(--text-muted);margin:var(--space-6) 0 var(--space-3);font-weight:500}
+.day-label:first-child{margin-top:0}
+
+/* Oura's structural move: the TIME sits on the rail row, next to the marker —
+   outside the card. The card hangs below it. That is what makes it read as a
+   timeline rather than a list of cards. */
+.rail{position:relative;padding-bottom:var(--space-2)}
+.rail::before{content:'';position:absolute;left:17px;top:16px;bottom:10px;width:1.5px;
+              background:var(--border-subtle)}
+/* terminus — the rail is punctuated, not cut off */
+.rail::after{content:'';position:absolute;left:14px;bottom:6px;width:7px;height:7px;
+             border-radius:50%;background:var(--border-subtle)}
+
+.entry{position:relative;display:block;width:100%;text-align:left;
+       padding:0 0 var(--space-6) var(--rail-indent)}
+.emark{position:absolute;left:0;top:0;width:36px;height:36px;border-radius:var(--radius-full);
+       display:flex;align-items:center;justify-content:center;z-index:2;
+       box-shadow:0 0 0 4px var(--surface-page)}
+.emark i{font-size:18px;color:#fff}
+/* epistemic state — fill & outline, never hue.
+   Hollow marks fill with the page colour so the rail doesn't run through them. */
+.emark.assumed{background:var(--surface-page)!important;
+               border:1.5px solid var(--border-interactive)}
+.emark.assumed i{color:var(--text-muted);font-size:17px}
+.emark.declined{background:var(--surface-page)!important;border:1.5px solid currentColor}
+.emark.declined i{font-size:17px}
+
+.etime{display:block;font-size:var(--text-meta);color:var(--text-muted);font-weight:500;
+       font-variant-numeric:tabular-nums;padding:var(--space-2) 0 var(--space-2)}
+.ecard{display:block;background:var(--surface-card);border:1px solid var(--border-subtle);
+       border-radius:var(--radius-lg);padding:var(--card-pad);
+       transition:background var(--motion-fast) var(--ease-out);position:relative}
+.entry:hover .ecard{background:var(--surface-raised)}
+.ecard .chev{position:absolute;right:var(--space-4);top:50%;transform:translateY(-50%);
+             color:var(--paper-400);font-size:18px;display:flex}
+.etext{display:block;font-size:var(--text-small);font-weight:600;color:var(--text-primary);
+       line-height:1.35;padding-right:var(--space-6)}
+.emeta{display:flex;gap:var(--space-4);margin-top:var(--space-2);flex-wrap:wrap}
+.emeta span{font-size:var(--text-meta);color:var(--text-muted);display:flex;
+            align-items:center;gap:5px}
+.emeta i{font-size:15px}
+.enote{display:inline-block;font-size:var(--text-meta);color:var(--text-secondary);
+       background:var(--surface-sunken);border-radius:var(--radius-sm);
+       padding:3px var(--space-2);margin-top:var(--space-3)}
+.entry.ahead{opacity:.55}
+.entry.ahead .emark{border-style:dashed}
+.entry.ahead .ecard{background:transparent;border-style:dashed}
+
+/* elapsed time, shown only for gaps worth noticing */
+.gap{position:relative;padding:0 0 var(--space-6) var(--rail-indent);z-index:1}
+.gap span{position:absolute;left:0;top:-4px;width:36px;text-align:center;font-size:11px;
+          color:var(--paper-400);background:var(--surface-page);padding:6px 0;
+          font-variant-numeric:tabular-nums}
+
+/* now */
+.now{position:relative;padding:0 0 var(--space-6) var(--rail-indent);z-index:2}
+.now::before{content:'';position:absolute;left:12px;top:2px;width:11px;height:11px;
+             border-radius:50%;background:var(--accent);
+             box-shadow:0 0 0 4px var(--surface-page)}
+.now span{font-size:var(--text-label);color:var(--accent);font-weight:600;
+          letter-spacing:.04em;font-variant-numeric:tabular-nums}
+
+.empty-day{font-size:var(--text-small);color:var(--text-muted);padding:var(--space-4) 0 var(--space-6)}
+
+/* first-run empty state */
+.empty{text-align:center;padding:var(--space-12) var(--space-4)}
+.empty .mark{font-size:40px;margin-bottom:var(--space-4);color:var(--accent-quiet)}
+.empty h2{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
+          margin:0 0 var(--space-2)}
+.empty p{font-size:var(--text-small);color:var(--text-secondary);margin:0 auto;max-width:30ch}
+
+/* ── FAB ── */
+.fab{position:absolute;right:var(--space-4);bottom:calc(var(--space-6) + env(safe-area-inset-bottom));
+     width:60px;height:60px;border-radius:var(--radius-full);background:var(--accent);
+     color:var(--on-accent);display:flex;align-items:center;justify-content:center;
+     box-shadow:0 3px 12px rgba(31,74,82,.28);z-index:40;
+     transition:transform var(--motion-fast) var(--ease-out),background var(--motion-fast)}
+.fab i{font-size:28px}
+.fab:hover{background:var(--accent-hover)}
+.fab:active{transform:scale(.94)}
+
+/* ── sheets ── */
+.scrim{position:fixed;inset:0;background:rgba(26,25,22,.34);opacity:0;pointer-events:none;
+       transition:opacity var(--motion-base) var(--ease-out);z-index:50}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;transform:translate(-50%,102%);bottom:0;width:100%;
+       max-width:420px;background:var(--surface-card);
+       border-radius:var(--radius-lg) var(--radius-lg) 0 0;z-index:60;
+       padding:var(--space-2) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
+       transition:transform var(--motion-slow) var(--ease-out);
+       box-shadow:0 -3px 24px rgba(26,25,22,.10)}
+.sheet.open{transform:translate(-50%,0)}
+.pull{width:40px;height:4px;border-radius:var(--radius-full);background:var(--paper-300);
+      margin:var(--space-2) auto var(--space-4)}
+.sheet h2{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
+          margin:0 0 var(--space-4);line-height:var(--leading-tight)}
+
+.quick-row{display:flex;gap:var(--space-2);margin-bottom:var(--space-4)}
+.quick{flex:1;min-height:var(--touch-min);display:flex;align-items:center;justify-content:center;
+       gap:var(--space-2);background:var(--surface-raised);border:1px solid var(--border-subtle);
+       border-radius:var(--radius-md);font-size:var(--text-small);font-weight:500;
+       padding:var(--space-3) var(--space-2);
+       transition:background var(--motion-fast),border-color var(--motion-fast)}
+.quick i{font-size:19px;color:var(--accent)}
+.quick:hover{background:var(--surface-sunken)}
+.quick.flash{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.quick.flash i{color:var(--on-accent)}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2);margin-bottom:var(--space-3)}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:var(--space-3);
+      padding:var(--space-4);background:var(--surface-page);border:1px solid var(--border-subtle);
+      border-radius:var(--radius-md);min-height:96px;text-align:left;
+      transition:background var(--motion-fast),border-color var(--motion-fast)}
+.tile:hover{background:var(--surface-raised);border-color:var(--border-interactive)}
+.tile-ico{width:38px;height:38px;border-radius:var(--radius-full);display:flex;
+          align-items:center;justify-content:center}
+.tile-ico i{font-size:20px;color:#fff}
+.tile-name{font-size:var(--text-small);font-weight:500}
+.strip{display:flex;align-items:center;gap:var(--space-3);min-height:var(--touch-min);
+       padding:var(--space-3) var(--space-4);background:var(--surface-page);
+       border:1px dashed var(--border-interactive);border-radius:var(--radius-md);width:100%;
+       text-align:left;font-size:var(--text-small)}
+.strip i{font-size:20px;color:var(--text-muted)}
+.strip .sub{color:var(--text-muted);font-size:var(--text-label)}
+.strip:hover{background:var(--surface-raised)}
+
+/* ── toast ── */
+.toast{position:fixed;left:50%;bottom:calc(var(--space-6) + env(safe-area-inset-bottom));
+       transform:translate(-50%,140%);background:var(--paper-800);color:var(--paper-50);
+       border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);z-index:80;
+       display:flex;align-items:center;gap:var(--space-4);font-size:var(--text-label);
+       transition:transform var(--motion-base) var(--ease-out);
+       max-width:calc(420px - var(--space-8));box-shadow:0 3px 16px rgba(26,25,22,.24)}
+.toast.show{transform:translate(-50%,0)}
+.toast button{color:var(--paper-50);font-weight:600;text-decoration:underline;
+              font-size:var(--text-label);padding:var(--space-1) var(--space-2)}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="demo-bar">
+    <span class="db">Hi-fi · Today · v1</span>
+    <button class="demo-btn" onclick="demoAddDose()">+ due dose</button>
+    <button class="demo-btn" onclick="demoEmpty()">empty</button>
+    <button class="demo-btn" onclick="toggleTuner()">tune ▾</button>
+    <button class="demo-btn" onclick="location.reload()">reset</button>
+  </div>
+
+  <!-- temporary tuning panel — delete before this becomes real -->
+  <div class="tuner" id="tuner">
+    <label>Text scale
+      <select onchange="setScale(this.value)">
+        <option value="">100% (default)</option>
+        <option value="large">112.5%</option>
+        <option value="larger">125%</option>
+      </select></label>
+    <label>Card padding
+      <select onchange="setVar('--card-pad',this.value)">
+        <option value="12px">12</option><option value="16px" selected>16</option>
+        <option value="20px">20</option></select></label>
+    <label>Rail indent
+      <select onchange="setVar('--rail-indent',this.value)">
+        <option value="44px">44</option><option value="52px" selected>52</option>
+        <option value="60px">60</option></select></label>
+    <label>Gutter
+      <select onchange="setVar('--gutter',this.value)">
+        <option value="12px">12</option><option value="16px" selected>16</option>
+        <option value="20px">20</option></select></label>
+    <label>Meta / chip size
+      <select onchange="setVar('--text-meta',this.value)">
+        <option value="12px">12 · below floor</option>
+        <option value="13px">13 · below floor</option>
+        <option value="0.875rem" selected>14 · floor</option>
+        <option value="1rem">16</option></select></label>
+  </div>
+
+  <div class="top">
+    <button class="icon-btn" aria-label="Menu"><i class="ph ph-list"></i></button>
+    <h1>Today</h1>
+    <button class="icon-btn" aria-label="More"><i class="ph ph-dots-three"></i></button>
+  </div>
+
+  <div class="scroll">
+    <div id="card-area"></div>
+    <div id="timeline"></div>
+  </div>
+
+  <button class="fab" id="fab" onclick="openSheet('sheet-log')" aria-label="Add to today">
+    <i class="ph ph-plus"></i>
+  </button>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeSheets()"></div>
+
+<!-- ══ Quick Log sheet ══ -->
+<div class="sheet" id="sheet-log" role="dialog" aria-label="Add to today">
+  <div class="pull"></div>
+  <h2>Add to today</h2>
+
+  <!-- D-04: visible one-tap doors for the states that matter most when capacity is lowest -->
+  <div class="quick-row">
+    <button class="quick" onclick="quickLog(this,'Froze in place','symptom')">
+      <i class="ph-fill ph-snowflake"></i>Froze in place</button>
+    <button class="quick" onclick="quickLog(this,'Low energy','symptom')">
+      <i class="ph-fill ph-battery-low"></i>Low energy</button>
+  </div>
+
+  <div class="grid">
+    <button class="tile" onclick="logFrom('dose','Levodopa 100mg')">
+      <span class="tile-ico" style="background:var(--mark-dose)"><i class="ph-fill ph-pill"></i></span>
+      <span class="tile-name">Medication</span></button>
+    <button class="tile" onclick="logFrom('activity','Walk')">
+      <span class="tile-ico" style="background:var(--mark-activity)"><i class="ph-fill ph-footprints"></i></span>
+      <span class="tile-name">Activity</span></button>
+    <button class="tile" onclick="logFrom('meal','Meal')">
+      <span class="tile-ico" style="background:var(--mark-meal)"><i class="ph-fill ph-fork-knife"></i></span>
+      <span class="tile-name">Food &amp; protein</span></button>
+    <button class="tile" onclick="logFrom('symptom','How I feel')">
+      <span class="tile-ico" style="background:var(--mark-symptom)"><i class="ph-fill ph-waveform"></i></span>
+      <span class="tile-name">How I feel</span></button>
+  </div>
+
+  <button class="strip" onclick="logFrom('note','Photo')">
+    <i class="ph ph-camera"></i>
+    <span>Photo <span class="sub">— snap now, caption optional</span></span>
+  </button>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toast-text"></span>
+  <button id="toast-undo" onclick="undoLast()">Undo</button>
+</div>
+
+<script>
+/* ═════════ state ═════════
+   Entry shape follows docs/entry-schema.md:
+   type  = dose | symptom | activity | meal | note
+   basis = asserted | declined | assumed        (see §basis) */
+const ICON = { dose:'ph-pill', symptom:'ph-waveform', activity:'ph-footprints',
+               meal:'ph-fork-knife', note:'ph-note-pencil' };
+const MARK = { dose:'var(--mark-dose)', symptom:'var(--mark-symptom)',
+               activity:'var(--mark-activity)', meal:'var(--mark-meal)', note:'var(--mark-note)' };
+
+let entries = [
+  { time:'10:00', text:'Walk', type:'activity', basis:'asserted',
+    meta:[['ph-timer','20 min'],['ph-map-pin','Around the block']] },
+  { time:'09:40', text:'Meds kicked in', type:'symptom', basis:'asserted',
+    meta:[['ph-clock','85 min after dose']] },
+  { time:'08:15', text:'Levodopa 100mg', type:'dose', basis:'asserted',
+    meta:[['ph-fork-knife','With breakfast']] }
+];
+let yesterday = [
+  { time:'14:10', text:'Levodopa 100mg', type:'dose', basis:'asserted',
+    meta:[['ph-clock','40 min late']] },
+  { time:'12:00', text:'Lunch', type:'meal', basis:'asserted',
+    meta:[['ph-egg-crack','High protein']] },
+  { time:'08:20', text:'Levodopa 100mg', type:'dose', basis:'asserted' }
+];
+let currentDose = { name:'Levodopa 100mg', sched:'10:30' };  // one card max, never stacks
+let lastLogged = null, undoTimer = null;
+
+const el = id => document.getElementById(id);
+const nowTime = () => { const d=new Date();
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+
+/* ═════════ rendering ═════════ */
+function markHTML(e){
+  if (e.basis === 'assumed')
+    return `<span class="emark assumed"><i class="ph ${ICON[e.type]}"></i></span>`;
+  if (e.basis === 'declined')
+    return `<span class="emark declined" style="color:${MARK[e.type]}"><i class="ph ${ICON[e.type]}"></i></span>`;
+  return `<span class="emark" style="background:${MARK[e.type]}"><i class="ph-fill ${ICON[e.type]}"></i></span>`;
+}
+const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+function gapLabel(a, b){                      /* a is later, b is earlier */
+  const d = toMin(a) - toMin(b);
+  if (d < 75) return null;                    /* under ~an hour isn't worth saying */
+  const h = Math.round(d/60);
+  return h >= 24 ? null : h + 'h';
+}
+function entryHTML(e, i, live){
+  /* basis is surfaced only where it changes what the reader should believe:
+     asserted is the default and carries no badge. */
+  const note = e.basis === 'assumed'  ? '<span class="enote">Not confirmed</span>'
+             : e.basis === 'declined' ? '<span class="enote">Reported not taken</span>' : '';
+  const meta = (e.meta || []).map(m =>
+      `<span><i class="ph ${m[0]}"></i>${m[1]}</span>`).join('');
+  const tag = live ? 'button' : 'div';
+  const cls = 'entry' + (e.ahead ? ' ahead' : '');
+  return `<${tag} class="${cls}"${live?` onclick="tapEntry(${i})"`:''}>
+    ${markHTML(e)}
+    <span class="etime">${e.time}</span>
+    <span class="ecard">
+      <span class="etext">${e.text}</span>
+      ${meta ? `<span class="emeta">${meta}</span>` : ''}
+      ${note}
+      ${live ? '<span class="chev"><i class="ph ph-caret-right"></i></span>' : ''}
+    </span>
+  </${tag}>`;
+}
+/* returns the rail's INNER html — the caller wraps it, so nothing is string-surgeried */
+function railInner(list, live){
+  let h = '';
+  list.forEach((e,i) => {
+    if (i > 0){                               /* gaps read downward: newest first */
+      const g = gapLabel(list[i-1].time, e.time);
+      if (g) h += `<div class="gap"><span>${g}</span></div>`;
+    }
+    h += entryHTML(e, live ? i : null, live);
+  });
+  return h;
+}
+function renderTimeline(){
+  const tl = el('timeline');
+  if (!entries.length && !yesterday.length && !currentDose){
+    tl.innerHTML = `<div class="empty">
+      <div class="mark"><i class="ph ph-egg"></i></div>
+      <h2>Your day, as it happens</h2>
+      <p>Doses, movement, meals, how you feel — whatever you want to remember lands here,
+      in the order it happened.</p></div>`;
+    return;
+  }
+  let h = '<div class="day-label">Today</div>';
+  if (!entries.length){
+    h += '<div class="empty-day">Nothing logged yet today — the + button is ready when you are.</div>';
+  } else {
+    h += '<div class="rail">'
+       + `<div class="now"><span>Now · ${nowTime()}</span></div>`
+       + railInner(entries, true)
+       + '</div>';
+  }
+  if (yesterday.length){
+    h += '<div class="day-label">Yesterday</div>'
+       + '<div class="rail">' + railInner(yesterday, false) + '</div>';
+  }
+  tl.innerHTML = h;
+}
+function renderCard(){
+  const a = el('card-area');
+  if (!currentDose){ a.innerHTML=''; return; }
+  a.innerHTML = `<div class="confirm">
+    <div class="confirm-q">Did you take ${currentDose.name.split(' ')[0]}?</div>
+    <div class="confirm-meta">Scheduled ${currentDose.sched} · now ${nowTime()}</div>
+    <div class="c-actions">
+      <button class="c-btn primary" onclick="cardYes()">Yes</button>
+      <button class="c-btn" onclick="cardEdit()">Edit</button>
+      <button class="c-btn" onclick="cardNo()">No</button>
+    </div></div>`;
+}
+
+/* ═════════ card actions — D-01 no reason ask · D-02 no stack, quiet collapse ═════════ */
+function cardYes(){
+  addEntry({time:nowTime(), text:currentDose.name, type:'dose', basis:'asserted'},
+           currentDose.name + ' — logged');
+  currentDose = null; renderCard();
+}
+function cardNo(){
+  /* "No" is a REPORTED skip → basis:'declined'. Clinically valuable, and distinct
+     from 'assumed' (we asked and got nothing back). */
+  addEntry({time:nowTime(), text:currentDose.name, type:'dose', basis:'declined'},
+           'Noted — not taken');
+  currentDose = null; renderCard();
+}
+function cardEdit(){ showToast('Edit sheet — not in this hi-fi pass', false); }
+
+/* a new dose falling due quietly collapses the unanswered one into the timeline as 'assumed' */
+function demoAddDose(){
+  if (currentDose){
+    entries.push({time:currentDose.sched, text:currentDose.name, type:'dose', basis:'assumed'});
+    entries.sort((a,b)=> b.time.localeCompare(a.time));
+    renderTimeline();
+  }
+  const t = ['14:00','17:30','21:00'];
+  currentDose = { name:'Levodopa 100mg', sched:t[Math.floor(Math.random()*3)] };
+  renderCard();
+}
+function demoEmpty(){ entries=[]; yesterday=[]; currentDose=null; renderCard(); renderTimeline(); }
+
+/* ═════════ logging ═════════ */
+function addEntry(e, toastText){
+  entries.unshift(e);
+  entries.sort((a,b)=> b.time.localeCompare(a.time));
+  renderTimeline();
+  lastLogged = e;
+  showToast(toastText || 'Added to today', true);
+}
+function logFrom(type, text){
+  closeSheets();
+  addEntry({time:nowTime(), text:text, type:type, basis:'asserted'}, text + ' — added');
+}
+function quickLog(btn, text, type){
+  addEntry({time:nowTime(), text:text, type:type, basis:'asserted'}, text + ' — added');
+  btn.classList.add('flash');
+  setTimeout(()=> btn.classList.remove('flash'), 600);
+  setTimeout(closeSheets, 260);
+}
+function tapEntry(i){
+  const e = entries[i];
+  showToast(e.basis === 'assumed' ? 'Confirm or correct — sheet not in this pass'
+                                  : 'Entry detail — not in this pass', false);
+}
+function undoLast(){
+  if (!lastLogged) return;
+  const i = entries.indexOf(lastLogged);
+  if (i > -1) entries.splice(i,1);
+  lastLogged = null;
+  renderTimeline();
+  el('toast').classList.remove('show');
+}
+
+/* ═════════ sheets & toast ═════════ */
+const SHEETS = ['sheet-log'];
+function openSheet(id){
+  el('scrim').classList.add('open');
+  SHEETS.forEach(s => el(s).classList.toggle('open', s === id));
+}
+function closeSheets(){
+  el('scrim').classList.remove('open');
+  SHEETS.forEach(s => el(s).classList.remove('open'));
+}
+function showToast(t, withUndo){
+  el('toast-text').textContent = t;
+  el('toast-undo').style.display = withUndo ? 'block' : 'none';
+  el('toast').classList.add('show');
+  clearTimeout(undoTimer);
+  undoTimer = setTimeout(()=> el('toast').classList.remove('show'), 6000);
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(); });
+
+/* ── temporary tuning controls — remove before this becomes real ── */
+function toggleTuner(){ el('tuner').classList.toggle('open'); }
+function setScale(v){
+  if (v) document.documentElement.dataset.textScale = v;
+  else delete document.documentElement.dataset.textScale;
+}
+function setVar(name, value){ document.documentElement.style.setProperty(name, value); }
+
+renderCard(); renderTimeline();
+</script>
+</body>
+</html>
