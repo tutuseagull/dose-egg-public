@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DoseEgg — Today (hi-fi v2 · depth layer)</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<style>
+/* ═══════════════════ LAYER 1 — PRIMITIVES ═══════════════════
+   "Stitch blue" — swapped 2026-08-06 on the domain lead's preference. Provisional.
+   Oat+petrol preserved in palette-*.html; restore by swapping this block only.
+   Token names stay unchanged — they are positional, not descriptive.      */
+:root{
+  --paper-0:#FFFFFF; --paper-50:#F9F9FF; --paper-100:#F1F3FF; --paper-200:#E4E8F5;
+  --paper-300:#D3D9E8; --paper-400:#ABB3C6; --paper-500:#7C8598; --paper-600:#5F6879;
+  --paper-700:#3E4658; --paper-800:#262C3A; --paper-900:#141B2B;
+  --ink-400:#4A7BC8; --ink-500:#2B5BA9; --ink-600:#1E4380; --ink-700:#143059;
+  --hue-mark:#3B4E7A;   /* one mark colour — icon carries the type, colour carries nothing */
+  --red-600:#A33A2A;
+  --backdrop:#D9DDE8;   /* review frame only — not a product surface */
+}
+/* ═══════════════════ LAYER 2 — SEMANTIC ═══════════════════ */
+:root{
+  --surface-page:var(--paper-50); --surface-card:var(--paper-0);
+  --surface-raised:var(--paper-100); --surface-sunken:var(--paper-200);
+  --text-primary:var(--paper-900); --text-secondary:var(--paper-700);
+  --text-muted:var(--paper-600); --text-inverse:var(--paper-50);
+  --border-subtle:var(--paper-200); --border-interactive:var(--paper-500);
+  --accent:var(--ink-500); --accent-hover:var(--ink-600); --accent-quiet:var(--ink-400);
+  --on-accent:var(--paper-0);
+  --mark:var(--hue-mark);
+  --focus-ring:var(--ink-500); --focus-ring-width:3px; --focus-ring-offset:2px;
+  --feedback-error:var(--red-600);
+
+  --font-serif:'Newsreader',Georgia,serif;
+  --font-sans:'Inter',-apple-system,system-ui,sans-serif;
+  --text-display:2rem; --text-title:1.5rem; --text-heading:1.1875rem;
+  --text-body:1.0625rem; --text-small:1rem; --text-label:.875rem;
+  --leading-tight:1.2; --leading-body:1.55;
+
+  --motion-fast:120ms; --motion-base:200ms; --motion-slow:320ms;
+  --ease-out:cubic-bezier(.2,0,0,1);
+
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
+  --space-6:24px; --space-8:32px; --space-12:48px;
+  --radius-sm:6px; --radius-md:10px; --radius-lg:16px; --radius-full:999px;
+
+  /* Touch targets — three tiers by context of use. Separate tokens even where the
+     value matches today, so each can move independently. See design-tokens.html. */
+  --target-min:48px;        /* floor, everything */
+  --target-routine:48px;    /* ordinary moments: dose confirm, tiles, nav */
+  --target-critical:56px;   /* low-capacity: FOG, low energy, FAB */
+  --target-gap:16px;        /* between adjacent targets — separation beats height */
+
+  /* ── tunable while we compare — fold back into the scale once settled ── */
+  --gutter:16px;        /* page side margin */
+  --rail-indent:52px;   /* clears the marker + rail */
+  --card-pad:16px;      /* inside the entry card */
+  /* Rail geometry — derived from the 36px mark, so they move together.
+     Named rather than left as bare numbers: 17 and 14 are not arbitrary, they
+     centre the rail and its terminus under the mark. */
+  --rail-x:17px;        /* rail centre = (mark 36 / 2) - (rail 1.5 / 2) */
+  --rail-dot:7px;       /* terminus diameter */
+  --rail-dot-x:14px;    /* terminus left = rail-x - (dot - rail width)/2 */
+  --rail-dot-y:6px;     /* terminus sits just inside the last entry's padding */
+  --meta-gap:5px;       /* icon → value inside a metadata pair. Optical, not scale. */
+  --text-meta:.875rem;  /* metadata, chips, timestamps — 14px floor */
+
+  --shell-w:420px;      /* review-frame width — the toast is sized against this */
+}
+@media (prefers-reduced-motion:reduce){
+  :root{--motion-fast:0ms;--motion-base:0ms;--motion-slow:0ms}
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+
+/* ═══════════════════ base ═══════════════════ */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:100%}
+html[data-text-scale="large"]{font-size:112.5%}   /* 18px */
+html[data-text-scale="larger"]{font-size:125%}    /* 20px */
+html[data-text-scale="huge"]{font-size:150%}      /* 24px */
+html[data-text-scale="max"]{font-size:200%}       /* 32px — WCAG 1.4.4 corner case */
+body{margin:0;background:var(--backdrop);font-family:var(--font-sans);
+     font-size:var(--text-body);line-height:var(--leading-body);
+     color:var(--text-primary);-webkit-font-smoothing:antialiased;
+     display:flex;justify-content:center;min-height:100vh}
+/* dvh = DYNAMIC viewport height. Plain `vh` on a phone is measured against the
+   browser window with its toolbars HIDDEN, so 100vh is always taller than what
+   you can actually see — the bottom of the page sits behind the URL bar. `dvh`
+   tracks the toolbar as it collapses and expands. Declared second so browsers
+   that don't know dvh keep the vh line above. */
+@supports (height:100dvh){ body{min-height:100dvh} .shell{min-height:100dvh} }
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+:focus-visible{outline:var(--focus-ring-width) solid var(--focus-ring);
+               outline-offset:var(--focus-ring-offset);border-radius:var(--radius-sm)}
+
+/* phone shell — review frame only, not part of the design */
+.shell{width:100%;max-width:var(--shell-w);background:var(--surface-page);min-height:100vh;
+       position:relative;display:flex;flex-direction:column;
+       box-shadow:0 0 0 1px rgba(0,0,0,.06)}
+
+/* ── demo bar (dev only) ── */
+.demo-bar{display:flex;gap:var(--space-2);padding:var(--space-2) var(--space-3);
+          background:var(--paper-800);align-items:center;flex-wrap:wrap}
+.demo-bar .db{font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+              color:var(--paper-400);margin-right:auto;font-weight:500}
+.demo-btn{font-size:12px;font-weight:500;color:var(--paper-100);
+          background:rgba(255,255,255,.12);padding:5px 10px;border-radius:var(--radius-full);
+          display:flex;align-items:center;min-height:32px;text-decoration:none}
+.demo-btn:hover{background:rgba(255,255,255,.2)}
+/* Home lives in the demo bar, not in a floating pill over the app.
+   The other prototypes overlay an inline-styled 10px pill on the phone frame —
+   it covers product UI and sits below the 14px floor [C-16]. This link is review
+   chrome, same category as "reset", so it belongs with the review chrome and
+   disappears with it when the demo bar is deleted. */
+.demo-btn.home{background:rgba(255,255,255,.22);font-weight:600}
+.tuner{display:none;grid-template-columns:1fr 1fr;gap:var(--space-2) var(--space-3);
+       padding:var(--space-3);background:var(--paper-800);border-top:1px solid rgba(255,255,255,.1)}
+.tuner.open{display:grid}
+.tuner label{font-size:11px;color:var(--paper-400);display:flex;flex-direction:column;gap:3px}
+.tuner select{font-size:12px;padding:4px 6px;border-radius:var(--radius-sm);
+              background:rgba(255,255,255,.1);color:var(--paper-50);border:none;font-family:inherit}
+.tuner select option{background:var(--paper-800);color:var(--paper-100)}
+
+/* ── top bar ── */
+.top{display:flex;align-items:center;justify-content:space-between;
+     padding:var(--space-4) var(--space-4) var(--space-2)}
+.top h1{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
+        line-height:var(--leading-tight);margin:0;color:var(--text-primary)}
+.icon-btn{width:var(--target-min);height:var(--target-min);display:flex;align-items:center;
+          justify-content:center;border-radius:var(--radius-full);color:var(--text-muted);
+          flex:0 0 auto}
+.icon-btn i{font-size:22px}
+.icon-btn:hover{background:var(--surface-raised)}
+.top .icon-btn:first-child{margin-left:calc(var(--space-3) * -1)}
+.top .icon-btn:last-child{margin-right:calc(var(--space-3) * -1)}
+
+.scroll{flex:1;overflow-y:auto;padding:0 var(--gutter) 120px}
+
+/* ── confirmation card ── */
+.confirm{background:var(--surface-card);border:1px solid var(--border-subtle);
+         border-radius:var(--radius-lg);padding:var(--space-4);margin-bottom:var(--space-6);
+         animation:rise var(--motion-base) var(--ease-out)}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.confirm-q{font-size:var(--text-heading);font-weight:600;margin-bottom:2px}
+.confirm-meta{font-size:var(--text-label);color:var(--text-muted);margin-bottom:var(--space-4)}
+/* v2: two answers, not three options. "Did you take it?" has exactly two answers;
+   the third button in v1 ("Edit") was a modifier on Yes wearing an answer's clothes,
+   and at 17px "Not exactly" wrapped to two lines inside a one-third column.
+   Splitting it out fixes the semantics and removes the width ceiling at once. */
+.c-actions{display:flex;gap:var(--target-gap);flex-wrap:wrap}
+.c-btn{flex:1 1 6rem;min-height:var(--target-routine);border-radius:var(--radius-md);
+       font-weight:500;font-size:var(--text-small);background:var(--surface-page);
+       border:1px solid var(--border-interactive);color:var(--text-primary);
+       padding:var(--space-2) var(--space-3);
+       transition:background var(--motion-fast) var(--ease-out)}
+.c-btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.c-btn.primary:hover{background:var(--accent-hover)}
+.c-btn:not(.primary):hover{background:var(--surface-raised)}
+/* The third path. Quiet by weight and hue, never by size or contrast [C-16]. */
+.c-more{display:flex;align-items:center;justify-content:center;gap:var(--space-2);
+        width:100%;min-height:var(--target-min);margin-top:var(--target-gap);
+        font-size:var(--text-small);font-weight:400;color:var(--accent);
+        border-radius:var(--radius-md)}
+.c-more i{font-size:18px}
+.c-more:hover{background:var(--surface-raised)}
+
+/* ── timeline ──────────────────────────────────────────────────
+   A continuous rail, not a stack of rows. The line is the point:
+   it says time passed between these, and that the day is one thing. */
+.day-label{font-size:var(--text-label);letter-spacing:.08em;text-transform:uppercase;
+           color:var(--text-muted);margin:var(--space-6) 0 var(--space-3);font-weight:500}
+.day-label:first-child{margin-top:0}
+
+/* Oura's structural move: the TIME sits on the rail row, next to the marker —
+   outside the card. The card hangs below it. That is what makes it read as a
+   timeline rather than a list of cards. */
+.rail{position:relative;padding-bottom:var(--space-2)}
+.rail::before{content:'';position:absolute;left:var(--rail-x);top:16px;bottom:10px;width:1.5px;
+              background:var(--border-subtle)}
+/* terminus — the rail is punctuated, not cut off */
+.rail::after{content:'';position:absolute;left:var(--rail-dot-x);bottom:var(--rail-dot-y);width:var(--rail-dot);height:var(--rail-dot);
+             border-radius:50%;background:var(--border-subtle)}
+
+.entry{position:relative;display:block;width:100%;text-align:left;
+       padding:0 0 var(--space-6) var(--rail-indent)}
+.emark{position:absolute;left:0;top:0;width:36px;height:36px;border-radius:var(--radius-full);
+       display:flex;align-items:center;justify-content:center;z-index:2;
+       box-shadow:0 0 0 4px var(--surface-page)}
+.emark i{font-size:18px;color:#fff}
+/* epistemic state — fill & outline, never hue.
+   Hollow marks fill with the page colour so the rail doesn't run through them. */
+.emark.assumed{background:var(--surface-page)!important;
+               border:1.5px solid var(--border-interactive)}
+.emark.assumed i{color:var(--text-muted);font-size:17px}
+.emark.declined{background:var(--surface-page)!important;border:1.5px solid currentColor}
+.emark.declined i{font-size:17px}
+
+.etime{display:block;font-size:var(--text-meta);color:var(--text-muted);font-weight:500;
+       font-variant-numeric:tabular-nums;padding:var(--space-2) 0 var(--space-2)}
+.ecard{display:block;background:var(--surface-card);border:1px solid var(--border-subtle);
+       border-radius:var(--radius-lg);padding:var(--card-pad);
+       transition:background var(--motion-fast) var(--ease-out);position:relative}
+.entry:hover .ecard{background:var(--surface-raised)}
+.ecard .chev{position:absolute;right:var(--space-4);top:50%;transform:translateY(-50%);
+             color:var(--paper-400);font-size:18px;display:flex}
+.etext{display:block;font-size:var(--text-small);font-weight:600;color:var(--text-primary);
+       line-height:1.35;padding-right:var(--space-6)}
+.emeta{display:flex;gap:var(--space-4);margin-top:var(--space-2);flex-wrap:wrap}
+.emeta span{font-size:var(--text-meta);color:var(--text-muted);display:flex;
+            align-items:center;gap:var(--meta-gap)}
+.emeta i{font-size:15px}
+.enote{display:inline-block;font-size:var(--text-meta);color:var(--text-secondary);
+       background:var(--surface-sunken);border-radius:var(--radius-sm);
+       padding:3px var(--space-2);margin-top:var(--space-3)}
+.entry.ahead{opacity:.55}
+.entry.ahead .emark{border-style:dashed}
+.entry.ahead .ecard{background:transparent;border-style:dashed}
+
+/* elapsed time, shown only for gaps worth noticing */
+.gap{position:relative;padding:0 0 var(--space-6) var(--rail-indent);z-index:1}
+.gap span{position:absolute;left:0;top:-4px;width:36px;text-align:center;
+          font-size:var(--text-label);color:var(--text-muted);background:var(--surface-page);
+          padding:var(--space-1) 0;font-variant-numeric:tabular-nums}
+
+/* now */
+.now{position:relative;padding:0 0 var(--space-6) var(--rail-indent);z-index:2}
+.now::before{content:'';position:absolute;left:12px;top:2px;width:11px;height:11px;
+             border-radius:50%;background:var(--accent);
+             box-shadow:0 0 0 4px var(--surface-page)}
+.now span{font-size:var(--text-label);color:var(--accent);font-weight:600;
+          letter-spacing:.04em;font-variant-numeric:tabular-nums}
+
+.empty-day{font-size:var(--text-small);color:var(--text-muted);padding:var(--space-4) 0 var(--space-6)}
+
+/* first-run empty state */
+.empty{text-align:center;padding:var(--space-12) var(--space-4)}
+.empty .mark{font-size:40px;margin-bottom:var(--space-4);color:var(--accent-quiet)}
+.empty h2{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
+          margin:0 0 var(--space-2)}
+.empty p{font-size:var(--text-small);color:var(--text-secondary);margin:0 auto;max-width:30ch}
+
+/* ── FAB ────────────────────────────────────────────────────────────────
+   v2: pinned to the VIEWPORT, not to the page.
+   It was `position:absolute` inside .shell, which anchors it to the bottom of
+   the phone shell — and on a phone the shell's bottom is below the fold. Now a
+   fixed "dock" spans the shell's width and the button sits inside it.
+
+   Why a dock instead of just `position:fixed` on the button: a fixed element is
+   positioned against the viewport, but the shell is centred with a max-width, so
+   `right:16px` would pin it to the browser edge on desktop, not the phone frame.
+   Centring it needs a transform — and .fab already uses transform for its press
+   animation. Two rules writing the same property is a bug waiting to happen, so
+   the dock owns the centring and the button keeps its transform. No tab bar
+   required: a dock is just an empty fixed strip. */
+.fab-dock{position:fixed;left:50%;transform:translateX(-50%);
+          width:100%;max-width:var(--shell-w);
+          bottom:calc(var(--space-6) + env(safe-area-inset-bottom));
+          padding:0 var(--space-4);display:flex;justify-content:flex-end;
+          z-index:40;
+          /* the strip is invisible and must not swallow taps meant for the
+             timeline underneath — only the button itself is tappable */
+          pointer-events:none}
+.fab{pointer-events:auto;
+     width:var(--target-critical);height:var(--target-critical);
+     border-radius:var(--radius-full);background:var(--accent);
+     color:var(--on-accent);display:flex;align-items:center;justify-content:center;
+     box-shadow:0 3px 12px rgba(43,91,169,.28);
+     transition:transform var(--motion-fast) var(--ease-out),background var(--motion-fast)}
+.fab i{font-size:28px}
+.fab:hover{background:var(--accent-hover)}
+.fab:active{transform:scale(.94)}
+
+/* ── sheets ── */
+.scrim{position:fixed;inset:0;background:rgba(26,25,22,.34);opacity:0;pointer-events:none;
+       transition:opacity var(--motion-base) var(--ease-out);z-index:50}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;transform:translate(-50%,102%);bottom:0;width:100%;
+       display:flex;flex-direction:column;gap:var(--space-6);
+       max-width:var(--shell-w);background:var(--surface-card);
+       border-radius:var(--radius-lg) var(--radius-lg) 0 0;z-index:60;
+       padding:var(--space-2) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
+       transition:transform var(--motion-slow) var(--ease-out);
+       box-shadow:0 -3px 24px rgba(26,25,22,.10)}
+.sheet.open{transform:translate(-50%,0)}
+/* The detail sheet can outgrow the screen at large text scales — it scrolls
+   rather than clipping. AGENTS.md: no fixed-height text containers. */
+.sheet.tall{max-height:88vh;overflow-y:auto;overscroll-behavior:contain}
+@supports (height:100dvh){ .sheet.tall{max-height:88dvh} }
+.pull{width:40px;height:4px;border-radius:var(--radius-full);background:var(--paper-300);
+      margin:var(--space-2) auto 0;flex:0 0 auto}
+.sheet h2{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
+          margin:0;line-height:var(--leading-tight)}
+
+.quick-row{display:flex;gap:var(--target-gap);flex-wrap:wrap}
+.quick{flex:1 1 8rem;min-height:var(--target-critical);display:flex;align-items:center;
+       justify-content:center;gap:var(--space-3);background:var(--surface-raised);
+       border:1px solid var(--border-subtle);
+       border-radius:var(--radius-md);font-size:var(--text-small);font-weight:500;
+       padding:var(--space-3) var(--space-4);
+       transition:background var(--motion-fast),border-color var(--motion-fast)}
+.quick i{font-size:19px;color:var(--accent)}
+.quick:hover{background:var(--surface-sunken)}
+.quick.flash{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.quick.flash i{color:var(--on-accent)}
+
+/* Sheet rhythm — two values, and only ONE place each is set.
+   BETWEEN groups: --space-6 (24), set once as the sheet's flex `gap`. Children carry
+   no vertical margins at all, so reordering them can never open or close a gap. That
+   was a real bug three times running: spacing that lived on one child's margin-bottom
+   silently disappeared when something moved above or below it.
+   WITHIN a group of adjacent targets: --target-gap (16). Accessibility rule, not taste. */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--target-gap)}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:var(--space-3);
+      padding:var(--space-4);background:var(--surface-page);border:1px solid var(--border-subtle);
+      border-radius:var(--radius-md);min-height:96px;text-align:left;
+      transition:background var(--motion-fast),border-color var(--motion-fast)}
+.tile:hover{background:var(--surface-raised);border-color:var(--border-interactive)}
+.tile-ico{width:38px;height:38px;border-radius:var(--radius-full);display:flex;
+          align-items:center;justify-content:center;flex:0 0 auto}
+.tile-ico i{font-size:20px;color:#fff}
+.tile-name{font-size:var(--text-small);font-weight:500}
+.strip{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-min);
+       padding:var(--space-3) var(--space-4);background:var(--surface-page);
+       border:1px dashed var(--border-interactive);border-radius:var(--radius-md);width:100%;
+       text-align:left;font-size:var(--text-small)}
+.strip i{font-size:20px;color:var(--text-muted);flex:0 0 auto}
+.strip .sub{color:var(--text-muted);font-size:var(--text-label)}
+.strip:hover{background:var(--surface-raised)}
+
+/* ═══════════════ DETAIL SHEET (new in v2) ═══════════════
+   Two jobs, deliberately kept apart:
+     CORRECT  — what actually happened. Changes the doctor export. High stakes.
+     ENRICH   — optional context. Low stakes, high frequency.
+   Everything writes to the record the moment it is tapped, so closing the sheet
+   at any point leaves a valid entry. [C-09: a partial entry is a valid entry] */
+#detail-body{display:flex;flex-direction:column;gap:var(--space-6)}
+.sec{display:flex;flex-direction:column;gap:var(--space-3)}
+.sec-h{font-size:var(--text-meta);letter-spacing:.08em;text-transform:uppercase;
+       color:var(--text-muted);font-weight:500}
+.sec-opt{text-transform:none;letter-spacing:0}
+.d-head{display:flex;align-items:flex-start;gap:var(--space-3)}
+.d-head .emark{position:static;box-shadow:none;flex:0 0 auto}
+.d-title{display:flex;flex-direction:column;gap:2px;min-width:0}
+.d-title strong{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
+                line-height:var(--leading-tight);word-break:break-word}
+.d-title span{font-size:var(--text-meta);color:var(--text-muted)}
+
+/* Basis — the one control that changes what a doctor sees.
+   Collapsed to a status row when the fact is settled; expanded when it is not. */
+.basis-row{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-min);
+           width:100%;text-align:left;padding:var(--space-2) var(--space-3);
+           background:var(--surface-page);border:1px solid var(--border-subtle);
+           border-radius:var(--radius-md)}
+.basis-row:hover{background:var(--surface-raised)}
+.basis-row > i{font-size:22px;color:var(--text-muted);flex:0 0 auto}
+.basis-row .bt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto}
+.basis-row .bt b{font-size:var(--text-small);font-weight:500}
+.basis-row .bt em{font-size:var(--text-meta);color:var(--text-muted);font-style:normal}
+.basis-row .act{font-size:var(--text-meta);color:var(--accent);font-weight:500;flex:0 0 auto}
+/* Stacked, not segmented: three side-by-side labels wrap into unreadable
+   two-line stacks at 150%+, and stacking buys a bigger target per option. */
+.opts{display:flex;flex-direction:column;gap:var(--target-gap)}
+.opt{display:flex;align-items:center;gap:var(--space-3);width:100%;text-align:left;
+     min-height:var(--target-critical);padding:var(--space-2) var(--space-3);
+     background:var(--surface-page);border:1px solid var(--border-subtle);
+     border-radius:var(--radius-md);
+     transition:background var(--motion-fast),border-color var(--motion-fast)}
+.opt:hover{background:var(--surface-raised)}
+.opt.on{border-color:var(--accent);background:var(--surface-raised);box-shadow:inset 0 0 0 1px var(--accent)}
+.opt > i{font-size:22px;color:var(--text-muted);flex:0 0 auto}
+.opt.on > i{color:var(--accent)}
+.opt .ot{display:flex;flex-direction:column;gap:1px;min-width:0}
+.opt .ot b{font-size:var(--text-small);font-weight:500}
+.opt .ot em{font-size:var(--text-meta);color:var(--text-muted);font-style:normal}
+
+/* Time — nudges, not a scroll picker. A ±15 button is a single tap that
+   tolerates tremor; a wheel picker demands sustained fine control. */
+.timeval{font-family:var(--font-serif);font-size:var(--text-display);font-weight:400;
+         font-variant-numeric:tabular-nums;line-height:1}
+.nudges{display:flex;gap:var(--target-gap);flex-wrap:wrap}
+.nudge{flex:1 1 4.5rem;min-height:var(--target-routine);border-radius:var(--radius-md);
+       background:var(--surface-page);border:1px solid var(--border-interactive);
+       font-size:var(--text-small);font-weight:500;font-variant-numeric:tabular-nums;
+       padding:var(--space-2)}
+.nudge:hover{background:var(--surface-raised)}
+
+/* Context — unset fields are invitations (chips), set fields are facts (rows). */
+.chips{display:flex;gap:var(--target-gap);flex-wrap:wrap}
+.chip{display:flex;align-items:center;gap:var(--space-2);min-height:var(--target-routine);
+      padding:var(--space-2) var(--space-4);border-radius:var(--radius-full);
+      background:var(--surface-page);border:1px dashed var(--border-interactive);
+      font-size:var(--text-small);color:var(--text-secondary)}
+.chip i{font-size:18px;color:var(--text-muted);flex:0 0 auto}
+.chip:hover{background:var(--surface-raised)}
+.chip.set{border-style:solid;border-color:var(--border-subtle);background:var(--surface-raised);
+          color:var(--text-primary)}
+.chip.set i{color:var(--accent)}
+.chip.pick{border-style:solid}
+.chip.pick.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.chip.pick.on i{color:var(--on-accent)}
+.picker{display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-3);
+        background:var(--surface-page);border:1px solid var(--border-subtle);
+        border-radius:var(--radius-md)}
+.picker .pl{font-size:var(--text-meta);color:var(--text-muted)}
+.note-in{width:100%;font:inherit;font-size:var(--text-small);color:var(--text-primary);
+         background:var(--surface-page);border:1px solid var(--border-subtle);
+         border-radius:var(--radius-md);padding:var(--space-3);resize:vertical;
+         min-height:calc(var(--target-min) * 1.6);line-height:var(--leading-body)}
+.note-in:focus{border-color:var(--accent);outline:none;
+               box-shadow:0 0 0 var(--focus-ring-width) rgba(43,91,169,.18)}
+
+.d-done{min-height:var(--target-critical);border-radius:var(--radius-md);
+        background:var(--accent);color:var(--on-accent);font-weight:500;
+        font-size:var(--text-small);width:100%}
+.d-done:hover{background:var(--accent-hover)}
+/* Destructive, and coloured as such. This is a UI action, not health data —
+   the red/green ban in AGENTS.md is about never scoring a person's symptoms. */
+.d-remove{display:flex;align-items:center;justify-content:center;gap:var(--space-2);
+          min-height:var(--target-min);width:100%;font-size:var(--text-small);
+          color:var(--feedback-error);font-weight:500;border-radius:var(--radius-md)}
+.d-remove i{font-size:19px}
+.d-remove:hover{background:var(--surface-raised)}
+
+/* ── toast ──────────────────────────────────────────────────────────────
+   FIXED IN v2. Two separate problems:
+   1) WIDTH. A fixed-position flex box is "shrink-to-fit": it collapses to the
+      narrowest width its content can survive at, which is why short messages
+      were wrapping onto a second line. `width:max-content` tells it to lay the
+      content out on one line first; `max-width` then caps it at the shell width
+      minus a gutter each side, so it grows as far as it usefully can and never
+      touches the screen edge. The old cap (420 - 32 = 388px) also overflowed
+      any phone narrower than 388px.
+   2) POSITION. It sat at the same bottom offset as the FAB, so a wide toast ran
+      underneath it. Now raised by one FAB height plus a gap.
+   The hide state is opacity + a small translate rather than a percentage slide,
+   because a percentage slide no longer clears the screen from up here. */
+.toast{position:fixed;left:50%;
+       bottom:calc(var(--space-6) + var(--target-critical) + var(--space-3)
+                   + env(safe-area-inset-bottom));
+       width:max-content;
+       max-width:calc(min(var(--shell-w), 100vw) - var(--gutter) * 2);
+       transform:translate(-50%,var(--space-3));opacity:0;pointer-events:none;
+       background:var(--paper-800);color:var(--paper-50);
+       border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);z-index:80;
+       display:flex;align-items:center;gap:var(--space-4);font-size:var(--text-label);
+       line-height:1.4;
+       transition:opacity var(--motion-base) var(--ease-out),
+                  transform var(--motion-base) var(--ease-out);
+       box-shadow:0 3px 16px rgba(26,25,22,.24)}
+.toast.show{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+/* min-width:0 lets the message shrink and wrap when it genuinely is too long
+   for the cap; without it a flex item refuses to go below its content width. */
+#toast-text{flex:1 1 auto;min-width:0}
+/* The action never wraps or gets squeezed — it is the only tappable thing here. */
+#toast-undo{flex:0 0 auto;white-space:nowrap;color:var(--paper-50);font-weight:600;
+            text-decoration:underline;font-size:var(--text-label);
+            padding:var(--space-1) var(--space-2);min-height:var(--target-min);
+            display:flex;align-items:center}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="demo-bar">
+    <a class="demo-btn home" href="../index.html">← Home</a>
+    <span class="db">Hi-fi · Today · v2</span>
+    <button class="demo-btn" onclick="demoAddDose()">+ due dose</button>
+    <button class="demo-btn" onclick="demoLongToast()">long toast</button>
+    <button class="demo-btn" onclick="demoEmpty()">empty</button>
+    <button class="demo-btn" onclick="toggleTuner()">tune ▾</button>
+    <button class="demo-btn" onclick="location.reload()">reset</button>
+  </div>
+
+  <!-- temporary tuning panel — delete before this becomes real -->
+  <div class="tuner" id="tuner">
+    <label>Text scale
+      <select onchange="setScale(this.value)">
+        <option value="">100% (default)</option>
+        <option value="large">112.5%</option>
+        <option value="larger">125%</option>
+        <option value="huge">150%</option>
+        <option value="max">200% · WCAG 1.4.4</option>
+      </select></label>
+    <label>Card padding
+      <select onchange="setVar('--card-pad',this.value)">
+        <option value="12px">12</option><option value="16px" selected>16</option>
+        <option value="20px">20</option></select></label>
+    <label>Rail indent
+      <select onchange="setVar('--rail-indent',this.value)">
+        <option value="44px">44</option><option value="52px" selected>52</option>
+        <option value="60px">60</option></select></label>
+    <label>Gutter
+      <select onchange="setVar('--gutter',this.value)">
+        <option value="12px">12</option><option value="16px" selected>16</option>
+        <option value="20px">20</option></select></label>
+    <label>Meta / chip size
+      <select onchange="setVar('--text-meta',this.value)">
+        <option value="12px">12 · below floor</option>
+        <option value="13px">13 · below floor</option>
+        <option value="0.875rem" selected>14 · floor</option>
+        <option value="1rem">16</option></select></label>
+    <label>Routine target
+      <select onchange="setVar('--target-routine',this.value)">
+        <option value="44px">44</option><option value="48px" selected>48</option>
+        <option value="52px">52</option><option value="56px">56</option></select></label>
+    <label>Critical target
+      <select onchange="setVar('--target-critical',this.value)">
+        <option value="48px">48</option><option value="56px" selected>56</option>
+        <option value="64px">64</option></select></label>
+    <label>Target gap
+      <select onchange="setVar('--target-gap',this.value)">
+        <option value="8px">8 · old</option><option value="16px" selected>16</option>
+        <option value="24px">24</option></select></label>
+  </div>
+
+  <div class="top">
+    <button class="icon-btn" aria-label="Menu"><i class="ph ph-list"></i></button>
+    <h1>Today</h1>
+    <button class="icon-btn" aria-label="More"><i class="ph ph-dots-three"></i></button>
+  </div>
+
+  <div class="scroll">
+    <div id="card-area"></div>
+    <div id="timeline"></div>
+  </div>
+
+</div>
+
+<!-- Outside .shell: the dock is fixed to the viewport, so nesting it in a
+     positioned ancestor would only reintroduce the problem it solves. -->
+<div class="fab-dock">
+  <button class="fab" id="fab" onclick="openSheet('sheet-log')" aria-label="Add to today">
+    <i class="ph ph-plus"></i>
+  </button>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeSheets()"></div>
+
+<!-- ══ Quick Log sheet ══ -->
+<div class="sheet" id="sheet-log" role="dialog" aria-label="Add to today" tabindex="-1">
+  <div class="pull"></div>
+  <h2>Add to today</h2>
+
+  <!-- Photo at the top, 2026-08-06. The reachable zone is reserved for what someone
+       needs DURING A BAD EPISODE — Frozen, Low energy, feeling states. Photo is not
+       something you reach for then, so it does not belong there. -->
+  <button class="strip" onclick="logFrom('note','Photo')">
+    <i class="ph ph-camera"></i>
+    <span>Photo <span class="sub">— snap now, caption optional</span></span>
+  </button>
+
+  <div class="grid">
+    <button class="tile" onclick="logFrom('dose','Levodopa 100mg')">
+      <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ph-pill"></i></span>
+      <span class="tile-name">Medication</span></button>
+    <button class="tile" onclick="logFrom('activity','Walk')">
+      <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ph-footprints"></i></span>
+      <span class="tile-name">Activity</span></button>
+    <button class="tile" onclick="logFrom('meal','Meal')">
+      <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ph-fork-knife"></i></span>
+      <span class="tile-name">Food &amp; protein</span></button>
+    <button class="tile" onclick="logFrom('symptom','How I feel')">
+      <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ph-waveform"></i></span>
+      <span class="tile-name">How I feel</span></button>
+  </div>
+
+  <!-- D-04: one-tap doors for the states that matter most when capacity is lowest.
+       MOVED TO THE BOTTOM of the sheet 2026-08-06 — in a bottom sheet the lowest
+       rows are the most thumb-reachable, and reach may matter more than size in a
+       bad moment. Everything in the sheet is visible anyway, so nothing is lost.
+       Reverse if it tests badly. --target-critical (56px), --target-gap (16px). -->
+  <div class="quick-row">
+    <button class="quick" onclick="quickLog(this,'Froze in place','symptom')">
+      <i class="ph-fill ph-snowflake"></i>Froze in place</button>
+    <button class="quick" onclick="quickLog(this,'Low energy','symptom')">
+      <i class="ph-fill ph-battery-low"></i>Low energy</button>
+  </div>
+</div>
+
+<!-- ══ Entry detail sheet (v2) — contents rendered from state ══ -->
+<div class="sheet tall" id="sheet-detail" role="dialog" aria-label="Entry detail" tabindex="-1">
+  <div class="pull"></div>
+  <div id="detail-body"></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span id="toast-text"></span>
+  <button id="toast-undo" onclick="undoLast()">Undo</button>
+</div>
+
+<script>
+/* ═════════ state ═════════
+   Entry shape follows docs/entry-schema.md:
+   type   = dose | symptom | activity | meal | note
+   basis  = asserted | declined | assumed
+   fields = editable context, keyed by CONTEXT below
+   meta   = derived/computed display pairs the user cannot edit here
+   note   = free text  [C-12: stored raw so phrases can be tagged later] */
+const ICON = { dose:'ph-pill', symptom:'ph-waveform', activity:'ph-footprints',
+               meal:'ph-fork-knife', note:'ph-note-pencil' };
+const TYPE_NAME = { dose:'Medication', symptom:'How I feel', activity:'Activity',
+                    meal:'Food', note:'Note' };
+const MARK = 'var(--mark)';   /* one colour for every type — the icon does the work */
+
+/* v2: days are data, not two hand-wired arrays. Past days are editable — people
+   remember things late, and a record you cannot correct is a record you stop trusting. */
+let DAYS = [
+  { label:'Today', live:true, list:[
+    { time:'10:00', text:'Walk', type:'activity', basis:'asserted',
+      fields:{ dur:'20 min' }, meta:[['ph-map-pin','Around the block']] },
+    { time:'09:40', text:'Meds kicked in', type:'symptom', basis:'asserted',
+      meta:[['ph-clock','85 min after dose']] },
+    { time:'08:15', text:'Levodopa 100mg', type:'dose', basis:'asserted',
+      fields:{ meal:'With food' } }
+  ]},
+  { label:'Yesterday', live:false, list:[
+    { time:'14:10', text:'Levodopa 100mg', type:'dose', basis:'asserted',
+      meta:[['ph-clock','40 min late']] },
+    { time:'12:00', text:'Lunch', type:'meal', basis:'asserted', fields:{ protein:'High' } },
+    /* seeded unresolved so the confirm/correct path is demoable on load */
+    { time:'08:20', text:'Levodopa 100mg', type:'dose', basis:'assumed' }
+  ]}
+];
+
+/* Optional context, per type. Adding a field here adds it to the sheet — no other edits.
+   Deliberately one field each: this is enrichment, not a form to complete. */
+const CONTEXT = {
+  dose:     [ { key:'meal',    label:'Food',     icon:'ph-fork-knife',
+                choices:['Before food','With food','After food'] } ],
+  meal:     [ { key:'protein', label:'Protein',  icon:'ph-egg-crack',
+                choices:['Low','Some','High'] } ],           /* D-12: 3 levels */
+  activity: [ { key:'dur',     label:'How long', icon:'ph-timer',
+                choices:['10 min','20 min','30 min','45 min+'] } ],
+  symptom:  [ { key:'body',    label:'Where',    icon:'ph-person',
+                choices:['Left side','Right side','Both sides','Whole body'] } ], /* C-02 */
+  note:     []
+};
+
+/* Basis, written for the person whose record it is. The sub-line names the
+   consequence in the export, because that is the only reason the distinction exists. */
+const BASIS = {
+  asserted:{ opt:'I took it',        sub:'On the record as taken',
+             status:'You confirmed this',      icon:'ph-check-circle' },
+  declined:{ opt:"I didn't take it", sub:'On the record as skipped',
+             status:'You said you didn\'t take this', icon:'ph-prohibit' },
+  assumed: { opt:"I don't remember", sub:'Stays unconfirmed in your export',
+             status:'Not confirmed',           icon:'ph-question' }
+};
+const BASIS_ORDER = ['asserted','declined','assumed'];
+
+let currentDose = { name:'Levodopa 100mg', sched:'10:30' };  // one card max, never stacks
+let active = null;          // {e, day} — the entry open in the detail sheet
+let basisOpen = false;      // is the basis chooser expanded
+let openField = null;       // which context field is showing its choices
+let pendingUndo = null;     // {kind:'add'|'remove', e, day, index}
+let undoTimer = null;
+let lastFocus = null;
+
+const el = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nowTime = () => { const d=new Date();
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+const sortDay = d => d.list.sort((a,b) => b.time.localeCompare(a.time));
+
+/* ═════════ rendering — timeline ═════════ */
+function markHTML(e){
+  if (e.basis === 'assumed')
+    return `<span class="emark assumed"><i class="ph ${ICON[e.type]}"></i></span>`;
+  if (e.basis === 'declined')
+    return `<span class="emark declined" style="color:${MARK}"><i class="ph ${ICON[e.type]}"></i></span>`;
+  return `<span class="emark" style="background:${MARK}"><i class="ph-fill ${ICON[e.type]}"></i></span>`;
+}
+/* editable context first, then anything derived */
+function metaPairs(e){
+  const out = [];
+  (CONTEXT[e.type] || []).forEach(f => {
+    if (e.fields && e.fields[f.key]) out.push([f.icon, e.fields[f.key]]);
+  });
+  (e.meta || []).forEach(m => out.push(m));
+  return out;
+}
+const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+function gapLabel(a, b){                      /* a is later, b is earlier */
+  const d = toMin(a) - toMin(b);
+  if (d < 75) return null;                    /* under ~an hour isn't worth saying */
+  const h = Math.round(d/60);
+  return h >= 24 ? null : h + 'h';
+}
+function entryHTML(e, di, i){
+  /* basis is surfaced only where it changes what the reader should believe:
+     asserted is the default and carries no badge. */
+  const note = e.basis === 'assumed'  ? '<span class="enote">Not confirmed</span>'
+             : e.basis === 'declined' ? '<span class="enote">Reported not taken</span>' : '';
+  const meta = metaPairs(e).map(m =>
+      `<span><i class="ph ${m[0]}"></i>${esc(m[1])}</span>`).join('');
+  const free = e.note ? `<span class="enote">${esc(e.note)}</span>` : '';
+  return `<button class="entry" onclick="tapEntry(${di},${i})">
+    ${markHTML(e)}
+    <span class="etime">${e.time}</span>
+    <span class="ecard">
+      <span class="etext">${esc(e.text)}</span>
+      ${meta ? `<span class="emeta">${meta}</span>` : ''}
+      ${note}${free}
+      <span class="chev"><i class="ph ph-caret-right"></i></span>
+    </span>
+  </button>`;
+}
+/* returns the rail's INNER html — the caller wraps it, so nothing is string-surgeried */
+function railInner(day, di){
+  let h = '';
+  day.list.forEach((e,i) => {
+    if (i > 0){                               /* gaps read downward: newest first */
+      const g = gapLabel(day.list[i-1].time, e.time);
+      if (g) h += `<div class="gap"><span>${g}</span></div>`;
+    }
+    h += entryHTML(e, di, i);
+  });
+  return h;
+}
+function renderTimeline(){
+  const tl = el('timeline');
+  const anything = DAYS.some(d => d.list.length);
+  if (!anything && !currentDose){
+    tl.innerHTML = `<div class="empty">
+      <div class="mark"><i class="ph ph-egg"></i></div>
+      <h2>Your day, as it happens</h2>
+      <p>Doses, movement, meals, how you feel — whatever you want to remember lands here,
+      in the order it happened.</p></div>`;
+    return;
+  }
+  let h = '';
+  DAYS.forEach((day, di) => {
+    if (!day.live && !day.list.length) return;          /* hide empty past days */
+    h += `<div class="day-label">${esc(day.label)}</div>`;
+    if (!day.list.length){
+      h += '<div class="empty-day">Nothing logged yet today — the + button is ready when you are.</div>';
+      return;
+    }
+    h += '<div class="rail">'
+       + (day.live ? `<div class="now"><span>Now · ${nowTime()}</span></div>` : '')
+       + railInner(day, di)
+       + '</div>';
+  });
+  tl.innerHTML = h;
+}
+function renderCard(){
+  const a = el('card-area');
+  if (!currentDose){ a.innerHTML=''; return; }
+  /* COPY CHANGE v2: v1's middle button said "Edit", which didn't tell you whether
+     pressing it counted as a yes. It now sits below as its own path and says so. */
+  a.innerHTML = `<div class="confirm">
+    <div class="confirm-q">Did you take ${esc(currentDose.name.split(' ')[0])}?</div>
+    <div class="confirm-meta">Scheduled ${currentDose.sched} · now ${nowTime()}</div>
+    <div class="c-actions">
+      <button class="c-btn primary" onclick="cardYes()">Yes</button>
+      <button class="c-btn" onclick="cardNo()">No</button>
+    </div>
+    <button class="c-more" onclick="cardAdjust()">
+      Yes, but not as scheduled<i class="ph ph-caret-right"></i></button>
+    </div>`;
+}
+
+/* ═════════ rendering — detail sheet ═════════ */
+function renderDetail(){
+  if (!active) return;
+  const e = active.e;
+  const fields = CONTEXT[e.type] || [];
+  let h = '';
+
+  /* — identity — */
+  h += `<div class="d-head">
+    ${markHTML(e)}
+    <span class="d-title">
+      <strong>${esc(e.text)}</strong>
+      <span>${TYPE_NAME[e.type]} · ${esc(DAYS[active.day].label)}</span>
+    </span></div>`;
+
+  /* — CORRECT: basis. Doses only. You cannot "assume" someone went for a walk,
+       and pretending otherwise would put a control on screen that never earns
+       its place. (`inferred` from sensors is post-MVP — see entry-schema.md.) — */
+  if (e.type === 'dose'){
+    const b = BASIS[e.basis];
+    h += '<div class="sec"><div class="sec-h">The record</div>';
+    if (!basisOpen){
+      h += `<button class="basis-row" onclick="toggleBasis()">
+        <i class="ph ${b.icon}"></i>
+        <span class="bt"><b>${b.status}</b><em>${b.sub}</em></span>
+        <span class="act">Change</span></button>`;
+    } else {
+      h += '<div class="opts">' + BASIS_ORDER.map(k => {
+        const o = BASIS[k];
+        return `<button class="opt${k===e.basis?' on':''}" onclick="setBasis('${k}')">
+          <i class="ph ${k===e.basis?'ph-radio-button':'ph-circle'}"></i>
+          <span class="ot"><b>${o.opt}</b><em>${o.sub}</em></span></button>`;
+      }).join('') + '</div>';
+    }
+    h += '</div>';
+  }
+
+  /* — CORRECT: time — */
+  h += `<div class="sec"><div class="sec-h">Time</div>
+    <div class="timeval">${e.time}</div>
+    <div class="nudges">
+      <button class="nudge" onclick="nudge(-60)">−1h</button>
+      <button class="nudge" onclick="nudge(-15)">−15m</button>
+      <button class="nudge" onclick="nudge(15)">+15m</button>
+      <button class="nudge" onclick="nudge(60)">+1h</button>
+    </div></div>`;
+
+  /* — ENRICH: context. Unset fields are dashed invitations; set fields are solid facts.
+       Always rendered, because Note applies to every type even where CONTEXT is empty. — */
+  h += '<div class="sec"><div class="sec-h">Context <span class="sec-opt">· optional</span></div>';
+  h += '<div class="chips">';
+  fields.forEach(f => {
+    const v = e.fields && e.fields[f.key];
+    h += `<button class="chip${v?' set':''}" onclick="toggleField('${f.key}')">
+      <i class="ph ${f.icon}"></i>${v ? esc(v) : f.label}</button>`;
+  });
+  if (e.note === undefined)
+    h += `<button class="chip" onclick="addNote()"><i class="ph ph-note-pencil"></i>Note</button>`;
+  h += '</div>';
+
+  /* the open field's choices, inline under the chip row */
+  const f = fields.find(x => x.key === openField);
+  if (f){
+    const v = e.fields && e.fields[f.key];
+    h += `<div class="picker"><span class="pl">${f.label}</span><div class="chips">`
+      + f.choices.map(c =>
+          `<button class="chip pick${v===c?' on':''}" onclick="setField('${f.key}',${JSON.stringify(c).replace(/"/g,'&quot;')})">${esc(c)}</button>`
+        ).join('')
+      + (v ? `<button class="chip pick" onclick="setField('${f.key}',null)">Clear</button>` : '')
+      + '</div></div>';
+  }
+  if (e.note !== undefined)
+    h += `<textarea class="note-in" placeholder="Anything worth remembering"
+            oninput="setNote(this.value)">${esc(e.note)}</textarea>`;
+  h += '</div>';
+
+  /* — footer. Done sits lowest: it is the most-used control and the bottom of a
+       bottom sheet is the most reachable place on the screen. — */
+  h += `<div class="sec">
+      <button class="d-done" onclick="closeSheets()">Done</button>
+      <button class="d-remove" onclick="removeActive()">
+        <i class="ph ph-trash"></i>Remove this entry</button>
+    </div>`;
+
+  el('detail-body').innerHTML = h;
+}
+
+/* ═════════ detail actions — every one writes straight to the record ═════════ */
+function openDetail(e, day){
+  active = { e, day };
+  basisOpen = (e.type === 'dose' && e.basis === 'assumed');  /* lead with what's unresolved */
+  openField = null;
+  renderDetail();
+  openSheet('sheet-detail');
+}
+function tapEntry(di, i){ openDetail(DAYS[di].list[i], di); }
+function toggleBasis(){ basisOpen = !basisOpen; renderDetail(); }
+function setBasis(k){
+  active.e.basis = k;
+  basisOpen = false;
+  renderDetail(); renderTimeline();
+}
+function nudge(mins){
+  const e = active.e;
+  let m = toMin(e.time) + mins;
+  m = Math.max(0, Math.min(23*60 + 59, m));       /* stay inside the day — no silent rollover */
+  e.time = String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
+  sortDay(DAYS[active.day]);                      /* order is a property of the day, not the DOM */
+  renderDetail(); renderTimeline();
+}
+function toggleField(key){ openField = (openField === key) ? null : key; renderDetail(); }
+function setField(key, val){
+  const e = active.e;
+  e.fields = e.fields || {};
+  if (val === null) delete e.fields[key]; else e.fields[key] = val;
+  openField = null;
+  renderDetail(); renderTimeline();
+}
+function addNote(){ active.e.note = ''; renderDetail(); }
+function setNote(v){ active.e.note = v; renderTimeline(); }   /* no re-render: don't steal the caret */
+function removeActive(){
+  const day = DAYS[active.day], i = day.list.indexOf(active.e);
+  if (i > -1) day.list.splice(i,1);
+  pendingUndo = { kind:'remove', e:active.e, day:active.day, index:i };
+  closeSheets();
+  renderTimeline();
+  showToast('Removed from ' + day.label.toLowerCase(), true);
+}
+
+/* ═════════ card actions — D-01 no reason ask · D-02 no stack, quiet collapse ═════════ */
+function cardYes(){
+  addEntry({ time:nowTime(), text:currentDose.name, type:'dose', basis:'asserted' }, 0,
+           currentDose.name + ' — logged');
+  currentDose = null; renderCard();
+}
+function cardNo(){
+  /* "No" is a REPORTED skip → basis:'declined'. Clinically valuable, and distinct
+     from 'assumed' (we asked and got nothing back). */
+  addEntry({ time:nowTime(), text:currentDose.name, type:'dose', basis:'declined' }, 0,
+           'Noted — not taken');
+  currentDose = null; renderCard();
+}
+/* "Not exactly" = yes, with corrections. The entry lands as asserted at the
+   SCHEDULED time (not now) — that is the fact being corrected — and the sheet
+   opens on it. Two taps have already produced a complete, valid record; the
+   sheet is where depth becomes available, never where it becomes required. */
+function cardAdjust(){
+  const e = { time:currentDose.sched, text:currentDose.name, type:'dose', basis:'asserted' };
+  addEntry(e, 0, null);
+  currentDose = null; renderCard();
+  openDetail(e, 0);
+}
+
+/* a new dose falling due quietly collapses the unanswered one into the timeline as 'assumed' */
+function demoAddDose(){
+  if (currentDose){
+    DAYS[0].list.push({ time:currentDose.sched, text:currentDose.name,
+                        type:'dose', basis:'assumed' });
+    sortDay(DAYS[0]);
+    renderTimeline();
+  }
+  const t = ['14:00','17:30','21:00'];
+  currentDose = { name:'Levodopa 100mg', sched:t[Math.floor(Math.random()*3)] };
+  renderCard();
+}
+function demoEmpty(){ DAYS.forEach(d => d.list = []); currentDose = null;
+                      renderCard(); renderTimeline(); }
+function demoLongToast(){
+  showToast('Levodopa 100mg moved to 08:45 and marked as taken with food', true);
+}
+
+/* ═════════ logging ═════════ */
+function addEntry(e, di, toastText){
+  DAYS[di].list.unshift(e);
+  sortDay(DAYS[di]);
+  renderTimeline();
+  pendingUndo = { kind:'add', e, day:di };
+  if (toastText) showToast(toastText, true);
+}
+function logFrom(type, text){
+  closeSheets();
+  addEntry({ time:nowTime(), text, type, basis:'asserted' }, 0, text + ' — added');
+}
+function quickLog(btn, text, type){
+  addEntry({ time:nowTime(), text, type, basis:'asserted' }, 0, text + ' — added');
+  btn.classList.add('flash');
+  setTimeout(()=> btn.classList.remove('flash'), 600);
+  setTimeout(closeSheets, 260);
+}
+function undoLast(){
+  if (!pendingUndo) return;
+  const { kind, e, day, index } = pendingUndo;
+  const list = DAYS[day].list;
+  if (kind === 'add'){
+    const i = list.indexOf(e);
+    if (i > -1) list.splice(i,1);
+  } else {
+    list.splice(Math.max(0, index), 0, e);
+    sortDay(DAYS[day]);
+  }
+  pendingUndo = null;
+  renderTimeline();
+  el('toast').classList.remove('show');
+}
+
+/* ═════════ sheets & toast ═════════ */
+const SHEETS = ['sheet-log','sheet-detail'];
+function openSheet(id){
+  lastFocus = document.activeElement;
+  el('scrim').classList.add('open');
+  SHEETS.forEach(s => el(s).classList.toggle('open', s === id));
+  el(id).focus();                                   /* screen readers land inside the sheet */
+}
+function closeSheets(){
+  el('scrim').classList.remove('open');
+  SHEETS.forEach(s => el(s).classList.remove('open'));
+  active = null; openField = null;
+  if (lastFocus && lastFocus.focus) lastFocus.focus();
+}
+function showToast(t, withUndo){
+  el('toast-text').textContent = t;
+  el('toast-undo').style.display = withUndo ? 'flex' : 'none';
+  el('toast').classList.add('show');
+  clearTimeout(undoTimer);
+  undoTimer = setTimeout(()=> el('toast').classList.remove('show'), 6000);
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(); });
+
+/* ── temporary tuning controls — remove before this becomes real ── */
+function toggleTuner(){ el('tuner').classList.toggle('open'); }
+function setScale(v){
+  if (v) document.documentElement.dataset.textScale = v;
+  else delete document.documentElement.dataset.textScale;
+}
+function setVar(name, value){ document.documentElement.style.setProperty(name, value); }
+
+renderCard(); renderTimeline();
+</script>
+</body>
+</html>
