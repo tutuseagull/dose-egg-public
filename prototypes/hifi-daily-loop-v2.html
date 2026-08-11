@@ -330,16 +330,31 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
           margin:0;line-height:var(--leading-tight)}
 
 .quick-row{display:flex;gap:var(--target-gap);flex-wrap:wrap}
+/* Icons removed 2026-08-11. On the small buttons they rendered at 19-20px
+   against the grid tiles' 38px badges, so three different icon sizes were
+   competing in one sheet. Dropping them lets every label in the sheet start on
+   the same left edge — .strip, .quick and .tile all pad by --space-4 — which is
+   a stronger ordering signal than the icons were providing.
+   Trade-off worth watching: the quick row is the low-capacity surface, and an
+   icon aids recognition under stress. The labels are short and unlike each
+   other, so text alone should hold. The alternative fix was normalising the
+   icon sizes rather than removing them — revisit if this tests badly. */
 .quick{flex:1 1 8rem;min-height:var(--target-critical);display:flex;align-items:center;
-       justify-content:center;gap:var(--space-3);background:var(--surface-raised);
+       justify-content:flex-start;background:var(--surface-raised);
        border:1px solid var(--border-subtle);
        border-radius:var(--radius-md);font-size:var(--text-small);font-weight:500;
-       padding:var(--space-3) var(--space-4);
+       padding:var(--space-3) var(--space-4);text-align:left;
        transition:background var(--motion-fast),border-color var(--motion-fast)}
-.quick i{font-size:19px;color:var(--accent)}
 .quick:hover{background:var(--surface-sunken)}
 .quick.flash{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
-.quick.flash i{color:var(--on-accent)}
+
+#log-body{display:flex;flex-direction:column;gap:var(--space-6)}
+.log-head{display:flex;align-items:center;gap:var(--space-2)}
+.backbtn{width:var(--target-min);height:var(--target-min);display:flex;align-items:center;
+         justify-content:center;border-radius:var(--radius-full);color:var(--text-secondary);
+         margin-left:calc(var(--space-3) * -1);flex:0 0 auto}
+.backbtn i{font-size:22px}
+.backbtn:hover{background:var(--surface-raised)}
 
 /* Sheet rhythm — two values, and only ONE place each is set.
    BETWEEN groups: --space-6 (24), set once as the sheet's flex `gap`. Children carry
@@ -361,8 +376,9 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
        padding:var(--space-3) var(--space-4);background:var(--surface-page);
        border:1px dashed var(--border-interactive);border-radius:var(--radius-md);width:100%;
        text-align:left;font-size:var(--text-small)}
-.strip i{font-size:20px;color:var(--text-muted);flex:0 0 auto}
-.strip .sub{color:var(--text-muted);font-size:var(--text-label)}
+/* same label treatment as .tile-name, so Photo reads as a peer of the grid */
+.strip-name{font-size:var(--text-small);font-weight:500}
+.strip .sub{color:var(--text-muted);font-size:var(--text-label);font-weight:400}
 .strip:hover{background:var(--surface-raised)}
 
 /* ═══════════════ DETAIL SHEET (new in v2) ═══════════════
@@ -380,7 +396,19 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .d-head .emark{position:static;box-shadow:none;flex:0 0 auto}
 .d-title{display:flex;flex-direction:column;gap:2px;min-width:0}
 .d-title strong{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
-                line-height:var(--leading-tight);word-break:break-word}
+                line-height:var(--leading-tight);word-break:break-word;text-align:left}
+/* The name is editable, and says so the same way the time does — dotted
+   underline plus a pencil. One grammar for "this value can be changed". */
+.d-title-btn{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-min);
+             text-align:left;border-radius:var(--radius-sm)}
+.d-title-btn strong{border-bottom:2px dotted var(--border-interactive);padding-bottom:2px}
+.d-title-btn > i{font-size:19px;color:var(--text-muted);flex:0 0 auto}
+.lbl-in{width:100%;font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
+        min-height:var(--target-critical);color:var(--text-primary);
+        background:var(--surface-page);border:1px solid var(--border-interactive);
+        border-radius:var(--radius-md);padding:0 var(--space-3)}
+.lbl-in:focus{outline:none;border-color:var(--accent);
+              box-shadow:0 0 0 var(--focus-ring-width) rgba(43,91,169,.18)}
 .d-title span{font-size:var(--text-meta);color:var(--text-muted)}
 
 /* Basis — the one control that changes what a doctor sees.
@@ -415,12 +443,59 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
    tolerates tremor; a wheel picker demands sustained fine control. */
 .timeval{font-family:var(--font-serif);font-size:var(--text-display);font-weight:400;
          font-variant-numeric:tabular-nums;line-height:1}
+.timesub{font-size:var(--text-meta);color:var(--text-muted)}
+/* Duration sits with the time, not under "context". How long something lasted
+   is a temporal fact — for an activity it is arguably the point, since the
+   dose-response question is about how much movement happened, not that some
+   happened. Burying it in optional context made it invisible. */
+.durrow{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap}
+.durlabel{font-size:var(--text-meta);color:var(--text-muted)}
+/* The time is a button — tapping it swaps in numeric fields. Signalled with a
+   dotted underline and a pencil, because a big number alone reads as output. */
+.timeval-btn{display:flex;align-items:center;gap:var(--space-3);
+             min-height:var(--target-routine);padding:0;border-radius:var(--radius-sm)}
+.timeval-btn .timeval{border-bottom:2px dotted var(--border-interactive);
+                      padding-bottom:2px}
+.timeval-btn i{font-size:20px;color:var(--text-muted)}
+/* Numeric fields, not a wheel. A wheel picker is a DRAG gesture, and Nunes et
+   al. (2016) found people with PD do better with multiple-tap than drag; a
+   numeric keypad is pure tapping. It is also the accessible baseline the date-
+   input literature keeps arriving at — a picker should always be optional. */
+.timefields{display:flex;align-items:center;gap:var(--space-2)}
+.tf{width:3.5ch;min-height:var(--target-critical);text-align:center;
+    font-family:var(--font-serif);font-size:var(--text-display);font-weight:400;
+    font-variant-numeric:tabular-nums;color:var(--text-primary);
+    background:var(--surface-page);border:1px solid var(--border-interactive);
+    border-radius:var(--radius-md);padding:0 var(--space-2)}
+.tf:focus{outline:none;border-color:var(--accent);
+          box-shadow:0 0 0 var(--focus-ring-width) rgba(43,91,169,.18)}
+.tf-sep{font-family:var(--font-serif);font-size:var(--text-display);
+        color:var(--text-muted)}
+.tf-set{margin-left:auto;min-height:var(--target-routine);padding:0 var(--space-4);
+        border-radius:var(--radius-md);background:var(--accent);color:var(--on-accent);
+        font-size:var(--text-small);font-weight:500}
 .nudges{display:flex;gap:var(--target-gap);flex-wrap:wrap}
 .nudge{flex:1 1 4.5rem;min-height:var(--target-routine);border-radius:var(--radius-md);
        background:var(--surface-page);border:1px solid var(--border-interactive);
        font-size:var(--text-small);font-weight:500;font-variant-numeric:tabular-nums;
        padding:var(--space-2)}
 .nudge:hover{background:var(--surface-raised)}
+/* Disabled rather than hidden. Hiding would reflow the row and move the
+   remaining targets under the user's thumb between taps — the one thing you
+   never do to someone with a tremor. Lower contrast is normally banned as a
+   "quiet" lever [C-16]; unavailability is the standing exception, since the
+   control must read as unavailable to anyone. */
+.nudge[disabled]{color:var(--text-muted);border-color:var(--border-subtle);
+                 background:transparent;cursor:not-allowed}
+.nudge[disabled]:hover{background:transparent}
+.nowbtn{display:flex;align-items:center;justify-content:center;gap:var(--space-2);
+        width:100%;min-height:var(--target-routine);border-radius:var(--radius-md);
+        border:1px solid var(--border-interactive);background:var(--surface-page);
+        font-size:var(--text-small);font-weight:500}
+.nowbtn i{font-size:18px;color:var(--text-muted)}
+.nowbtn:hover{background:var(--surface-raised)}
+.nowbtn[disabled]{color:var(--text-muted);border-color:var(--border-subtle);
+                  background:transparent;cursor:not-allowed}
 
 /* Context — unset fields are invitations (chips), set fields are facts (rows). */
 .chips{display:flex;gap:var(--target-gap);flex-wrap:wrap}
@@ -541,42 +616,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 <!-- ══ Quick Log sheet ══ -->
 <div class="sheet" id="sheet-log" role="dialog" aria-label="Add to today" tabindex="-1">
   <div class="pull"></div>
-  <h2>Add to today</h2>
-
-  <!-- Photo at the top, 2026-08-06. The reachable zone is reserved for what someone
-       needs DURING A BAD EPISODE — Frozen, Low energy, feeling states. Photo is not
-       something you reach for then, so it does not belong there. -->
-  <button class="strip" onclick="logFrom('note','Photo')">
-    <i class="ph ph-camera"></i>
-    <span>Photo <span class="sub">— snap now, caption optional</span></span>
-  </button>
-
-  <div class="grid">
-    <button class="tile" onclick="logFrom('dose','Levodopa 100mg')">
-      <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ph-pill"></i></span>
-      <span class="tile-name">Medication</span></button>
-    <button class="tile" onclick="logFrom('activity','Walk')">
-      <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ph-footprints"></i></span>
-      <span class="tile-name">Activity</span></button>
-    <button class="tile" onclick="logFrom('meal','Meal')">
-      <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ph-fork-knife"></i></span>
-      <span class="tile-name">Food &amp; protein</span></button>
-    <button class="tile" onclick="logFrom('symptom','How I feel')">
-      <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ph-waveform"></i></span>
-      <span class="tile-name">How I feel</span></button>
-  </div>
-
-  <!-- D-04: one-tap doors for the states that matter most when capacity is lowest.
-       MOVED TO THE BOTTOM of the sheet 2026-08-06 — in a bottom sheet the lowest
-       rows are the most thumb-reachable, and reach may matter more than size in a
-       bad moment. Everything in the sheet is visible anyway, so nothing is lost.
-       Reverse if it tests badly. --target-critical (56px), --target-gap (16px). -->
-  <div class="quick-row">
-    <button class="quick" onclick="quickLog(this,'Froze in place','symptom')">
-      <i class="ph-fill ph-snowflake"></i>Froze in place</button>
-    <button class="quick" onclick="quickLog(this,'Low energy','symptom')">
-      <i class="ph-fill ph-battery-low"></i>Low energy</button>
-  </div>
+  <div id="log-body"></div>
 </div>
 
 <!-- ══ Entry detail sheet (v2) — contents rendered from state ══ -->
@@ -627,10 +667,30 @@ const CONTEXT = {
                 choices:['Before food','With food','After food'] } ],
   meal:     [ { key:'protein', label:'Protein',  icon:'ph-egg-crack',
                 choices:['Low','Some','High'] } ],           /* D-12: 3 levels */
-  activity: [ { key:'dur',     label:'How long', icon:'ph-timer',
-                choices:['10 min','20 min','30 min','45 min+'] } ],
+  /* activity duration is handled in the time section, not here — length is a
+     temporal fact, not context. Kept in CONTEXT so the picker can reuse it. */
+  activity: [ { key:'dur',     label:'How long', icon:'ph-timer', temporal:true,
+                choices:['5 min','10 min','15 min','20 min','30 min','45 min',
+                         '1 hour','1.5 hours','2 hours+'] } ],
   symptom:  [ { key:'body',    label:'Where',    icon:'ph-person',
                 choices:['Left side','Right side','Both sides','Whole body'] } ], /* C-02 */
+  note:     []
+};
+
+/* What a new entry is called, per type. The tiles create an entry with the
+   generic label and open the sheet on it, so the label is the first thing you
+   can change — same "uncertainty drives disclosure" rule as an unconfirmed
+   dose: lead with whatever the app does not yet know.
+   Vocabulary follows glossary.html — patient words (kicked in, wearing off),
+   not clinical synonyms. */
+const NEW_LABEL = { dose:'Medication', activity:'Activity', meal:'Food',
+                    symptom:'How I feel', note:'Photo' };
+const SUGGEST = {
+  dose:     ['Levodopa 100mg','Levodopa 150mg','Entacapone','Amantadine'],
+  activity: ['Walk','Exercise','Housework','Errands','Rest'],
+  meal:     ['Breakfast','Lunch','Dinner','Snack'],
+  symptom:  ['Tremor','Stiffness','Froze in place','Low energy',
+             'Meds kicked in','Wearing off'],
   note:     []
 };
 
@@ -650,6 +710,17 @@ let currentDose = { name:'Levodopa 100mg', sched:'10:30' };  // one card max, ne
 let active = null;          // {e, day} — the entry open in the detail sheet
 let basisOpen = false;      // is the basis chooser expanded
 let openField = null;       // which context field is showing its choices
+let editingTime = false;    // is the big time swapped for numeric fields
+let editingLabel = false;   // is the entry name swapped for a text field
+/* Option 2, routed by list length. A secondary choice with 4+ options takes
+   over the sheet as its own step with a back button (the Oura pattern); 2-3
+   options stay inline as chips. Two behaviours, but each is the cheaper one
+   for its case: a whole step to choose between Low/Some/High is theatre, and
+   nine activity types inline is the tall sheet with two competing Done buttons
+   Tutu hit. Threshold lives in one place so it can be tuned. */
+let pickerStep = null;      // null | {kind:'label'} | {kind:'field', key}
+const STEP_THRESHOLD = 4;
+const usesStep = n => n >= STEP_THRESHOLD;
 let freshEntry = null;      // the entry to mark as new in the next render
 let lastFocus = null;
 const REDUCED_MOTION = matchMedia('(prefers-reduced-motion: reduce)');
@@ -679,6 +750,12 @@ function metaPairs(e){
   return out;
 }
 const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+/* Show recorded_at only when it is far enough from occurred_at to change how
+   the entry should be read. Under 20 minutes is the same moment in practice. */
+function lagLabel(e){
+  if (!e.recorded || e.recorded === e.time) return null;
+  return Math.abs(toMin(e.recorded) - toMin(e.time)) >= 20 ? e.recorded : null;
+}
 function gapLabel(a, b){                      /* a is later, b is earlier */
   const d = toMin(a) - toMin(b);
   if (d < 75) return null;                    /* under ~an hour isn't worth saying */
@@ -778,17 +855,34 @@ function renderCard(){
 /* ═════════ rendering — detail sheet ═════════ */
 function renderDetail(){
   if (!active) return;
+  if (pickerStep){ renderPickerStep(); return; }
   const e = active.e;
   const fields = CONTEXT[e.type] || [];
   let h = '';
 
-  /* — identity — */
-  h += `<div class="d-head">
-    ${markHTML(e)}
-    <span class="d-title">
-      <strong>${esc(e.text)}</strong>
-      <span>${TYPE_NAME[e.type]} · ${esc(DAYS[active.day].label)}</span>
-    </span></div>`;
+  /* — identity. The name is a value like any other, so it is editable here;
+       without this the log-sheet tiles could only ever produce placeholders. — */
+  const sugg = labelChoices(e.type);
+  if (editingLabel){
+    h += `<div class="sec">
+      <div class="sec-h">What was it</div>
+      <input class="lbl-in" id="lbl-in" value="${esc(e.text)}"
+             aria-label="Name of this entry" oninput="setLabel(this.value)">
+      ${sugg.length ? `<div class="chips">` + sugg.map(t =>
+          `<button class="chip pick${t===e.text?' on':''}" onclick="pickLabel(${JSON.stringify(t).replace(/"/g,'&quot;')})">${esc(t)}</button>`
+        ).join('') + `</div>` : ''}
+      <button class="d-done" onclick="endLabelEdit()">Done</button>
+    </div>`;
+  } else {
+    h += `<div class="d-head">
+      ${markHTML(e)}
+      <span class="d-title">
+        <button class="d-title-btn" onclick="startLabelEdit()" aria-label="Edit the name">
+          <strong>${esc(e.text)}</strong><i class="ph ph-pencil-simple"></i>
+        </button>
+        <span>${TYPE_NAME[e.type]} · ${esc(DAYS[active.day].label)}</span>
+      </span></div>`;
+  }
 
   /* — CORRECT: basis. Doses only. You cannot "assume" someone went for a walk,
        and pretending otherwise would put a control on screen that never earns
@@ -812,21 +906,13 @@ function renderDetail(){
     h += '</div>';
   }
 
-  /* — CORRECT: time — */
-  h += `<div class="sec"><div class="sec-h">Time</div>
-    <div class="timeval">${e.time}</div>
-    <div class="nudges">
-      <button class="nudge" onclick="nudge(-60)">−1h</button>
-      <button class="nudge" onclick="nudge(-15)">−15m</button>
-      <button class="nudge" onclick="nudge(15)">+15m</button>
-      <button class="nudge" onclick="nudge(60)">+1h</button>
-    </div></div>`;
+  h += timeSectionHTML(e);
 
   /* — ENRICH: context. Unset fields are dashed invitations; set fields are solid facts.
        Always rendered, because Note applies to every type even where CONTEXT is empty. — */
   h += '<div class="sec"><div class="sec-h">Context <span class="sec-opt">· optional</span></div>';
   h += '<div class="chips">';
-  fields.forEach(f => {
+  fields.filter(f => !f.temporal).forEach(f => {
     const v = e.fields && e.fields[f.key];
     h += `<button class="chip${v?' set':''}" onclick="toggleField('${f.key}')">
       <i class="ph ${f.icon}"></i>${v ? esc(v) : f.label}</button>`;
@@ -862,11 +948,302 @@ function renderDetail(){
   el('detail-body').innerHTML = h;
 }
 
+/* ═════════ log sheet — two steps, both of them meaningful ═══════════════
+   REVISED 2026-08-11 after Tutu pushed back, and the push-back was right.
+
+   The old tiles logged "Activity" at the current time and opened the detail
+   sheet to fix it. That satisfied "a complete stop in 1-2 taps" only on paper:
+   an entry named after its own category records nothing, so the stop was
+   hollow, and making it mean something cost MORE taps than saying it plainly
+   would have. Simplifying entry was the whole point.
+
+   The confirmation card works because the app has a genuine PREDICTION to
+   confirm — a scheduled dose is a real proposal. A category is not a proposal.
+   So the split is:
+
+     app can propose something specific  → propose it, user confirms  (1 tap)
+     app cannot                          → ask, with choices          (2 taps)
+
+   Asking is not a blank form. The rule in AGENTS.md bans empty fields and a
+   Save button; a short list of named options has neither. Picking IS the log —
+   no sheet opens afterwards, nothing needs revising, and depth stays available
+   by tapping the entry later.
+
+   Short version, and the wording that should go in AGENTS.md:
+   DEPTH IS OPTIONAL, IDENTITY IS NOT. A placeholder label must never reach the
+   record. */
+let logStep = null;          // null = categories · otherwise the chosen type
+
+const TILES = [
+  ['dose','ph-pill','Medication'], ['activity','ph-footprints','Activity'],
+  ['meal','ph-fork-knife','Food & protein'], ['symptom','ph-waveform','How I feel']
+];
+const q = t => JSON.stringify(t).replace(/"/g,'&quot;');
+
+/* ── what this user actually logs ────────────────────────────────────────
+   Ranks past entries of a type by how often they appear, weighting anything
+   logged near this clock time x3 — "Breakfast" and "Dinner" are the same
+   category and never the same answer, and the thing that separates them is
+   the hour. Reads only this user's own record; no averages, no comparison to
+   other patients [C-10].
+
+   This is not a model and does not trip C-14 (all MVP AI is user-initiated,
+   nothing ambient): it is a count over local data, run on tap. It is however
+   the natural first step toward the on-device work in ai-lab.html — the same
+   predict-then-confirm shape, just cheaper.
+
+   Deliberately returns NOTHING for a user with no history. An invented
+   proposal is worse than an honest question, and a cold-start guess dressed
+   as a prediction is how these features lose trust on day one. */
+function rankLabels(type){
+  const now = toMin(nowTime()), seen = new Map();
+  DAYS.forEach(d => d.list.forEach(e => {
+    if (e.type !== type || e.removed) return;
+    const r = seen.get(e.text) || { n:0, near:0 };
+    r.n++;
+    const diff = Math.abs(toMin(e.time) - now);
+    if (Math.min(diff, 1440 - diff) <= 120) r.near++;
+    seen.set(e.text, r);
+  }));
+  return [...seen.entries()]
+    .map(([text, r]) => ({ text, score: r.n + r.near * 3 }))
+    .sort((a, b) => b.score - a.score)
+    .map(x => x.text);
+}
+/* history first, then the generic list for anything they have not tried yet */
+function labelChoices(type){
+  const mine = rankLabels(type);
+  return mine.concat((SUGGEST[type] || []).filter(t => !mine.includes(t)));
+}
+
+function renderLogSheet(){
+  let h = '';
+  if (!logStep){
+    h += '<h2>Add to today</h2>';
+    /* Photo names itself, so it stays one tap. In a real build the shutter
+       comes first and this is what happens after it. */
+    h += `<button class="strip" onclick="logNamed('note','Photo')">
+      <span><span class="strip-name">Photo</span> <span class="sub">— snap now, caption optional</span></span>
+    </button>`;
+    h += '<div class="grid">' + TILES.map(([t,ico,name]) =>
+      `<button class="tile" onclick="openCategory('${t}')">
+        <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ${ico}"></i></span>
+        <span class="tile-name">${name}</span></button>`).join('') + '</div>';
+  } else {
+    h += `<div class="log-head">
+        <button class="backbtn" onclick="openCategory(null)" aria-label="Back">
+          <i class="ph ph-caret-left"></i></button>
+        <h2>${TYPE_NAME[logStep]}</h2>
+      </div>`;
+    h += '<div class="chips">' + labelChoices(logStep).map(t =>
+      `<button class="chip pick" onclick="logNamed('${logStep}',${q(t)})">${esc(t)}</button>`
+    ).join('') + '</div>';
+    /* The one case the app genuinely cannot propose — so here, and only here,
+       naming it yourself is the point rather than a chore. */
+    h += `<button class="strip" onclick="logOther('${logStep}')">
+      <span class="strip-name">Something else…</span></button>`;
+  }
+  /* The crisis row is reachable from both steps — it is never a detour. */
+  h += `<div class="quick-row">
+      <button class="quick" onclick="quickLog(this,'Froze in place','symptom')">Froze in place</button>
+      <button class="quick" onclick="quickLog(this,'Low energy','symptom')">Low energy</button>
+    </div>`;
+  el('log-body').innerHTML = h;
+}
+/* The app proposes when it can and asks when it cannot — one rule, two paths.
+   With history: prefill the detail sheet with the likeliest entry, already a
+   complete valid record, and let the user confirm by walking away or change
+   anything in place. Tapping the tile then Done is two taps, the same as the
+   chooser, except the user also had every detail in front of them.
+   Without history: the chooser, because there is nothing honest to propose. */
+function openCategory(t){
+  const guess = rankLabels(t)[0];
+  if (!guess){ logStep = t; renderLogSheet(); return; }
+  closeSheets();
+  const e = { time:nowTime(), recorded:nowTime(), text:guess, type:t, basis:'asserted' };
+  addEntry(e, 0);
+  openDetail(e, 0);
+}
+
+/* Picking IS the log. Nothing opens afterwards. */
+function logNamed(type, text){
+  closeSheets();
+  addEntry({ time:nowTime(), recorded:nowTime(), text, type, basis:'asserted' }, 0);
+}
+function logOther(type){
+  closeSheets();
+  const e = { time:nowTime(), recorded:nowTime(), text:NEW_LABEL[type],
+              type, basis:'asserted' };
+  addEntry(e, 0);
+  openDetail(e, 0);
+  startLabelEdit();
+}
+
+/* ═════════ time entry ═══════════════════════════════════════════════════
+   Three ranges, three mechanisms, escalating only as far as needed:
+
+     just happened   → nudges (±15m / ±1h). Nunes et al. 2016 (DG5) found
+                       people with PD do better with multiple-tap than drag,
+                       so a stepper beats a wheel. But DG3 caps multiple-tap
+                       at ~10 taps before fatigue, which is exactly why nudges
+                       alone cannot reach "yesterday afternoon".
+     earlier today   → tap the time, type it. Numeric keypad, no drag anywhere.
+     another day     → day chips.
+
+   Nothing is hidden behind the escalation: all three are on screen at once.
+   The date-entry accessibility literature is consistent that a picker widget
+   must always be optional and typing must always be possible. */
+const DAY_NAMES = ['Today','Yesterday'];
+
+/* You cannot already have done something you have not done yet. Today is
+   clamped to the current time; yesterday needs no clamp because every time
+   yesterday is in the past. Scheduled-but-unrealised doses are the one thing
+   that legitimately sits in the future, and they live on the confirmation
+   card, not in this sheet — so nothing here needs an exemption. */
+function canNudge(mins){
+  const t = toMin(active.e.time);
+  if (mins < 0) return t + mins >= 0;
+  if (active.day !== 0) return true;
+  return t + mins <= toMin(nowTime());
+}
+const isNow = () => active.day === 0 && active.e.time === nowTime();
+
+function timeSectionHTML(e){
+  const lag = lagLabel(e);
+  const days = DAY_NAMES.map((d,i) =>
+    `<button class="chip pick${i===active.day?' on':''}" onclick="setDay(${i})">${d}</button>`
+  ).join('');
+
+  const face = editingTime
+    ? `<div class="timefields">
+         <input class="tf" id="tf-h" inputmode="numeric" maxlength="2" value="${e.time.slice(0,2)}"
+                aria-label="Hour" oninput="onTimeField('h',this)">
+         <span class="tf-sep">:</span>
+         <input class="tf" id="tf-m" inputmode="numeric" maxlength="2" value="${e.time.slice(3)}"
+                aria-label="Minute" oninput="onTimeField('m',this)">
+         <button class="tf-set" onclick="endTimeEdit()">Set</button>
+       </div>`
+    : `<button class="timeval-btn" onclick="startTimeEdit()" aria-label="Edit the time">
+         <span class="timeval">${e.time}</span><i class="ph ph-pencil-simple"></i>
+       </button>`;
+
+  const nudges = [[-60,'−1h'],[-15,'−15m'],[15,'+15m'],[60,'+1h']].map(([m,l]) =>
+    `<button class="nudge" onclick="nudge(${m})"${canNudge(m)?'':' disabled'}>${l}</button>`
+  ).join('');
+
+  return `<div class="sec"><div class="sec-h">When it happened</div>
+    <div class="chips">${days}</div>
+    ${face}
+    ${lag ? `<div class="timesub">Logged at ${lag}</div>` : ''}
+    ${editingTime ? '' : `<div class="nudges">${nudges}</div>
+      <button class="nowbtn" onclick="setNow()"${isNow()?' disabled':''}>
+        <i class="ph ph-crosshair-simple"></i>Set to now</button>
+      ${durationRowHTML(e)}`}
+  </div>`;
+}
+
+/* One exit only — back. Every choice commits the moment it is tapped, so there
+   is nothing to confirm and no second Done competing with the sheet's own. */
+function renderPickerStep(){
+  const e = active.e;
+  const isLabel = pickerStep.kind === 'label';
+  const field = isLabel ? null : (CONTEXT[e.type]||[]).find(f => f.key === pickerStep.key);
+  const title = isLabel ? `${TYPE_NAME[e.type]} type` : field.label;
+  const choices = isLabel ? labelChoices(e.type) : field.choices;
+  const current = isLabel ? e.text : (e.fields && e.fields[pickerStep.key]);
+
+  let h = `<div class="log-head">
+      <button class="backbtn" onclick="closePicker()" aria-label="Back">
+        <i class="ph ph-caret-left"></i></button>
+      <h2>${esc(title)}</h2>
+    </div>`;
+  h += '<div class="chips">' + choices.map(t =>
+      `<button class="chip pick${t===current?' on':''}" onclick="${isLabel
+        ? `pickLabel(${q(t)})` : `pickField('${pickerStep.key}',${q(t)})`}">${esc(t)}</button>`
+    ).join('') + (current && !isLabel
+      ? `<button class="chip pick" onclick="pickField('${pickerStep.key}',null)">Clear</button>` : '')
+    + '</div>';
+  /* naming it yourself belongs on this step, where the alternatives are */
+  if (isLabel)
+    h += `<input class="lbl-in" id="lbl-in" value="${esc(e.text)}"
+            aria-label="Name of this entry" oninput="setLabel(this.value)">`;
+  el('detail-body').innerHTML = h;
+}
+function openPicker(kind, key){ pickerStep = { kind, key }; renderDetail(); }
+function closePicker(){ pickerStep = null; renderDetail(); }
+function pickField(key, val){
+  const e = active.e; e.fields = e.fields || {};
+  if (val === null) delete e.fields[key]; else e.fields[key] = val;
+  pickerStep = null; openField = null;
+  renderDetail(); renderTimeline();
+}
+
+function durationRowHTML(e){
+  const f = (CONTEXT[e.type] || []).find(x => x.temporal);
+  if (!f) return '';
+  const v = e.fields && e.fields[f.key];
+  return `<div class="durrow">
+      <span class="durlabel">${f.label}</span>
+      <button class="chip${v?' set':''}" onclick="openPicker('field','${f.key}')">
+        <i class="ph ${f.icon}"></i>${v ? esc(v) : 'Add'}</button>
+    </div>`;
+}
+
+function startLabelEdit(){
+  if (usesStep(labelChoices(active.e.type).length)){ openPicker('label'); return; }
+  editingLabel = true; renderDetail();
+  const n = el('lbl-in'); if (n){ n.focus(); n.select(); }
+}
+function endLabelEdit(){ editingLabel = false; renderDetail(); }
+/* Live, like the time fields — writes through to the rail without re-rendering
+   the sheet, which would take the caret with it. */
+function setLabel(v){ active.e.text = v; renderTimeline(); }
+function pickLabel(t){ active.e.text = t; editingLabel = false; pickerStep = null;
+                       renderDetail(); renderTimeline(); }
+
+function startTimeEdit(){
+  editingTime = true; renderDetail();
+  const h = el('tf-h'); if (h){ h.focus(); h.select(); }
+}
+function endTimeEdit(){ editingTime = false; renderDetail(); }
+/* Writes live so the rail behind the sheet stays truthful, but never calls
+   renderDetail — re-rendering mid-keystroke would destroy the field and the
+   caret with it. The nudge row is hidden while editing precisely so its
+   disabled states cannot drift out of sync with what is being typed. */
+function onTimeField(which, node){
+  const digits = node.value.replace(/\D/g,'').slice(0,2);
+  if (digits !== node.value) node.value = digits;
+  const cap = which === 'h' ? 23 : 59;
+  let n = digits === '' ? 0 : Math.min(cap, parseInt(digits,10));
+  const [hh,mm] = active.e.time.split(':');
+  active.e.time = which === 'h' ? String(n).padStart(2,'0') + ':' + mm
+                                : hh + ':' + String(n).padStart(2,'0');
+  sortDay(DAYS[active.day]);
+  renderTimeline();
+  if (which === 'h' && digits.length === 2){ const m = el('tf-m'); if (m){ m.focus(); m.select(); } }
+}
+function setNow(){
+  if (active.day !== 0) setDay(0);
+  active.e.time = nowTime();
+  sortDay(DAYS[0]);
+  renderDetail(); renderTimeline();
+}
+/* Moving days moves the entry between lists — the day IS the list it lives in. */
+function setDay(target){
+  if (target === active.day) return;
+  const e = active.e;
+  DAYS[active.day].list = DAYS[active.day].list.filter(x => x !== e);
+  DAYS[target].list.push(e);
+  sortDay(DAYS[target]);
+  active.day = target;
+  renderDetail(); renderTimeline();
+}
+
 /* ═════════ detail actions — every one writes straight to the record ═════════ */
 function openDetail(e, day){
   active = { e, day };
   basisOpen = (e.type === 'dose' && e.basis === 'assumed');  /* lead with what's unresolved */
-  openField = null;
+  openField = null; editingTime = false; editingLabel = false; pickerStep = null;
   renderDetail();
   openSheet('sheet-detail');
 }
@@ -878,14 +1255,21 @@ function setBasis(k){
   renderDetail(); renderTimeline();
 }
 function nudge(mins){
+  if (!canNudge(mins)) return;                    /* the button is disabled; belt and braces */
   const e = active.e;
   let m = toMin(e.time) + mins;
   m = Math.max(0, Math.min(23*60 + 59, m));       /* stay inside the day — no silent rollover */
   e.time = String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
+  /* occurred_at only. e.recorded is untouched — the user is correcting when the
+     dose happened, not rewriting when they told us about it. */
   sortDay(DAYS[active.day]);                      /* order is a property of the day, not the DOM */
   renderDetail(); renderTimeline();
 }
-function toggleField(key){ openField = (openField === key) ? null : key; renderDetail(); }
+function toggleField(key){
+  const f = (CONTEXT[active.e.type]||[]).find(x => x.key === key);
+  if (f && usesStep(f.choices.length)){ openPicker('field', key); return; }
+  openField = (openField === key) ? null : key; renderDetail();
+}
 function setField(key, val){
   const e = active.e;
   e.fields = e.fields || {};
@@ -908,15 +1292,25 @@ function removeActive(){
 function purgeTombs(){ DAYS.forEach(d => { d.list = d.list.filter(x => !x.removed); }); }
 function undoRemove(di, i){ delete DAYS[di].list[i].removed; renderTimeline(); }
 
-/* ═════════ card actions — D-01 no reason ask · D-02 no stack, quiet collapse ═════════ */
+/* ═════════ card actions — D-01 no reason ask · D-02 no stack, quiet collapse ═════════
+   TIMESTAMPS. Two stamps, never one [docs/entry-schema.md]:
+     time      = occurred_at, when the thing happened. Drives sort order.
+     recorded  = recorded_at, when the user told us. Never drives sort order.
+   The card proposes "Levodopa, 10:30" and Yes CONFIRMS THAT PROPOSAL — so the
+   dose lands at 10:30, not at the moment of tapping. Stamping it "now" made Yes
+   and "Yes, but not as scheduled" produce identical records, which left the
+   second button with nothing to do. Nudging the time in the detail sheet moves
+   occurred_at only; recorded_at is a fact about the past and never changes. */
 function cardYes(){
-  addEntry({ time:nowTime(), text:currentDose.name, type:'dose', basis:'asserted' }, 0);
+  addEntry({ time:currentDose.sched, recorded:nowTime(),
+             text:currentDose.name, type:'dose', basis:'asserted' }, 0);
   currentDose = null; renderCard();
 }
 function cardNo(){
   /* "No" is a REPORTED skip → basis:'declined'. Clinically valuable, and distinct
      from 'assumed' (we asked and got nothing back). */
-  addEntry({ time:nowTime(), text:currentDose.name, type:'dose', basis:'declined' }, 0);
+  addEntry({ time:currentDose.sched, recorded:nowTime(),
+             text:currentDose.name, type:'dose', basis:'declined' }, 0);
   currentDose = null; renderCard();
 }
 /* "Not exactly" = yes, with corrections. The entry lands as asserted at the
@@ -924,7 +1318,8 @@ function cardNo(){
    opens on it. Two taps have already produced a complete, valid record; the
    sheet is where depth becomes available, never where it becomes required. */
 function cardAdjust(){
-  const e = { time:currentDose.sched, text:currentDose.name, type:'dose', basis:'asserted' };
+  const e = { time:currentDose.sched, recorded:nowTime(),
+              text:currentDose.name, type:'dose', basis:'asserted' };
   addEntry(e, 0);
   currentDose = null; renderCard();
   openDetail(e, 0);
@@ -933,8 +1328,8 @@ function cardAdjust(){
 /* a new dose falling due quietly collapses the unanswered one into the timeline as 'assumed' */
 function demoAddDose(){
   if (currentDose){
-    DAYS[0].list.push({ time:currentDose.sched, text:currentDose.name,
-                        type:'dose', basis:'assumed' });
+    DAYS[0].list.push({ time:currentDose.sched, recorded:nowTime(),
+                        text:currentDose.name, type:'dose', basis:'assumed' });
     sortDay(DAYS[0]);
     renderTimeline();
   }
@@ -957,21 +1352,21 @@ function addEntry(e, di){
   freshEntry = e;
   renderTimeline();
   freshEntry = null;          /* only the render right after the add marks it */
-  const s = el('scroll');
-  s.scrollTo({ top:0, behavior: REDUCED_MOTION.matches ? 'auto' : 'smooth' });
-  /* Remove the class on the live node rather than re-rendering, so the wash
-     fades out via .ecard's transition instead of being replaced mid-fade. */
+  /* Scroll to the ENTRY, not to the top. Now that order follows occurred_at, a
+     confirmed 10:30 dose logged at 17:19 lands partway down the rail — scrolling
+     to the top would show the user everywhere except the thing they just did. */
   requestAnimationFrame(() => {
     const n = document.querySelector('.entry.fresh');
-    if (n) setTimeout(() => n.classList.remove('fresh'), 1800);
+    if (!n) return;
+    n.scrollIntoView({ block:'center',
+                       behavior: REDUCED_MOTION.matches ? 'auto' : 'smooth' });
+    /* Remove the class on the live node rather than re-rendering, so the wash
+       fades out via .ecard's transition instead of being replaced mid-fade. */
+    setTimeout(() => n.classList.remove('fresh'), 1800);
   });
 }
-function logFrom(type, text){
-  closeSheets();
-  addEntry({ time:nowTime(), text, type, basis:'asserted' }, 0);
-}
 function quickLog(btn, text, type){
-  addEntry({ time:nowTime(), text, type, basis:'asserted' }, 0);
+  addEntry({ time:nowTime(), recorded:nowTime(), text, type, basis:'asserted' }, 0);
   btn.classList.add('flash');     /* confirmation at the source, where the eye is */
   setTimeout(()=> btn.classList.remove('flash'), 600);
   setTimeout(closeSheets, 260);
@@ -980,6 +1375,7 @@ function quickLog(btn, text, type){
 /* ═════════ sheets ═════════ */
 const SHEETS = ['sheet-log','sheet-detail'];
 function openSheet(id){
+  if (id === 'sheet-log'){ logStep = null; renderLogSheet(); }
   lastFocus = document.activeElement;
   el('scrim').classList.add('open');
   SHEETS.forEach(s => el(s).classList.toggle('open', s === id));
@@ -988,7 +1384,7 @@ function openSheet(id){
 function closeSheets(){
   el('scrim').classList.remove('open');
   SHEETS.forEach(s => el(s).classList.remove('open'));
-  active = null; openField = null;
+  active = null; openField = null; editingTime = false; editingLabel = false; pickerStep = null;
   if (lastFocus && lastFocus.focus) lastFocus.focus();
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(); });
@@ -1001,7 +1397,7 @@ function setScale(v){
 }
 function setVar(name, value){ document.documentElement.style.setProperty(name, value); }
 
-renderCard(); renderTimeline();
+renderCard(); renderTimeline(); renderLogSheet();
 </script>
 </body>
 </html>
