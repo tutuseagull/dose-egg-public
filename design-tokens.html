@@ -15,46 +15,47 @@
    Their only job is to be the single place a value is written down.
    ═══════════════════════════════════════════════════════════════════ */
 :root {
-  /* ── DECIDED 2026-08-05: "Oat + petrol" ──
-     Chosen after ten alternatives across four exploration sheets — warm variants,
-     near-neutral cool, and genuinely blue grounds. Tutu returned to this one, which
-     makes it evidence rather than a first guess.
-     The organising idea is TEMPERATURE TENSION: a warm-undertoned ground against a
-     cool-undertoned ink. Palettes where accent and neutrals shared a temperature all
-     read as flat — harmony is the opposite of interest.
-     Exploration preserved in: palette-options.html, palette-warm-variants.html,
-     palette-cool-variants.html, palette-cooler-blues.html. */
+  /* ── PALETTE SWAPPED 2026-08-06: "Stitch blue" ──
+     The domain lead's preference, and they are the user — so it wins. Provisional; the oat+petrol
+     exploration is preserved in palette-*.html and can be restored by swapping this
+     block back. Nothing below Layer 1 changes, which is the whole point of the split.
 
-  /* Oat neutrals. Warm, but pulled back from cream — greyer, less yellow, which
-     keeps the paper feel without the familiar AI-product association. */
+     Values traced from the Google Stitch mocks: #2B5BA9 "calm blue", #F9F9FF surface,
+     #F1F3FF surface-container-low, #141B2B on-surface. The neutral ramp is blue-tinted
+     to match, rather than the warm oat it replaces.
+
+     NOTE the names stay `paper-*` and `ink-*` even though nothing is papery or inky
+     now. Renaming primitives touches every reference and buys nothing — they're
+     positional names (ground level 0-900, accent level 400-700), not descriptions. */
   --paper-0:   #FFFFFF;
-  --paper-50:  #F9F8F5;
-  --paper-100: #F2F1EC;
-  --paper-200: #E8E6DF;
-  --paper-300: #D9D6CC;
-  --paper-400: #BAB6A9;
-  --paper-500: #8D8A7D;
-  --paper-600: #6E6B5F;
-  --paper-700: #46443C;
-  --paper-800: #2A2822;
-  --paper-900: #1A1916;
+  --paper-50:  #F9F9FF;
+  --paper-100: #F1F3FF;
+  --paper-200: #E4E8F5;
+  --paper-300: #D3D9E8;
+  --paper-400: #ABB3C6;
+  --paper-500: #7C8598;
+  --paper-600: #5F6879;
+  --paper-700: #3E4658;
+  --paper-800: #262C3A;
+  --paper-900: #141B2B;
 
-  /* Petrol — the single accent. Deep blue-teal.
-     Cool against the warm ground (that's the whole point), and far less default
-     than navy. Low chroma: it can never read as "good" or "alert". */
-  --ink-400: #2F6470;
-  --ink-500: #1F4A52;
-  --ink-600: #163940;
-  --ink-700: #0F282D;
+  /* Accent — Stitch's calm blue. */
+  --ink-400: #4A7BC8;
+  --ink-500: #2B5BA9;
+  --ink-600: #1E4380;
+  --ink-700: #143059;
 
-  /* Entry-type hues. Categorical, NOT a scale.
-     Tuned to the oat ground. Chosen at near-equal lightness so no type looks more
-     severe, more urgent, or more important than another. */
-  --hue-dose:     #2E5560;
-  --hue-symptom:  #83574A;
-  --hue-activity: #4E6B55;
-  --hue-meal:     #84713F;
-  --hue-note:     #6A675C;
+  /* ── ONE mark colour. Decided 2026-08-06. ──
+     Entry type is carried entirely by the ICON. Colour carries nothing.
+     The five-hue set was already failing its own purpose: under every type of
+     colour-vision deficiency they collapsed to 1.00–1.14:1, and they had to be held
+     at near-equal lightness anyway so no type looked more severe than another.
+     A set of five colours that must not differ in weight and cannot be told apart
+     is not a system — it is decoration that looks like information.
+     Parked, not deleted — restoring differentiation is a swap, not a re-derivation:
+       dose #3B4E7A · symptom #7E5257 · activity #456A5D · meal #7A6A48 · note #616875 */
+  --hue-mark: #3B4E7A;   /* deeper than the accent, so a timeline mark never competes
+                            with a button. 7.8:1 on the page ground. */
 
   /* Reserved. UI failure only — never a body state. */
   --red-600: #A33A2A;
@@ -98,19 +99,10 @@
   --focus-ring-width:  3px;
   --focus-ring-offset: 2px;
 
-  /* ── Entry marks ── timeline dots, icons, type indicators.
-     Categorical only. Never ranked, never summed.
-     ⚠ COLOUR IS THE SECONDARY CHANNEL. Under simulated colour-vision
-     deficiency these five collapse to near-identical (audit 2026-08-05:
-     symptom/activity/note reach 1.00–1.14:1 under all three types). Equal
-     lightness is what makes them unranked, and it is also what makes them
-     indistinguishable — the two goals genuinely conflict.
-     Resolution: ICON OR SHAPE always carries the type. Colour reinforces. */
-  --mark-dose:       var(--hue-dose);
-  --mark-symptom:    var(--hue-symptom);
-  --mark-activity:   var(--hue-activity);
-  --mark-meal:       var(--hue-meal);
-  --mark-note:       var(--hue-note);
+  /* ── Entry mark ── one colour for every entry type.
+     ICON CARRIES THE TYPE. Colour carries nothing at all.
+     See the note in Layer 1 for why the five-hue set was retired. */
+  --mark: var(--hue-mark);   /* one token, because there is one decision */
 
   /* ── Epistemic state ── mirrors the `basis` field in the entry schema.
      Expressed as FILL and OUTLINE STYLE, never as hue — so it reads
@@ -162,7 +154,7 @@
   --viz-grid:          var(--paper-200);      /* gridlines — decorative */
   --viz-axis:          var(--paper-400);      /* axis rule */
   --viz-axis-label:    var(--text-muted);     /* 4.96:1 — real text, must pass */
-  --viz-band:          rgba(51, 60, 85, .07); /* dose-window / time-of-day shading */
+  --viz-band:          rgba(43, 91, 169, .07); /* dose-window / time-of-day shading */
   --viz-annotation:    var(--paper-500);      /* 3.2:1 — reference lines */
 
   /* Missing data. The most important viz token in this product.
@@ -186,9 +178,26 @@
   --radius-lg:   16px;
   --radius-full: 999px;
 
-  /* ── Touch ── non-negotiable minimum. Three PD motor types must all
-     be able to hit it. [C-glossary: rigid / tremor / mixed] */
-  --touch-min: 48px;
+  /* ── Touch targets ── three tiers, by CONTEXT OF USE rather than one global
+     number. The reasoning: sizing everything for the worst moment costs vertical
+     space in every ordinary one. But "day-to-day" doesn't reliably mean "steady
+     hands" — PD tremor is often worse at rest, and dyskinesia peaks during ON —
+     so the floor still has to be generous.
+
+     These are four SEPARATE tokens even though two currently share a value.
+     Same value ≠ same token: --target-routine can be raised to 52 later without
+     touching the floor, and neither should quietly follow the other. */
+  --target-min:      48px;  /* floor — every interactive element, no exceptions */
+  --target-routine:  48px;  /* ordinary moments: dose confirm, log tiles, nav */
+  --target-critical: 56px;  /* low-capacity paths: FOG, low energy, instant chips, FAB.
+                               ~10mm — where the motor-impairment research starts to pay */
+  --target-gap:      16px;  /* between adjacent targets in a row. For the dose card the
+                               real error is hitting the WRONG neighbour, not missing —
+                               so separation matters more than height. Was 8px. */
+
+  /* Reach, not size, may be the bigger lever in a bad moment: one-handed thumb
+     use wants the crisis actions in the lower third. */
+  --reach-zone: 33vh;       /* bottom third — where low-capacity actions belong */
 }
 
 /* Reduced motion. Vestibular sensitivity is common, and PD medication
@@ -454,7 +463,10 @@ symptoms — one step up costs nothing and helps everyone.</p>
 <tr><td><code>--radius-md</code></td><td>10px</td><td>Buttons, small cards</td></tr>
 <tr><td><code>--radius-lg</code></td><td>16px</td><td>Entry cards, sheets</td></tr>
 <tr><td><code>--radius-full</code></td><td>999px</td><td>Dots, avatars only</td></tr>
-<tr><td><code>--touch-min</code></td><td>48px</td><td><strong>Every interactive target.</strong> Not a guideline.</td></tr>
+<tr><td><code>--target-min</code></td><td>48px</td><td><strong>Floor.</strong> Every interactive element.</td></tr>
+<tr><td><code>--target-routine</code></td><td>48px</td><td>Ordinary moments — dose confirm, log tiles, nav</td></tr>
+<tr><td><code>--target-critical</code></td><td>56px</td><td>Low-capacity paths — FOG, low energy, chips, FAB</td></tr>
+<tr><td><code>--target-gap</code></td><td>16px</td><td>Between adjacent targets. Separation &gt; height for wrong-neighbour errors.</td></tr>
 </table>
 
 <h2>Text size &amp; system scaling</h2>
@@ -569,7 +581,7 @@ should be argued for.</li>
 <tr><th>Token</th><th>on page</th><th>on card</th><th>on raised</th><th>on sunken</th></tr>
 <tr><td><code>--text-primary</code></td><td>16.97</td><td>17.68</td><td>15.97</td><td>14.49</td></tr>
 <tr><td><code>--text-secondary</code></td><td>9.24</td><td>9.63</td><td>8.70</td><td>7.89</td></tr>
-<tr><td><code>--text-muted</code></td><td>4.96</td><td>5.17</td><td>4.67</td><td><strong>4.24 ⚠</strong></td></tr>
+<tr><td><code>--text-muted</code></td><td>5.35</td><td>5.61</td><td>5.08</td><td>4.62</td></tr>
 <tr><td><code>--accent</code></td><td>10.51</td><td>10.95</td><td>9.89</td><td>8.98</td></tr>
 <tr><td><code>--on-accent</code> on accent</td><td colspan="4">10.95</td></tr>
 </table>
@@ -609,8 +621,9 @@ the entry type; colour reinforces it for people who can see it. This is better p
 anyway — an icon says "meal" directly, whereas a colour requires learning a legend.</p>
 
 <h3>Touch targets — pass</h3>
-<p><code>--touch-min</code> at 48px clears WCAG 2.5.5 (44px) with margin. Keep the margin;
-44 is a floor for the general population, not for tremor.</p>
+<p><strong>Corrected 2026-08-06.</strong> The WCAG picture: <strong>24×24 is the AA bar</strong> (2.2 SC 2.5.8, with a spacing exception); 44×44 is <strong>AAA</strong> (2.1 SC 2.5.5). 48px was originally my suggestion matching Material's guidance, not a research finding.
+The motor-impairment research is less comfortable: a study including Parkinson's participants tested 10–30mm buttons, found the disabled cohort missed 3.9× more often, and saw misses fall 84% from 10→30mm. 44px ≈ 8mm and 48px ≈ 8.7mm — both <em>below the smallest size tested</em>.
+So 48 is modest, not generous. Hence the tiering above, and <code>touch-target-test.html</code> for tapping it on a real device.</p>
 
 <h2>Icons — decided 2026-08-05: Phosphor</h2>
 <p>Icons <em>carry</em> entry type rather than decorating it, because colour failed the

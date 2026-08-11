@@ -9,15 +9,17 @@
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <style>
 /* ═══════════════════ LAYER 1 — PRIMITIVES ═══════════════════
-   Oat + petrol. Decided 2026-08-05. See design-tokens.html.        */
+   "Stitch blue" — swapped 2026-08-06 on the domain lead's preference. Provisional.
+   Oat+petrol preserved in palette-*.html; restore by swapping this block only.
+   Token names stay unchanged — they are positional, not descriptive.      */
 :root{
-  --paper-0:#FFFFFF; --paper-50:#F9F8F5; --paper-100:#F2F1EC; --paper-200:#E8E6DF;
-  --paper-300:#D9D6CC; --paper-400:#BAB6A9; --paper-500:#8D8A7D; --paper-600:#6E6B5F;
-  --paper-700:#46443C; --paper-800:#2A2822; --paper-900:#1A1916;
-  --ink-400:#2F6470; --ink-500:#1F4A52; --ink-600:#163940; --ink-700:#0F282D;
-  --hue-dose:#2E5560; --hue-symptom:#83574A; --hue-activity:#4E6B55;
-  --hue-meal:#84713F; --hue-note:#6A675C;
+  --paper-0:#FFFFFF; --paper-50:#F9F9FF; --paper-100:#F1F3FF; --paper-200:#E4E8F5;
+  --paper-300:#D3D9E8; --paper-400:#ABB3C6; --paper-500:#7C8598; --paper-600:#5F6879;
+  --paper-700:#3E4658; --paper-800:#262C3A; --paper-900:#141B2B;
+  --ink-400:#4A7BC8; --ink-500:#2B5BA9; --ink-600:#1E4380; --ink-700:#143059;
+  --hue-mark:#3B4E7A;   /* one mark colour — icon carries the type, colour carries nothing */
   --red-600:#A33A2A;
+  --backdrop:#D9DDE8;   /* review frame only — not a product surface */
 }
 /* ═══════════════════ LAYER 2 — SEMANTIC ═══════════════════ */
 :root{
@@ -28,8 +30,7 @@
   --border-subtle:var(--paper-200); --border-interactive:var(--paper-500);
   --accent:var(--ink-500); --accent-hover:var(--ink-600); --accent-quiet:var(--ink-400);
   --on-accent:var(--paper-0);
-  --mark-dose:var(--hue-dose); --mark-symptom:var(--hue-symptom);
-  --mark-activity:var(--hue-activity); --mark-meal:var(--hue-meal); --mark-note:var(--hue-note);
+  --mark:var(--hue-mark);
   --focus-ring:var(--ink-500); --focus-ring-width:3px; --focus-ring-offset:2px;
   --feedback-error:var(--red-600);
 
@@ -45,12 +46,26 @@
   --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
   --space-6:24px; --space-8:32px; --space-12:48px;
   --radius-sm:6px; --radius-md:10px; --radius-lg:16px; --radius-full:999px;
-  --touch-min:48px;
+
+  /* Touch targets — three tiers by context of use. Separate tokens even where the
+     value matches today, so each can move independently. See design-tokens.html. */
+  --target-min:48px;        /* floor, everything */
+  --target-routine:48px;    /* ordinary moments: dose confirm, tiles, nav */
+  --target-critical:56px;   /* low-capacity: FOG, low energy, FAB */
+  --target-gap:16px;        /* between adjacent targets — separation beats height */
 
   /* ── tunable while we compare — fold back into the scale once settled ── */
   --gutter:16px;        /* page side margin */
   --rail-indent:52px;   /* clears the marker + rail */
   --card-pad:16px;      /* inside the entry card */
+  /* Rail geometry — derived from the 36px mark, so they move together.
+     Named rather than left as bare numbers: 17 and 14 are not arbitrary, they
+     centre the rail and its terminus under the mark. */
+  --rail-x:17px;        /* rail centre = (mark 36 / 2) - (rail 1.5 / 2) */
+  --rail-dot:7px;       /* terminus diameter */
+  --rail-dot-x:14px;    /* terminus left = rail-x - (dot - rail width)/2 */
+  --rail-dot-y:6px;     /* terminus sits just inside the last entry's padding */
+  --meta-gap:5px;       /* icon → value inside a metadata pair. Optical, not scale. */
   --text-meta:.875rem;  /* metadata, chips, timestamps — 14px floor */
 }
 @media (prefers-reduced-motion:reduce){
@@ -63,7 +78,7 @@
 html{font-size:100%}
 html[data-text-scale="large"]{font-size:112.5%}
 html[data-text-scale="larger"]{font-size:125%}
-body{margin:0;background:#E4E1DA;font-family:var(--font-sans);
+body{margin:0;background:var(--backdrop);font-family:var(--font-sans);
      font-size:var(--text-body);line-height:var(--leading-body);
      color:var(--text-primary);-webkit-font-smoothing:antialiased;
      display:flex;justify-content:center;min-height:100vh}
@@ -90,14 +105,14 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .tuner label{font-size:11px;color:var(--paper-400);display:flex;flex-direction:column;gap:3px}
 .tuner select{font-size:12px;padding:4px 6px;border-radius:var(--radius-sm);
               background:rgba(255,255,255,.1);color:var(--paper-50);border:none;font-family:inherit}
-.tuner select option{background:#2A2822;color:#F2F1EC}
+.tuner select option{background:var(--paper-800);color:var(--paper-100)}
 
 /* ── top bar ── */
 .top{display:flex;align-items:center;justify-content:space-between;
      padding:var(--space-4) var(--space-4) var(--space-2)}
 .top h1{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
         line-height:var(--leading-tight);margin:0;color:var(--text-primary)}
-.icon-btn{width:var(--touch-min);height:var(--touch-min);display:flex;align-items:center;
+.icon-btn{width:var(--target-min);height:var(--target-min);display:flex;align-items:center;
           justify-content:center;border-radius:var(--radius-full);color:var(--text-muted)}
 .icon-btn i{font-size:22px}
 .icon-btn:hover{background:var(--surface-raised)}
@@ -113,8 +128,8 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .confirm-q{font-size:var(--text-heading);font-weight:600;margin-bottom:2px}
 .confirm-meta{font-size:var(--text-label);color:var(--text-muted);margin-bottom:var(--space-4)}
-.c-actions{display:flex;gap:var(--space-2)}
-.c-btn{flex:1;min-height:var(--touch-min);border-radius:var(--radius-md);font-weight:500;
+.c-actions{display:flex;gap:var(--target-gap)}
+.c-btn{flex:1;min-height:var(--target-routine);border-radius:var(--radius-md);font-weight:500;
        font-size:var(--text-small);background:var(--surface-page);
        border:1px solid var(--border-interactive);color:var(--text-primary);
        transition:background var(--motion-fast) var(--ease-out)}
@@ -133,10 +148,10 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
    outside the card. The card hangs below it. That is what makes it read as a
    timeline rather than a list of cards. */
 .rail{position:relative;padding-bottom:var(--space-2)}
-.rail::before{content:'';position:absolute;left:17px;top:16px;bottom:10px;width:1.5px;
+.rail::before{content:'';position:absolute;left:var(--rail-x);top:16px;bottom:10px;width:1.5px;
               background:var(--border-subtle)}
 /* terminus — the rail is punctuated, not cut off */
-.rail::after{content:'';position:absolute;left:14px;bottom:6px;width:7px;height:7px;
+.rail::after{content:'';position:absolute;left:var(--rail-dot-x);bottom:var(--rail-dot-y);width:var(--rail-dot);height:var(--rail-dot);
              border-radius:50%;background:var(--border-subtle)}
 
 .entry{position:relative;display:block;width:100%;text-align:left;
@@ -165,7 +180,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
        line-height:1.35;padding-right:var(--space-6)}
 .emeta{display:flex;gap:var(--space-4);margin-top:var(--space-2);flex-wrap:wrap}
 .emeta span{font-size:var(--text-meta);color:var(--text-muted);display:flex;
-            align-items:center;gap:5px}
+            align-items:center;gap:var(--meta-gap)}
 .emeta i{font-size:15px}
 .enote{display:inline-block;font-size:var(--text-meta);color:var(--text-secondary);
        background:var(--surface-sunken);border-radius:var(--radius-sm);
@@ -176,9 +191,9 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 
 /* elapsed time, shown only for gaps worth noticing */
 .gap{position:relative;padding:0 0 var(--space-6) var(--rail-indent);z-index:1}
-.gap span{position:absolute;left:0;top:-4px;width:36px;text-align:center;font-size:11px;
-          color:var(--paper-400);background:var(--surface-page);padding:6px 0;
-          font-variant-numeric:tabular-nums}
+.gap span{position:absolute;left:0;top:-4px;width:36px;text-align:center;
+          font-size:var(--text-label);color:var(--text-muted);background:var(--surface-page);
+          padding:var(--space-1) 0;font-variant-numeric:tabular-nums}
 
 /* now */
 .now{position:relative;padding:0 0 var(--space-6) var(--rail-indent);z-index:2}
@@ -199,9 +214,10 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 
 /* ── FAB ── */
 .fab{position:absolute;right:var(--space-4);bottom:calc(var(--space-6) + env(safe-area-inset-bottom));
-     width:60px;height:60px;border-radius:var(--radius-full);background:var(--accent);
+     width:var(--target-critical);height:var(--target-critical);
+     border-radius:var(--radius-full);background:var(--accent);
      color:var(--on-accent);display:flex;align-items:center;justify-content:center;
-     box-shadow:0 3px 12px rgba(31,74,82,.28);z-index:40;
+     box-shadow:0 3px 12px rgba(43,91,169,.28);z-index:40;
      transition:transform var(--motion-fast) var(--ease-out),background var(--motion-fast)}
 .fab i{font-size:28px}
 .fab:hover{background:var(--accent-hover)}
@@ -212,6 +228,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
        transition:opacity var(--motion-base) var(--ease-out);z-index:50}
 .scrim.open{opacity:1;pointer-events:auto}
 .sheet{position:fixed;left:50%;transform:translate(-50%,102%);bottom:0;width:100%;
+       display:flex;flex-direction:column;gap:var(--space-6);
        max-width:420px;background:var(--surface-card);
        border-radius:var(--radius-lg) var(--radius-lg) 0 0;z-index:60;
        padding:var(--space-2) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
@@ -219,22 +236,28 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
        box-shadow:0 -3px 24px rgba(26,25,22,.10)}
 .sheet.open{transform:translate(-50%,0)}
 .pull{width:40px;height:4px;border-radius:var(--radius-full);background:var(--paper-300);
-      margin:var(--space-2) auto var(--space-4)}
+      margin:var(--space-2) auto 0}
 .sheet h2{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
-          margin:0 0 var(--space-4);line-height:var(--leading-tight)}
+          margin:0;line-height:var(--leading-tight)}
 
-.quick-row{display:flex;gap:var(--space-2);margin-bottom:var(--space-4)}
-.quick{flex:1;min-height:var(--touch-min);display:flex;align-items:center;justify-content:center;
-       gap:var(--space-2);background:var(--surface-raised);border:1px solid var(--border-subtle);
+.quick-row{display:flex;gap:var(--target-gap)}
+.quick{flex:1;min-height:var(--target-critical);display:flex;align-items:center;justify-content:center;
+       gap:var(--space-3);background:var(--surface-raised);border:1px solid var(--border-subtle);
        border-radius:var(--radius-md);font-size:var(--text-small);font-weight:500;
-       padding:var(--space-3) var(--space-2);
+       padding:var(--space-3) var(--space-4);
        transition:background var(--motion-fast),border-color var(--motion-fast)}
 .quick i{font-size:19px;color:var(--accent)}
 .quick:hover{background:var(--surface-sunken)}
 .quick.flash{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
 .quick.flash i{color:var(--on-accent)}
 
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2);margin-bottom:var(--space-3)}
+/* Sheet rhythm — two values, and only ONE place each is set.
+   BETWEEN groups: --space-6 (24), set once as the sheet's flex `gap`. Children carry
+   no vertical margins at all, so reordering them can never open or close a gap. That
+   was a real bug three times running: spacing that lived on one child's margin-bottom
+   silently disappeared when something moved above or below it.
+   WITHIN a group of adjacent targets: --target-gap (16). Accessibility rule, not taste. */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--target-gap)}
 .tile{display:flex;flex-direction:column;align-items:flex-start;gap:var(--space-3);
       padding:var(--space-4);background:var(--surface-page);border:1px solid var(--border-subtle);
       border-radius:var(--radius-md);min-height:96px;text-align:left;
@@ -244,7 +267,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
           align-items:center;justify-content:center}
 .tile-ico i{font-size:20px;color:#fff}
 .tile-name{font-size:var(--text-small);font-weight:500}
-.strip{display:flex;align-items:center;gap:var(--space-3);min-height:var(--touch-min);
+.strip{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-min);
        padding:var(--space-3) var(--space-4);background:var(--surface-page);
        border:1px dashed var(--border-interactive);border-radius:var(--radius-md);width:100%;
        text-align:left;font-size:var(--text-small)}
@@ -301,6 +324,18 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
         <option value="13px">13 · below floor</option>
         <option value="0.875rem" selected>14 · floor</option>
         <option value="1rem">16</option></select></label>
+    <label>Routine target
+      <select onchange="setVar('--target-routine',this.value)">
+        <option value="44px">44</option><option value="48px" selected>48</option>
+        <option value="52px">52</option><option value="56px">56</option></select></label>
+    <label>Critical target
+      <select onchange="setVar('--target-critical',this.value)">
+        <option value="48px">48</option><option value="56px" selected>56</option>
+        <option value="64px">64</option></select></label>
+    <label>Target gap
+      <select onchange="setVar('--target-gap',this.value)">
+        <option value="8px">8 · old</option><option value="16px" selected>16</option>
+        <option value="24px">24</option></select></label>
   </div>
 
   <div class="top">
@@ -326,33 +361,41 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
   <div class="pull"></div>
   <h2>Add to today</h2>
 
-  <!-- D-04: visible one-tap doors for the states that matter most when capacity is lowest -->
+  <!-- Photo at the top, 2026-08-06. The reachable zone is reserved for what someone
+       needs DURING A BAD EPISODE — Frozen, Low energy, feeling states. Photo is not
+       something you reach for then, so it does not belong there. -->
+  <button class="strip" onclick="logFrom('note','Photo')">
+    <i class="ph ph-camera"></i>
+    <span>Photo <span class="sub">— snap now, caption optional</span></span>
+  </button>
+
+  <div class="grid">
+    <button class="tile" onclick="logFrom('dose','Levodopa 100mg')">
+      <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ph-pill"></i></span>
+      <span class="tile-name">Medication</span></button>
+    <button class="tile" onclick="logFrom('activity','Walk')">
+      <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ph-footprints"></i></span>
+      <span class="tile-name">Activity</span></button>
+    <button class="tile" onclick="logFrom('meal','Meal')">
+      <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ph-fork-knife"></i></span>
+      <span class="tile-name">Food &amp; protein</span></button>
+    <button class="tile" onclick="logFrom('symptom','How I feel')">
+      <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ph-waveform"></i></span>
+      <span class="tile-name">How I feel</span></button>
+  </div>
+
+
+  <!-- D-04: one-tap doors for the states that matter most when capacity is lowest.
+       MOVED TO THE BOTTOM of the sheet 2026-08-06 — in a bottom sheet the lowest
+       rows are the most thumb-reachable, and reach may matter more than size in a
+       bad moment. Everything in the sheet is visible anyway, so nothing is lost.
+       Reverse if it tests badly. --target-critical (56px), --target-gap (16px). -->
   <div class="quick-row">
     <button class="quick" onclick="quickLog(this,'Froze in place','symptom')">
       <i class="ph-fill ph-snowflake"></i>Froze in place</button>
     <button class="quick" onclick="quickLog(this,'Low energy','symptom')">
       <i class="ph-fill ph-battery-low"></i>Low energy</button>
   </div>
-
-  <div class="grid">
-    <button class="tile" onclick="logFrom('dose','Levodopa 100mg')">
-      <span class="tile-ico" style="background:var(--mark-dose)"><i class="ph-fill ph-pill"></i></span>
-      <span class="tile-name">Medication</span></button>
-    <button class="tile" onclick="logFrom('activity','Walk')">
-      <span class="tile-ico" style="background:var(--mark-activity)"><i class="ph-fill ph-footprints"></i></span>
-      <span class="tile-name">Activity</span></button>
-    <button class="tile" onclick="logFrom('meal','Meal')">
-      <span class="tile-ico" style="background:var(--mark-meal)"><i class="ph-fill ph-fork-knife"></i></span>
-      <span class="tile-name">Food &amp; protein</span></button>
-    <button class="tile" onclick="logFrom('symptom','How I feel')">
-      <span class="tile-ico" style="background:var(--mark-symptom)"><i class="ph-fill ph-waveform"></i></span>
-      <span class="tile-name">How I feel</span></button>
-  </div>
-
-  <button class="strip" onclick="logFrom('note','Photo')">
-    <i class="ph ph-camera"></i>
-    <span>Photo <span class="sub">— snap now, caption optional</span></span>
-  </button>
 </div>
 
 <div class="toast" id="toast">
@@ -367,8 +410,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
    basis = asserted | declined | assumed        (see §basis) */
 const ICON = { dose:'ph-pill', symptom:'ph-waveform', activity:'ph-footprints',
                meal:'ph-fork-knife', note:'ph-note-pencil' };
-const MARK = { dose:'var(--mark-dose)', symptom:'var(--mark-symptom)',
-               activity:'var(--mark-activity)', meal:'var(--mark-meal)', note:'var(--mark-note)' };
+const MARK = 'var(--mark)';   /* one colour for every type — the icon does the work */
 
 let entries = [
   { time:'10:00', text:'Walk', type:'activity', basis:'asserted',
@@ -397,8 +439,8 @@ function markHTML(e){
   if (e.basis === 'assumed')
     return `<span class="emark assumed"><i class="ph ${ICON[e.type]}"></i></span>`;
   if (e.basis === 'declined')
-    return `<span class="emark declined" style="color:${MARK[e.type]}"><i class="ph ${ICON[e.type]}"></i></span>`;
-  return `<span class="emark" style="background:${MARK[e.type]}"><i class="ph-fill ${ICON[e.type]}"></i></span>`;
+    return `<span class="emark declined" style="color:${MARK}"><i class="ph ${ICON[e.type]}"></i></span>`;
+  return `<span class="emark" style="background:${MARK}"><i class="ph-fill ${ICON[e.type]}"></i></span>`;
 }
 const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
 function gapLabel(a, b){                      /* a is later, b is earlier */
