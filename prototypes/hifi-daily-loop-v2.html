@@ -219,6 +219,41 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .entry.ahead .emark{border-style:dashed}
 .entry.ahead .ecard{background:transparent;border-style:dashed}
 
+/* ── new-entry highlight ───────────────────────────────────────────────
+   Replaces the "X — added" toast. The entry appearing on the rail at the
+   right time IS the confirmation; this just makes sure you see which one
+   is new. A background wash only — no colour, no scale, no motion that
+   could read as congratulation [C-08]. The fade-out comes free from
+   .ecard's existing background transition when the class is removed.
+   Deliberately not a keyframe animation: the reduced-motion rule zeroes
+   animation durations, which would delete the feedback rather than calm
+   it. A wash that simply appears and later disappears still works. */
+.entry.fresh .ecard{background:var(--surface-raised);
+                    border-color:var(--border-interactive)}
+
+/* ── removal tombstone ─────────────────────────────────────────────────
+   The one case that genuinely needs undo: the evidence is gone, so nothing
+   on screen can confirm what happened. It stays in the rail, in the dead
+   entry's own position, naming what was removed — and it has NO timer.
+   A timed target is the wrong affordance for an audience with bradykinesia
+   (and fails WCAG 2.2.1). It clears when the next removal happens. */
+.tomb{position:relative;display:block;width:100%;
+      padding:0 0 var(--space-6) var(--rail-indent)}
+.tomb .emark{background:var(--surface-page)!important;
+             border:1.5px dashed var(--border-interactive)}
+.tomb .emark i{color:var(--text-muted);font-size:16px}
+.tomb-card{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;
+           background:transparent;border:1px dashed var(--border-subtle);
+           border-radius:var(--radius-lg);padding:var(--space-2) var(--card-pad)}
+.tomb-text{flex:1 1 10ch;min-width:0;font-size:var(--text-small);color:var(--text-muted)}
+.tomb-text b{font-weight:500;color:var(--text-secondary)}
+.tomb-undo{flex:0 0 auto;display:flex;align-items:center;gap:var(--space-2);
+           min-height:var(--target-min);padding:0 var(--space-3);
+           border-radius:var(--radius-md);font-size:var(--text-small);
+           font-weight:500;color:var(--accent)}
+.tomb-undo i{font-size:18px}
+.tomb-undo:hover{background:var(--surface-raised)}
+
 /* elapsed time, shown only for gaps worth noticing */
 .gap{position:relative;padding:0 0 var(--space-6) var(--rail-indent);z-index:1}
 .gap span{position:absolute;left:0;top:-4px;width:36px;text-align:center;
@@ -424,41 +459,6 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .d-remove i{font-size:19px}
 .d-remove:hover{background:var(--surface-raised)}
 
-/* ── toast ──────────────────────────────────────────────────────────────
-   FIXED IN v2. Two separate problems:
-   1) WIDTH. A fixed-position flex box is "shrink-to-fit": it collapses to the
-      narrowest width its content can survive at, which is why short messages
-      were wrapping onto a second line. `width:max-content` tells it to lay the
-      content out on one line first; `max-width` then caps it at the shell width
-      minus a gutter each side, so it grows as far as it usefully can and never
-      touches the screen edge. The old cap (420 - 32 = 388px) also overflowed
-      any phone narrower than 388px.
-   2) POSITION. It sat at the same bottom offset as the FAB, so a wide toast ran
-      underneath it. Now raised by one FAB height plus a gap.
-   The hide state is opacity + a small translate rather than a percentage slide,
-   because a percentage slide no longer clears the screen from up here. */
-.toast{position:fixed;left:50%;
-       bottom:calc(var(--space-6) + var(--target-critical) + var(--space-3)
-                   + env(safe-area-inset-bottom));
-       width:max-content;
-       max-width:calc(min(var(--shell-w), 100vw) - var(--gutter) * 2);
-       transform:translate(-50%,var(--space-3));opacity:0;pointer-events:none;
-       background:var(--paper-800);color:var(--paper-50);
-       border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);z-index:80;
-       display:flex;align-items:center;gap:var(--space-4);font-size:var(--text-label);
-       line-height:1.4;
-       transition:opacity var(--motion-base) var(--ease-out),
-                  transform var(--motion-base) var(--ease-out);
-       box-shadow:0 3px 16px rgba(26,25,22,.24)}
-.toast.show{transform:translate(-50%,0);opacity:1;pointer-events:auto}
-/* min-width:0 lets the message shrink and wrap when it genuinely is too long
-   for the cap; without it a flex item refuses to go below its content width. */
-#toast-text{flex:1 1 auto;min-width:0}
-/* The action never wraps or gets squeezed — it is the only tappable thing here. */
-#toast-undo{flex:0 0 auto;white-space:nowrap;color:var(--paper-50);font-weight:600;
-            text-decoration:underline;font-size:var(--text-label);
-            padding:var(--space-1) var(--space-2);min-height:var(--target-min);
-            display:flex;align-items:center}
 </style>
 </head>
 <body>
@@ -468,7 +468,6 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
     <a class="demo-btn home" href="../index.html">← Home</a>
     <span class="db">Hi-fi · Today · v2</span>
     <button class="demo-btn" onclick="demoAddDose()">+ due dose</button>
-    <button class="demo-btn" onclick="demoLongToast()">long toast</button>
     <button class="demo-btn" onclick="demoEmpty()">empty</button>
     <button class="demo-btn" onclick="toggleTuner()">tune ▾</button>
     <button class="demo-btn" onclick="location.reload()">reset</button>
@@ -522,7 +521,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
     <button class="icon-btn" aria-label="More"><i class="ph ph-dots-three"></i></button>
   </div>
 
-  <div class="scroll">
+  <div class="scroll" id="scroll">
     <div id="card-area"></div>
     <div id="timeline"></div>
   </div>
@@ -586,10 +585,6 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
   <div id="detail-body"></div>
 </div>
 
-<div class="toast" id="toast" role="status" aria-live="polite">
-  <span id="toast-text"></span>
-  <button id="toast-undo" onclick="undoLast()">Undo</button>
-</div>
 
 <script>
 /* ═════════ state ═════════
@@ -655,9 +650,9 @@ let currentDose = { name:'Levodopa 100mg', sched:'10:30' };  // one card max, ne
 let active = null;          // {e, day} — the entry open in the detail sheet
 let basisOpen = false;      // is the basis chooser expanded
 let openField = null;       // which context field is showing its choices
-let pendingUndo = null;     // {kind:'add'|'remove', e, day, index}
-let undoTimer = null;
+let freshEntry = null;      // the entry to mark as new in the next render
 let lastFocus = null;
+const REDUCED_MOTION = matchMedia('(prefers-reduced-motion: reduce)');
 
 const el = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c =>
@@ -690,7 +685,22 @@ function gapLabel(a, b){                      /* a is later, b is earlier */
   const h = Math.round(d/60);
   return h >= 24 ? null : h + 'h';
 }
+/* A removed entry leaves a marker where it stood, naming what went. Undo is
+   right there and never expires — the alternative was a floating bar at the
+   other end of the screen on a six-second fuse. */
+function tombHTML(e, di, i){
+  return `<div class="tomb">
+    <span class="emark"><i class="ph ph-minus"></i></span>
+    <span class="etime">${e.time}</span>
+    <span class="tomb-card">
+      <span class="tomb-text">Removed — <b>${esc(e.text)}</b></span>
+      <button class="tomb-undo" onclick="undoRemove(${di},${i})">
+        <i class="ph ph-arrow-counter-clockwise"></i>Undo</button>
+    </span>
+  </div>`;
+}
 function entryHTML(e, di, i){
+  if (e.removed) return tombHTML(e, di, i);
   /* basis is surfaced only where it changes what the reader should believe:
      asserted is the default and carries no badge. */
   const note = e.basis === 'assumed'  ? '<span class="enote">Not confirmed</span>'
@@ -698,7 +708,8 @@ function entryHTML(e, di, i){
   const meta = metaPairs(e).map(m =>
       `<span><i class="ph ${m[0]}"></i>${esc(m[1])}</span>`).join('');
   const free = e.note ? `<span class="enote">${esc(e.note)}</span>` : '';
-  return `<button class="entry" onclick="tapEntry(${di},${i})">
+  const cls = 'entry' + (e === freshEntry ? ' fresh' : '');
+  return `<button class="${cls}" onclick="tapEntry(${di},${i})">
     ${markHTML(e)}
     <span class="etime">${e.time}</span>
     <span class="ecard">
@@ -884,26 +895,28 @@ function setField(key, val){
 }
 function addNote(){ active.e.note = ''; renderDetail(); }
 function setNote(v){ active.e.note = v; renderTimeline(); }   /* no re-render: don't steal the caret */
+/* The entry is not spliced out — it is flagged and kept in place, so the rail
+   doesn't jump and the marker can name what went. One tombstone at a time:
+   removing something else commits the previous removal. */
 function removeActive(){
-  const day = DAYS[active.day], i = day.list.indexOf(active.e);
-  if (i > -1) day.list.splice(i,1);
-  pendingUndo = { kind:'remove', e:active.e, day:active.day, index:i };
+  const e = active.e;
+  purgeTombs();
+  e.removed = true;
   closeSheets();
   renderTimeline();
-  showToast('Removed from ' + day.label.toLowerCase(), true);
 }
+function purgeTombs(){ DAYS.forEach(d => { d.list = d.list.filter(x => !x.removed); }); }
+function undoRemove(di, i){ delete DAYS[di].list[i].removed; renderTimeline(); }
 
 /* ═════════ card actions — D-01 no reason ask · D-02 no stack, quiet collapse ═════════ */
 function cardYes(){
-  addEntry({ time:nowTime(), text:currentDose.name, type:'dose', basis:'asserted' }, 0,
-           currentDose.name + ' — logged');
+  addEntry({ time:nowTime(), text:currentDose.name, type:'dose', basis:'asserted' }, 0);
   currentDose = null; renderCard();
 }
 function cardNo(){
   /* "No" is a REPORTED skip → basis:'declined'. Clinically valuable, and distinct
      from 'assumed' (we asked and got nothing back). */
-  addEntry({ time:nowTime(), text:currentDose.name, type:'dose', basis:'declined' }, 0,
-           'Noted — not taken');
+  addEntry({ time:nowTime(), text:currentDose.name, type:'dose', basis:'declined' }, 0);
   currentDose = null; renderCard();
 }
 /* "Not exactly" = yes, with corrections. The entry lands as asserted at the
@@ -912,7 +925,7 @@ function cardNo(){
    sheet is where depth becomes available, never where it becomes required. */
 function cardAdjust(){
   const e = { time:currentDose.sched, text:currentDose.name, type:'dose', basis:'asserted' };
-  addEntry(e, 0, null);
+  addEntry(e, 0);
   currentDose = null; renderCard();
   openDetail(e, 0);
 }
@@ -931,45 +944,40 @@ function demoAddDose(){
 }
 function demoEmpty(){ DAYS.forEach(d => d.list = []); currentDose = null;
                       renderCard(); renderTimeline(); }
-function demoLongToast(){
-  showToast('Levodopa 100mg moved to 08:45 and marked as taken with food', true);
-}
 
-/* ═════════ logging ═════════ */
-function addEntry(e, di, toastText){
+/* ═════════ logging ═════════
+   No confirmation message. The entry appearing on the rail at the right time
+   IS the confirmation — a toast saying "Walk — added" next to a visible Walk
+   entry is the same fact twice, and the weaker copy of it. What the app owes
+   the user instead is certainty about WHICH entry is new, and a guarantee it
+   is actually on screen. Hence the highlight plus the scroll. */
+function addEntry(e, di){
   DAYS[di].list.unshift(e);
   sortDay(DAYS[di]);
+  freshEntry = e;
   renderTimeline();
-  pendingUndo = { kind:'add', e, day:di };
-  if (toastText) showToast(toastText, true);
+  freshEntry = null;          /* only the render right after the add marks it */
+  const s = el('scroll');
+  s.scrollTo({ top:0, behavior: REDUCED_MOTION.matches ? 'auto' : 'smooth' });
+  /* Remove the class on the live node rather than re-rendering, so the wash
+     fades out via .ecard's transition instead of being replaced mid-fade. */
+  requestAnimationFrame(() => {
+    const n = document.querySelector('.entry.fresh');
+    if (n) setTimeout(() => n.classList.remove('fresh'), 1800);
+  });
 }
 function logFrom(type, text){
   closeSheets();
-  addEntry({ time:nowTime(), text, type, basis:'asserted' }, 0, text + ' — added');
+  addEntry({ time:nowTime(), text, type, basis:'asserted' }, 0);
 }
 function quickLog(btn, text, type){
-  addEntry({ time:nowTime(), text, type, basis:'asserted' }, 0, text + ' — added');
-  btn.classList.add('flash');
+  addEntry({ time:nowTime(), text, type, basis:'asserted' }, 0);
+  btn.classList.add('flash');     /* confirmation at the source, where the eye is */
   setTimeout(()=> btn.classList.remove('flash'), 600);
   setTimeout(closeSheets, 260);
 }
-function undoLast(){
-  if (!pendingUndo) return;
-  const { kind, e, day, index } = pendingUndo;
-  const list = DAYS[day].list;
-  if (kind === 'add'){
-    const i = list.indexOf(e);
-    if (i > -1) list.splice(i,1);
-  } else {
-    list.splice(Math.max(0, index), 0, e);
-    sortDay(DAYS[day]);
-  }
-  pendingUndo = null;
-  renderTimeline();
-  el('toast').classList.remove('show');
-}
 
-/* ═════════ sheets & toast ═════════ */
+/* ═════════ sheets ═════════ */
 const SHEETS = ['sheet-log','sheet-detail'];
 function openSheet(id){
   lastFocus = document.activeElement;
@@ -982,13 +990,6 @@ function closeSheets(){
   SHEETS.forEach(s => el(s).classList.remove('open'));
   active = null; openField = null;
   if (lastFocus && lastFocus.focus) lastFocus.focus();
-}
-function showToast(t, withUndo){
-  el('toast-text').textContent = t;
-  el('toast-undo').style.display = withUndo ? 'flex' : 'none';
-  el('toast').classList.add('show');
-  clearTimeout(undoTimer);
-  undoTimer = setTimeout(()=> el('toast').classList.remove('show'), 6000);
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(); });
 
