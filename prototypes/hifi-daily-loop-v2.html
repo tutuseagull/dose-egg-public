@@ -783,8 +783,12 @@ const CONTEXT = {
      open-ended categorical data gets searched, short closed lists stay inline. */
   activity: [ { key:'dur', label:'How long', icon:'ph-timer', temporal:true,
                 kind:'duration', choices:[10,20,30,45,60,90] } ],
-  symptom:  [ { key:'body',    label:'Where',    icon:'ph-person',
-                choices:['Left side','Right side','Both sides','Whole body'] } ], /* C-02 */
+  /* MULTI, because C-02 is explicit that one limb can be ON while another is
+     OFF — a single-select "Where" cannot express that, which made it a control
+     that quietly contradicted a constraint. Limb-level for the same reason. */
+  symptom:  [ { key:'body',    label:'Where',    icon:'ph-person', multi:true,
+                choices:['Left arm','Right arm','Left leg','Right leg',
+                         'Head or neck','Whole body'] } ],
   note:     []
 };
 
@@ -810,10 +814,50 @@ const SUGGEST = {
   activity: ['Walk','Boxing','Tai chi','Dance','Cycling','Swimming','Stretching',
              'Yoga','Physical therapy','Housework','Gardening','Errands','Rest'],
   meal:     ['Breakfast','Lunch','Dinner','Snack'],
+  /* "Meds kicked in" / "Meds wearing off" — parallel on purpose. Without the
+     prefix the pair reads inconsistently in a list, and bare "Wearing off"
+     collides with ordinary tiredness, which is a different entry entirely.
+     Both remain the patient terms glossary.html asks for; the prefix only
+     says whose wearing off it is. */
   symptom:  ['Tremor','Stiffness','Froze in place','Low energy',
-             'Meds kicked in','Wearing off'],
+             'Meds kicked in','Meds wearing off'],
   note:     []
 };
+
+/* The follow-up depends on WHICH symptom, not just that it is a symptom.
+   "Meds kicked in" is only meaningful because something changed in the body —
+   asking what is the difference between a timestamp and an observation.
+   This also lets C-01 hold structurally rather than by discipline: tremor (OFF)
+   and extra movement (peak ON) are opposite states, and because the option sets
+   differ per event, no single control ever merges them into "movement issues".
+
+   VOCABULARY IS A FIRST PASS AND NEEDS VALIDATING with the domain lead and
+   glossary.html.
+   These are patient words, not clinical ones, and "extra movement" stands in
+   for dyskinesia deliberately [C-11 — non-stigmatising language for visible
+   symptoms]. Wrong words here would be worse than no field, because they teach
+   people how to describe their own bodies. */
+const SYMPTOM_FIELDS = {
+  'Meds kicked in': { key:'eased',    label:'What eased',
+    choices:['Tremor','Stiffness','Slowness','Balance','Mood','Pain'] },
+  'Meds wearing off': { key:'returned', label:'What came back',
+    choices:['Tremor','Stiffness','Slowness','Fatigue','Anxiety','Pain'] },
+  'Froze in place': { key:'justbefore', label:'Just before it',
+    choices:['Turning','A doorway','Starting to walk','A crowd','In a hurry','Tired'] },
+  'Low energy':     { key:'lowfeel',  label:'How it feels',
+    choices:['Heavy limbs','Sleepy','Foggy','Flat','Aching'] }
+};
+const SYMPTOM_DEFAULT = { key:'notice', label:'What you notice',
+  choices:['Tremor','Stiffness','Slowness','Extra movement','Balance',
+           'Fatigue','Foggy','Pain'] };
+
+/* CONTEXT is keyed by type; this adds the per-event layer on top. */
+function fieldsFor(e){
+  const base = CONTEXT[e.type] || [];
+  if (e.type !== 'symptom') return base;
+  const extra = SYMPTOM_FIELDS[e.text] || SYMPTOM_DEFAULT;
+  return [{ ...extra, icon:'ph-waveform', multi:true }].concat(base);
+}
 
 /* Basis, written for the person whose record it is. The sub-line names the
    consequence in the export, because that is the only reason the distinction exists. */
@@ -865,7 +909,7 @@ function markHTML(e){
 /* editable context first, then anything derived */
 function metaPairs(e){
   const out = [];
-  (CONTEXT[e.type] || []).forEach(f => {
+  fieldsFor(e).forEach(f => {
     if (f.grams && e.fields && e.fields[f.grams] != null){
       out.push([f.icon, e.fields[f.grams] + ' g protein']); return;
     }
@@ -873,7 +917,10 @@ function metaPairs(e){
     /* a known interval reads better as a span than as a bare length */
     if (f.temporal) out.push([f.icon,
       `${fromMin(startMin(e))}–${fromMin(endMin(e))} · ${fmtDur(e.fields[f.key])}`]);
-    else out.push([f.icon, e.fields[f.key]]);
+    else {
+      const val = e.fields[f.key];
+      out.push([f.icon, Array.isArray(val) ? val.join(', ') : val]);
+    }
   });
   (e.meta || []).forEach(m => out.push(m));
   return out;
@@ -1021,7 +1068,7 @@ function renderDetail(){
   if (!active) return;
   if (pickerStep){ renderPickerStep(); return; }
   const e = active.e;
-  const fields = CONTEXT[e.type] || [];
+  const fields = fieldsFor(e);
   let h = '';
 
   /* — identity. The name is a value like any other, so it is editable here;
@@ -1089,7 +1136,13 @@ function renderDetail(){
   h += '<div class="chips">';
   fields.filter(f => !f.temporal).forEach(f => {
     const g = f.grams && e.fields ? e.fields[f.grams] : null;
-    const v = (g != null) ? (g + ' g') : (e.fields && e.fields[f.key]);
+    const raw = e.fields && e.fields[f.key];
+    /* "Tremor +1" rather than "2 what eased" — it names the first thing, which
+       is the one most likely to be the point, and keeps the chip to one line.
+       The picker underneath shows exactly which ones. */
+    const v = (g != null) ? (g + ' g')
+            : Array.isArray(raw) ? (raw.length === 1 ? raw[0] : `${raw[0]} +${raw.length - 1}`)
+            : raw;
     h += v
       ? `<button class="chip set" onclick="toggleField('${f.key}')">
            <i class="ph ${f.icon}"></i>${esc(v)}<i class="ph ph-caret-down"></i></button>`
@@ -1102,9 +1155,11 @@ function renderDetail(){
   const f = fields.find(x => x.key === openField);
   if (f){
     const v = e.fields && e.fields[f.key];
-    h += `<div class="picker"><span class="pl">${f.label}</span><div class="chips">`
+    const chosen = Array.isArray(v) ? v : (v ? [v] : []);
+    h += `<div class="picker"><span class="pl">${f.label}${f.multi ? ' · pick any' : ''}</span><div class="chips">`
       + f.choices.map(c =>
-          `<button class="chip pick${v===c?' on':''}" onclick="setField('${f.key}',${q(c)})">${esc(c)}</button>`
+          `<button class="chip pick${chosen.includes(c)?' on':''}" onclick="${f.multi
+            ? `toggleMulti('${f.key}',${q(c)})` : `setField('${f.key}',${q(c)})`}">${esc(c)}</button>`
         ).join('')
       + (f.grams ? `<button class="chip more" onclick="openPicker('field','${f.key}')">Grams
           <i class="ph ph-caret-right"></i></button>` : '')
@@ -1454,7 +1509,7 @@ function searchRowsHTML(type, current, pickExpr, addExpr, inputId){
 function renderPickerStep(){
   const e = active.e;
   const isLabel = pickerStep.kind === 'label';
-  const field = isLabel ? null : (CONTEXT[e.type]||[]).find(f => f.key === pickerStep.key);
+  const field = isLabel ? null : fieldsFor(e).find(f => f.key === pickerStep.key);
   const title = isLabel ? `${TYPE_NAME[e.type]} type` : field.label;
 
   let h = `<div class="log-head">
@@ -1549,7 +1604,7 @@ function openPicker(kind, key){ pickerStep = { kind, key }; openMini = null; sea
 function closePicker(){ pickerStep = null; searchQ = ''; openField = null; renderDetail(); }
 function pickField(key, val){
   const e = active.e; e.fields = e.fields || {};
-  const f = (CONTEXT[e.type]||[]).find(x => x.key === key);
+  const f = fieldsFor(e).find(x => x.key === key);
   if (f && f.grams) delete e.fields[f.grams];   /* a level supersedes grams */
   if (val === null) delete e.fields[key]; else e.fields[key] = val;
   pickerStep = null; openField = null;
@@ -1638,9 +1693,21 @@ function nudge(mins){
   renderDetail(); renderTimeline();
 }
 function toggleField(key){
-  const f = (CONTEXT[active.e.type]||[]).find(x => x.key === key);
+  const f = fieldsFor(active.e).find(x => x.key === key);
   if (f && f.kind === 'duration'){ openPicker('field', key); return; }
   openField = (openField === key) ? null : key; renderDetail();   /* short closed list */
+}
+/* MULTI fields hold an array and toggle; the picker deliberately stays open,
+   because "what eased" is usually more than one thing and closing after each
+   tap would make the second answer cost as much as the first. Single fields
+   keep replacing and closing, which is right when there is only one answer. */
+function toggleMulti(key, val){
+  const e = active.e; e.fields = e.fields || {};
+  const cur = Array.isArray(e.fields[key]) ? e.fields[key].slice() : [];
+  const i = cur.indexOf(val);
+  if (i > -1) cur.splice(i, 1); else cur.push(val);
+  if (cur.length) e.fields[key] = cur; else delete e.fields[key];
+  renderDetail(); renderTimeline();        /* openField untouched — stay open */
 }
 function setField(key, val){
   const e = active.e;
@@ -1648,7 +1715,7 @@ function setField(key, val){
   /* Same guard as pickField — the inline picker and the step both write here,
      and grams/level must never coexist. Missing it left "26 g" AND "Some" on
      the same meal, which is two answers to one question. */
-  const f = (CONTEXT[e.type]||[]).find(x => x.key === key);
+  const f = fieldsFor(e).find(x => x.key === key);
   if (f && f.grams) delete e.fields[f.grams];
   if (val === null) delete e.fields[key]; else e.fields[key] = val;
   openField = null;
