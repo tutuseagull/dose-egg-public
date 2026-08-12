@@ -388,9 +388,19 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
    Everything writes to the record the moment it is tapped, so closing the sheet
    at any point leaves a valid entry. [C-09: a partial entry is a valid entry] */
 #detail-body{display:flex;flex-direction:column;gap:var(--space-6)}
-.sec{display:flex;flex-direction:column;gap:var(--space-3)}
+/* A label belongs to the thing under it, so it has to SIT closer to it than
+   the next group does. Measured: nominal was 12 within / 24 between, but the
+   header's inherited line-height (1.55) hides 4px of half-leading beneath the
+   text, so it read 16 vs 24 — a 1:1.5 ratio the eye cannot resolve into a
+   hierarchy. Two fixes, both needed: --leading-tight on the header removes
+   ~2.6px of that phantom space, and the gap drops to --space-2. Now ~9 within
+   vs 24 between, roughly 1:2.5.
+   Worth remembering generally: vertical rhythm has to be measured from where
+   the INK stops, not where the box stops. Setting a gap in a token and
+   trusting it is how proximity quietly breaks. */
+.sec{display:flex;flex-direction:column;gap:var(--space-2)}
 .sec-h{font-size:var(--text-meta);letter-spacing:.08em;text-transform:uppercase;
-       color:var(--text-muted);font-weight:500}
+       color:var(--text-muted);font-weight:500;line-height:var(--leading-tight)}
 .sec-opt{text-transform:none;letter-spacing:0}
 .d-head{display:flex;align-items:flex-start;gap:var(--space-3)}
 .d-head .emark{position:static;box-shadow:none;flex:0 0 auto}
@@ -520,10 +530,25 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
       font-size:var(--text-small);color:var(--text-secondary)}
 .chip i{font-size:18px;color:var(--text-muted);flex:0 0 auto}
 .chip:hover{background:var(--surface-raised)}
-.chip.set{border-style:solid;border-color:var(--border-subtle);background:var(--surface-raised);
+/* AFFORDANCE, 2026-08-12. Dashed used to mean both "empty" and "tap to open" —
+   two jobs, one style, so it read as just another option chip. Dashed is a real
+   convention for EMPTINESS (Figma's add-fill rows, Notion's "+ Add a property"),
+   not for expandability. Split into the three signals people already know:
+       + label     nothing here yet — tapping ADDS a value
+       label  ⌄    has a value — tapping EXPANDS the chooser in place
+       label  ›    tapping GOES somewhere (its own step)
+   The caret direction is not decoration: down means it opens here, right means
+   it leaves. We have both behaviours, so the distinction earns its keep. */
+.chip{border-style:solid;border-color:var(--border-subtle);color:var(--text-secondary)}
+.chip.set{border-color:var(--border-subtle);background:var(--surface-raised);
           color:var(--text-primary)}
-.chip.set i{color:var(--accent)}
+.chip.set i{color:var(--text-muted)}
 .chip.pick{border-style:solid}
+/* "More…" is a door, not an unset value — dashed means "nothing here yet", and
+   there is plenty here. Solid, with the same caret the rest of the app uses to
+   mean "this opens something". */
+.chip.more{border-style:solid;border-color:var(--border-subtle);color:var(--text-secondary)}
+.chip.more i{font-size:16px;color:var(--text-muted)}
 .chip.pick.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
 .chip.pick.on i{color:var(--on-accent)}
 /* Search + rows for open-ended lists. Rows, not chips: a chip grid makes the
@@ -553,6 +578,12 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .rowitem i{font-size:18px;color:var(--text-muted);flex:0 0 auto}
 .rowitem.add i{color:var(--accent)}
 .rowempty{font-size:var(--text-small);color:var(--text-muted);padding:var(--space-4) 0}
+/* Band label inside the scrolling list. Quieter than a .sec-h — it separates
+   two parts of one list rather than announcing a new section. */
+.rowgroup{font-size:var(--text-meta);letter-spacing:.08em;text-transform:uppercase;
+          color:var(--text-muted);font-weight:500;line-height:var(--leading-tight);
+          padding:var(--space-3) 0 var(--space-1)}
+.rowgroup:first-child{padding-top:0}
 /* Duration is a number, so it is typed, not searched. */
 .numrow{display:flex;align-items:center;gap:var(--space-3)}
 .numin{width:5ch;min-height:var(--target-critical);text-align:center;
@@ -575,10 +606,19 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
         background:var(--surface-page);border:1px solid var(--border-subtle);
         border-radius:var(--radius-md)}
 .picker .pl{font-size:var(--text-meta);color:var(--text-muted)}
+/* Always present, one row tall, grows with what you write.
+   It replaced a chip that opened it — and a chip is a SELECTOR by the rule two
+   rules up: it sets a value and can be `.on`. "Note" set nothing, it revealed
+   an editor, so it was the wrong shape for its job and read as clutter.
+   Net height is a wash: one empty row costs what the chip cost, and an
+   interaction, a piece of state and a conditional branch all disappear.
+   resize:none because the field sizes itself; a drag handle on a control that
+   auto-grows is a promise of manual work nobody needs to do. */
 .note-in{width:100%;font:inherit;font-size:var(--text-small);color:var(--text-primary);
          background:var(--surface-page);border:1px solid var(--border-subtle);
-         border-radius:var(--radius-md);padding:var(--space-3);resize:vertical;
-         min-height:calc(var(--target-min) * 1.6);line-height:var(--leading-body)}
+         border-radius:var(--radius-md);padding:var(--space-3);resize:none;
+         min-height:var(--target-min);line-height:var(--leading-body);
+         overflow:hidden}
 .note-in:focus{border-color:var(--accent);outline:none;
                box-shadow:0 0 0 var(--focus-ring-width) rgba(43,91,169,.18)}
 
@@ -725,8 +765,18 @@ let DAYS = [
 const CONTEXT = {
   dose:     [ { key:'meal',    label:'Food',     icon:'ph-fork-knife',
                 choices:['Before food','With food','After food'] } ],
+  /* Low/Some/High stays the fast path — most people estimate, and the evidence
+     is about roughly how much protein, not exact grams. `grams` is a second,
+     more precise way of saying the same thing for anyone who counts (renal
+     diets, protein-redistribution diets, people already weighing food).
+     Mutually exclusive on purpose: they are two precisions of ONE fact, and
+     storing both invites them to disagree. Deliberately NOT auto-converting
+     grams into a level — there is no standard per-meal threshold for low vs
+     high, so any mapping we invented would be a clinical claim we cannot back
+     [reference_doseegg_levodopa_food]. */
   meal:     [ { key:'protein', label:'Protein',  icon:'ph-egg-crack',
-                choices:['Low','Some','High'] } ],           /* D-12: 3 levels */
+                choices:['Low','Some','High'], grams:'proteinG',
+                gramShortcuts:[5,10,20,30] } ],           /* D-12: 3 levels */
   /* activity duration is handled in the time section, not here — length is a
      temporal fact, not context. Kept in CONTEXT so the picker can reuse it. */
   /* kind drives the control, not the option count — numeric data gets typed,
@@ -748,7 +798,17 @@ const NEW_LABEL = { dose:'Medication', activity:'Activity', meal:'Food',
                     symptom:'How I feel', note:'Photo' };
 const SUGGEST = {
   dose:     ['Levodopa 100mg','Levodopa 150mg','Entacapone','Amantadine'],
-  activity: ['Walk','Exercise','Housework','Errands','Rest'],
+  /* PLACEHOLDER LIST, 2026-08-12. "Exercise" was dropped: it is a category
+     wearing an entry's clothes, so logging it records roughly nothing — the
+     same hollow-stop problem as a tile that logs "Activity".
+     Leans on movement types that recur in PD communities (non-contact boxing,
+     tai chi, dance) without implying anyone should be doing them — these are
+     vocabulary, not a prescription [C-08]. "Rest" earns its place because not
+     doing something is data too [project_doseegg_input_model].
+     The real list comes from the onboarding activity library in TASKS.md;
+     anything typed here becomes a permanent option for that user anyway. */
+  activity: ['Walk','Boxing','Tai chi','Dance','Cycling','Swimming','Stretching',
+             'Yoga','Physical therapy','Housework','Gardening','Errands','Rest'],
   meal:     ['Breakfast','Lunch','Dinner','Snack'],
   symptom:  ['Tremor','Stiffness','Froze in place','Low energy',
              'Meds kicked in','Wearing off'],
@@ -806,6 +866,9 @@ function markHTML(e){
 function metaPairs(e){
   const out = [];
   (CONTEXT[e.type] || []).forEach(f => {
+    if (f.grams && e.fields && e.fields[f.grams] != null){
+      out.push([f.icon, e.fields[f.grams] + ' g protein']); return;
+    }
     if (!(e.fields && e.fields[f.key])) return;
     /* a known interval reads better as a span than as a bare length */
     if (f.temporal) out.push([f.icon,
@@ -988,7 +1051,15 @@ function renderDetail(){
   /* — CORRECT: basis. Doses only. You cannot "assume" someone went for a walk,
        and pretending otherwise would put a control on screen that never earns
        its place. (`inferred` from sensors is post-MVP — see entry-schema.md.) — */
-  if (e.type === 'dose'){
+  /* ...AND ONLY WHEN IT IS ACTUALLY IN QUESTION. An entry you just made by hand
+     is asserted by definition, so "You confirmed this / On the record as taken"
+     tells you something you cannot not know — it reads as the app doubting a
+     record you are in the middle of creating.
+     This is what "uncertainty drives disclosure" always meant; I had it
+     surfacing on certainty too. Now: unanswered (assumed) or reported-skipped
+     (declined) show it; asserted shows nothing. To un-assert something you made
+     yourself, remove it — that is the honest gesture, not a status flip. */
+  if (e.type === 'dose' && e.basis !== 'asserted'){
     const b = BASIS[e.basis];
     h += '<div class="sec"><div class="sec-h">The record</div>';
     if (!basisOpen){
@@ -1017,12 +1088,14 @@ function renderDetail(){
   h += '<div class="sec"><div class="sec-h">Details <span class="sec-opt">· optional</span></div>';
   h += '<div class="chips">';
   fields.filter(f => !f.temporal).forEach(f => {
-    const v = e.fields && e.fields[f.key];
-    h += `<button class="chip${v?' set':''}" onclick="toggleField('${f.key}')">
-      <i class="ph ${f.icon}"></i>${v ? esc(v) : f.label}</button>`;
+    const g = f.grams && e.fields ? e.fields[f.grams] : null;
+    const v = (g != null) ? (g + ' g') : (e.fields && e.fields[f.key]);
+    h += v
+      ? `<button class="chip set" onclick="toggleField('${f.key}')">
+           <i class="ph ${f.icon}"></i>${esc(v)}<i class="ph ph-caret-down"></i></button>`
+      : `<button class="chip" onclick="toggleField('${f.key}')">
+           <i class="ph ph-plus"></i>${f.label}</button>`;
   });
-  if (e.note === undefined)
-    h += `<button class="chip" onclick="addNote()"><i class="ph ph-note-pencil"></i>Note</button>`;
   h += '</div>';
 
   /* the open field's choices, inline under the chip row */
@@ -1031,9 +1104,10 @@ function renderDetail(){
     const v = e.fields && e.fields[f.key];
     h += `<div class="picker"><span class="pl">${f.label}</span><div class="chips">`
       + f.choices.map(c =>
-          `<button class="chip pick${v===c?' on':''}" onclick="setField('${f.key}',${JSON.stringify(c).replace(/"/g,'&quot;')})">${esc(c)}</button>`
+          `<button class="chip pick${v===c?' on':''}" onclick="setField('${f.key}',${q(c)})">${esc(c)}</button>`
         ).join('')
-      + (v ? `<button class="chip pick" onclick="setField('${f.key}',null)">Clear</button>` : '')
+      + (f.grams ? `<button class="chip more" onclick="openPicker('field','${f.key}')">Grams
+          <i class="ph ph-caret-right"></i></button>` : '')
       + '</div></div>';
   }
   /* The note lives INSIDE Details rather than under a second header. Two
@@ -1047,9 +1121,9 @@ function renderDetail(){
      as grading how much someone tracks [C-08, docs/patient-voice-quotes.md].
      Someone writing "everything is awful today" should not clear a relevance
      test first. "Anything" is the whole point. */
-  if (e.note !== undefined)
-    h += `<textarea class="note-in" aria-label="Notes" placeholder="Write anything here"
-            oninput="setNote(this.value)">${esc(e.note)}</textarea>`;
+  h += `<textarea class="note-in" id="note-in" rows="1" aria-label="Notes"
+          placeholder="Write anything here"
+          oninput="setNote(this.value); autoGrow(this)">${esc(e.note || '')}</textarea>`;
   h += '</div>';
 
   /* — footer. Done sits lowest: it is the most-used control and the bottom of a
@@ -1061,6 +1135,7 @@ function renderDetail(){
     </div>`;
 
   el('detail-body').innerHTML = h;
+  const nn = el('note-in'); if (nn) autoGrow(nn);   /* open an existing note at its real size */
 }
 
 /* ═════════ log sheet — two steps, both of them meaningful ═══════════════
@@ -1150,13 +1225,9 @@ function renderLogSheet(){
           <i class="ph ph-caret-left"></i></button>
         <h2>${TYPE_NAME[logStep]}</h2>
       </div>`;
-    h += '<div class="chips">' + labelChoices(logStep).map(t =>
-      `<button class="chip pick" onclick="logNamed('${logStep}',${q(t)})">${esc(t)}</button>`
-    ).join('') + '</div>';
-    /* The one case the app genuinely cannot propose — so here, and only here,
-       naming it yourself is the point rather than a chore. */
-    h += `<button class="strip" onclick="logOther('${logStep}')">
-      <span class="strip-name">Something else…</span></button>`;
+    h += searchRowsHTML(logStep, null,
+                        t => `logNamed('${logStep}',${q(t)})`,
+                        `logNamed('${logStep}', searchQ.trim())`, 'search-log');
   }
   /* The crisis row is reachable from both steps — it is never a detour. */
   h += `<div class="quick-row">
@@ -1172,6 +1243,7 @@ function renderLogSheet(){
    chooser, except the user also had every detail in front of them.
    Without history: the chooser, because there is nothing honest to propose. */
 function openCategory(t){
+  searchQ = '';
   const guess = rankLabels(t)[0];
   if (!guess){ logStep = t; renderLogSheet(); return; }
   closeSheets();
@@ -1277,10 +1349,12 @@ function timeSectionHTML(e){
     ).join('')
     + `<button class="nudge" onclick="setNow()">Now</button>`;
 
-  /* Header names the anchor, so the big number is never ambiguous. */
-  const head = anchored ? (e.anchor === 'start' ? 'When it started' : 'When it ended')
-                        : 'When it happened';
-  return `<div class="sec"><div class="sec-h">${head}</div>
+  /* Header is static and generic; the row below carries the specifics.
+     It used to read "When it ended" above a row reading "Ended · Today", which
+     said "ended" twice — and of the two, the row is the one worth keeping,
+     because it is tappable. A header that restates a control is a header doing
+     the control's job badly. "When" also runs parallel to "How long". */
+  return `<div class="sec"><div class="sec-h">When</div>
     ${mini}
     ${face}
     ${lag ? `<div class="timesub">Logged at ${lag}</div>` : ''}
@@ -1305,9 +1379,13 @@ function durationSectionHTML(e){
                  .concat(f.choices.filter(c => !rankField(e.type, f.key).includes(c)));
   const picks = (v ? [v] : []).concat(pool.filter(c => c !== v))
                   .slice(0, 3).sort((a, b) => a - b);
+  /* Tapping the selected chip re-sets the same value rather than clearing it.
+     A single-select group that empties when you tap the current choice is a
+     destructive action hiding inside an ordinary-looking one — and the same
+     reasoning as "Now": idempotent beats surprising. */
   const chips = picks.map(c =>
-      `<button class="chip pick${c===v?' on':''}" onclick="pickField('${f.key}',${c===v?'null':c})">${fmtDur(c)}</button>`)
-    .concat([`<button class="chip" onclick="openPicker('field','${f.key}')">More…</button>`]);
+      `<button class="chip pick${c===v?' on':''}" onclick="pickField('${f.key}',${c})">${fmtDur(c)}</button>`)
+    .concat([`<button class="chip more" onclick="openPicker('field','${f.key}')">More<i class="ph ph-caret-right"></i></button>`]);
   return `<div class="sec"><div class="sec-h">${f.label}</div>
     <div class="chips">${chips.join('')}</div></div>`;
 }
@@ -1319,6 +1397,60 @@ function durationSectionHTML(e){
      open-ended categorical → search + rows + add-your-own
      numeric / temporal     → type the number + shortcuts (searching numbers
                               is nonsense, and the number is unbounded anyway) */
+/* One implementation for both search screens. The log sheet's category step and
+   the detail sheet's name step are the same question — "which one of these?" —
+   so they should not drift into two components. Rows rather than chips because
+   the list is open-ended: a chip cloud is scanned in two dimensions and stops
+   working somewhere around a dozen items, which the activity list just passed. */
+function searchRowsHTML(type, current, pickExpr, addExpr, inputId){
+  const qy = searchQ.trim().toLowerCase();
+  const all = labelChoices(type);
+  const exact = all.some(t => t.toLowerCase() === qy);
+
+  let h = `<div class="searchwrap"><i class="ph ph-magnifying-glass"></i>
+      <input class="searchin" id="${inputId}" value="${esc(searchQ)}"
+             placeholder="Search, or type your own"
+             aria-label="Search" oninput="onSearch(this.value)"></div>`;
+  h += '<div class="rowlist">';
+
+  /* Your own words beat any library we could ship, and they join the list. */
+  if (qy && !exact)
+    h += `<button class="rowitem add" onclick="${addExpr}">
+      <i class="ph ph-plus"></i>Use “${esc(searchQ.trim())}”</button>`;
+
+  const row = t => `<button class="rowitem${t===current?' on':''}" onclick="${pickExpr(t)}">${esc(t)}</button>`;
+
+  if (qy){
+    /* Filtering already shortens the list, and bands would only fragment it. */
+    const hits = all.filter(t => t.toLowerCase().includes(qy));
+    h += hits.map(row).join('');
+  } else {
+    /* TWO BANDS. What you actually log sits at the top, ranked by how often you
+       pick it — a handful of rows, no scrolling for the common case. Everything
+       else follows A–Z, because a long list you are SCANNING rather than
+       choosing from needs a predictable order, and alphabetical is the only
+       order a stranger can guess. Relevance for the short band, alphabet for
+       the long one; the same split as durations, where relevance chose the set
+       and magnitude arranged it.
+       Items repeat across the bands on purpose — the lower list is the complete
+       one, so anything missing from it would read as missing entirely. */
+    const mine = rankLabels(type).slice(0, 6);
+    if (mine.length){
+      h += '<div class="rowgroup">Yours</div>' + mine.map(row).join('');
+      h += '<div class="rowgroup">All</div>';
+    }
+    h += [...all].sort((a, b) => a.localeCompare(b)).map(row).join('');
+    if (!all.length) h += '<div class="rowempty">Nothing here yet.</div>';
+    /* Restored after the two-band rewrite dropped it. The "Use “X”" row only
+       shows once you have typed, so without this the door is invisible to
+       anyone who never types — the exact gap Tutu hit twice. Sits at the end,
+       after "All", so it never competes with the list itself. */
+    h += `<button class="rowitem add" onclick="focusSearch()">
+      <i class="ph ph-plus"></i>Add your own</button>`;
+  }
+  return h + '</div>';
+}
+
 function renderPickerStep(){
   const e = active.e;
   const isLabel = pickerStep.kind === 'label';
@@ -1332,25 +1464,26 @@ function renderPickerStep(){
     </div>`;
 
   if (isLabel){
-    const all = labelChoices(e.type);
-    const qy = searchQ.trim().toLowerCase();
-    const hits = qy ? all.filter(t => t.toLowerCase().includes(qy)) : all;
-    const exact = all.some(t => t.toLowerCase() === qy);
-    h += `<div class="searchwrap"><i class="ph ph-magnifying-glass"></i>
-        <input class="searchin" id="search-in" value="${esc(searchQ)}"
-               placeholder="Search, or type a new one"
-               aria-label="Search ${esc(title)}" oninput="onSearch(this.value)"></div>`;
-    h += '<div class="rowlist">';
-    /* Your own words beat any list we could ship. Offered as soon as what you
-       typed is not already there. */
-    if (qy && !exact)
-      h += `<button class="rowitem add" onclick="pickLabel(${q(searchQ.trim())})">
-        <i class="ph ph-plus"></i>Use “${esc(searchQ.trim())}”</button>`;
-    h += hits.map(t =>
-      `<button class="rowitem${t===e.text?' on':''}" onclick="pickLabel(${q(t)})">${esc(t)}</button>`
-    ).join('');
-    if (!hits.length && !qy) h += '<div class="rowempty">Nothing here yet.</div>';
-    h += '</div>';
+    h += searchRowsHTML(e.type, e.text,
+                        t => `pickLabel(${q(t)})`, 'pickLabel(searchQ.trim())',
+                        'search-detail');
+  } else if (field.grams){
+    const g = e.fields && e.fields[field.grams];
+    const lvl = e.fields && e.fields[field.key];
+    h += `<div class="numrow">
+        <input class="numin" id="num-in" inputmode="numeric" maxlength="3" value="${g || ''}"
+               aria-label="${esc(field.label)} in grams" oninput="onGramField('${field.key}',this)">
+        <span class="numunit">grams</span>
+      </div>`;
+    h += '<div class="chips">' + field.gramShortcuts.map(n =>
+        `<button class="chip pick${n===g?' on':''}" onclick="pickGrams('${field.key}',${n})">${n} g</button>`
+      ).join('') + '</div>';
+    /* The coarse answer stays reachable here — someone who opened Grams by
+       mistake should not have to go back to say "High". */
+    h += `<div class="picker"><span class="pl">Or just roughly</span><div class="chips">`
+      + field.choices.map(c =>
+          `<button class="chip pick${lvl===c?' on':''}" onclick="pickField('${field.key}',${q(c)})">${esc(c)}</button>`
+        ).join('') + '</div></div>';
   } else if (field.kind === 'duration'){
     const cur = (e.fields && e.fields[field.key]) || '';
     h += `<div class="numrow">
@@ -1360,14 +1493,48 @@ function renderPickerStep(){
       </div>`;
     h += '<div class="chips">' + [...field.choices].sort((a,b)=>a-b).map(m =>
         `<button class="chip pick${m===cur?' on':''}" onclick="pickField('${field.key}',${m})">${fmtDur(m)}</button>`
-      ).join('') + (cur ? `<button class="chip pick" onclick="pickField('${field.key}',null)">Clear</button>` : '')
-      + '</div>';
+      ).join('') + '</div>';
+    /* No Clear button here. It did two things on one tap — emptied the value AND
+       returned to the sheet — because picking a value is what closes this step.
+       Clearing is not picking, so it should not navigate. The number field above
+       already clears when you empty it, which is the gesture Tutu suggested:
+       right next to "minutes", where the value lives. */
   }
   el('detail-body').innerHTML = h;
-  const si = el('search-in'); if (si && searchQ) { si.focus(); si.setSelectionRange(si.value.length, si.value.length); }
 }
-function onSearch(v){ searchQ = v; renderDetail(); }
+/* The same box appears on two surfaces. Both stay in the DOM once rendered, so
+   they need DISTINCT ids — sharing one is invalid HTML and el() would silently
+   return whichever came first, which is not always the open one.
+   Focus and caret are restored by hand because a keystroke destroys the input;
+   a full re-render is cheap at this size and keeps a single code path. */
+function focusSearch(){
+  const si = el(pickerStep ? 'search-detail' : 'search-log');
+  if (si) si.focus();
+}
+function onSearch(v){
+  searchQ = v;
+  if (pickerStep) renderDetail(); else renderLogSheet();
+  const si = el(pickerStep ? 'search-detail' : 'search-log');
+  if (si){ si.focus(); si.setSelectionRange(si.value.length, si.value.length); }
+}
 /* Live like the other numeric fields; never re-renders mid-keystroke. */
+/* Grams supersede the level, and an empty box means neither. */
+function onGramField(key, node){
+  const digits = node.value.replace(/\D/g,'').slice(0,3);
+  if (digits !== node.value) node.value = digits;
+  const e = active.e, f = (CONTEXT[e.type]||[]).find(x => x.key === key);
+  e.fields = e.fields || {};
+  delete e.fields[key];
+  if (digits === '') delete e.fields[f.grams]; else e.fields[f.grams] = parseInt(digits,10);
+  renderTimeline();
+}
+function pickGrams(key, n){
+  const e = active.e, f = (CONTEXT[e.type]||[]).find(x => x.key === key);
+  e.fields = e.fields || {};
+  delete e.fields[key]; e.fields[f.grams] = n;
+  pickerStep = null; openField = null;
+  renderDetail(); renderTimeline();
+}
 function onNumField(key, node){
   const digits = node.value.replace(/\D/g,'').slice(0,3);
   if (digits !== node.value) node.value = digits;
@@ -1376,9 +1543,14 @@ function onNumField(key, node){
   sortDay(DAYS[active.day]); renderTimeline();
 }
 function openPicker(kind, key){ pickerStep = { kind, key }; openMini = null; searchQ = ''; renderDetail(); }
-function closePicker(){ pickerStep = null; searchQ = ''; renderDetail(); }
+/* Coming back from a field's own step means that field has been answered, so
+   its inline picker collapses too. Leaving it open showed the value and the
+   chooser for it at the same time. */
+function closePicker(){ pickerStep = null; searchQ = ''; openField = null; renderDetail(); }
 function pickField(key, val){
   const e = active.e; e.fields = e.fields || {};
+  const f = (CONTEXT[e.type]||[]).find(x => x.key === key);
+  if (f && f.grams) delete e.fields[f.grams];   /* a level supersedes grams */
   if (val === null) delete e.fields[key]; else e.fields[key] = val;
   pickerStep = null; openField = null;
   sortDay(DAYS[active.day]);        /* duration moves the derived start */
@@ -1442,7 +1614,8 @@ function setDay(target){
 function openDetail(e, day){
   active = { e, day };
   basisOpen = (e.type === 'dose' && e.basis === 'assumed');  /* lead with what's unresolved */
-  openField = null; editingTime = false; editingLabel = false; pickerStep = null; openMini = null;
+  openField = null; editingTime = false; editingLabel = false;
+  pickerStep = null; openMini = null;
   renderDetail();
   openSheet('sheet-detail');
 }
@@ -1472,12 +1645,23 @@ function toggleField(key){
 function setField(key, val){
   const e = active.e;
   e.fields = e.fields || {};
+  /* Same guard as pickField — the inline picker and the step both write here,
+     and grams/level must never coexist. Missing it left "26 g" AND "Some" on
+     the same meal, which is two answers to one question. */
+  const f = (CONTEXT[e.type]||[]).find(x => x.key === key);
+  if (f && f.grams) delete e.fields[f.grams];
   if (val === null) delete e.fields[key]; else e.fields[key] = val;
   openField = null;
   renderDetail(); renderTimeline();
 }
-function addNote(){ active.e.note = ''; renderDetail(); }
-function setNote(v){ active.e.note = v; renderTimeline(); }   /* no re-render: don't steal the caret */
+/* Height follows content: reset, then take the scroll height. Runs on input and
+   once after every render, so an existing note opens at its real size. */
+function autoGrow(n){ n.style.height = 'auto'; n.style.height = n.scrollHeight + 'px'; }
+function setNote(v){
+  const e = active.e;
+  if (v) e.note = v; else delete e.note;   /* empty means no note, not an empty one */
+  renderTimeline();                        /* no re-render: don't steal the caret */
+}
 /* The entry is not spliced out — it is flagged and kept in place, so the rail
    doesn't jump and the marker can name what went. One tombstone at a time:
    removing something else commits the previous removal. */
@@ -1573,16 +1757,27 @@ function quickLog(btn, text, type){
 
 /* ═════════ sheets ═════════ */
 const SHEETS = ['sheet-log','sheet-detail'];
+/* `inert` on the sheets that are not open. A closed sheet is only translated
+   off-screen, so without this its buttons stay tabbable and its text stays in
+   the accessibility tree — a keyboard or screen-reader user can land inside a
+   panel nobody can see. One attribute does focus, pointer events and AT
+   visibility in one go. */
+function setSheetInert(openId){
+  SHEETS.forEach(sid => { const n = el(sid);
+    if (sid === openId) n.removeAttribute('inert'); else n.setAttribute('inert',''); });
+}
 function openSheet(id){
-  if (id === 'sheet-log'){ logStep = null; renderLogSheet(); }
+  if (id === 'sheet-log'){ logStep = null; searchQ = ''; renderLogSheet(); }
   lastFocus = document.activeElement;
   el('scrim').classList.add('open');
   SHEETS.forEach(s => el(s).classList.toggle('open', s === id));
+  setSheetInert(id);
   el(id).focus();                                   /* screen readers land inside the sheet */
 }
 function closeSheets(){
   el('scrim').classList.remove('open');
   SHEETS.forEach(s => el(s).classList.remove('open'));
+  setSheetInert(null);
   active = null; openField = null; editingTime = false; editingLabel = false; pickerStep = null; openMini = null;
   if (lastFocus && lastFocus.focus) lastFocus.focus();
 }
@@ -1596,7 +1791,7 @@ function setScale(v){
 }
 function setVar(name, value){ document.documentElement.style.setProperty(name, value); }
 
-renderCard(); renderTimeline(); renderLogSheet();
+renderCard(); renderTimeline(); renderLogSheet(); setSheetInert(null);
 </script>
 </body>
 </html>
