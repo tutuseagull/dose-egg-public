@@ -703,7 +703,6 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 
   <div class="top">
     <button class="icon-btn" aria-label="Menu"><i class="ph ph-list"></i></button>
-    <h1>Today</h1>
     <button class="icon-btn" aria-label="More"><i class="ph ph-dots-three"></i></button>
   </div>
 
@@ -1050,7 +1049,7 @@ function renderTimeline(){
   let h = '';
   DAYS.forEach((day, di) => {
     if (!day.live && !day.list.length) return;          /* hide empty past days */
-    h += `<div class="day-label">${esc(day.label)}</div>`;
+    h += `<div class="day-label">${esc(dayLabelText(di, day.label))}</div>`;
     if (!day.list.length){
       h += '<div class="empty-day">Nothing logged yet today — the + button is ready when you are.</div>';
       return;
@@ -1208,6 +1207,27 @@ function renderDetail(){
 
   el('detail-body').innerHTML = h;
   const nn = el('note-in'); if (nn) autoGrow(nn);   /* open an existing note at its real size */
+}
+
+/* ═════════ the top bar ══════════════════════════════════════════════════
+   DECIDED 2026-08-12: no title. The old "Today" duplicated the rail's own
+   TODAY label a few rows below, so the largest text on the screen was a word
+   already present in smaller type. The rail label now carries the date, which
+   puts it beside the section you are actually reading — scroll to yesterday
+   and it reads "YESTERDAY · TUE 11 AUG" rather than staying pinned to a header
+   you have scrolled past.
+   The four rejected variants (title / date / next dose / nothing at all) were
+   built as a switchable set and live in git history if the question reopens.
+   "Next dose" is the one worth revisiting: it was the only variant carrying an
+   actionable fact, and it was dropped for placement rather than for content.
+   This slot is where DoseEgg branding goes later. */
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS_LONG = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+/* Day 0 is today, 1 is yesterday, and so on down the rail. */
+function dayLabelText(i, label){
+  const d = new Date(); d.setDate(d.getDate() - i);
+  return `${label} · ${DAYS_LONG[d.getDay()].slice(0,3)} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
 }
 
 /* ═════════ log sheet — two steps, both of them meaningful ═══════════════
