@@ -763,7 +763,11 @@ let DAYS = [
 /* Optional context, per type. Adding a field here adds it to the sheet — no other edits.
    Deliberately one field each: this is enrichment, not a form to complete. */
 const CONTEXT = {
-  dose:     [ { key:'meal',    label:'Food',     icon:'ph-fork-knife',
+  /* `bare` = the value already contains its own label, so prefixing it would
+     read as "Food: With food". Everything else gets "Label: value", because a
+     value alone loses the question it answered — "High" does not say protein,
+     and "Tremor" under "Meds kicked in" reads as if the entry WERE tremor. */
+  dose:     [ { key:'meal',    label:'Food',     icon:'ph-fork-knife', bare:true,
                 choices:['Before food','With food','After food'] } ],
   /* Low/Some/High stays the fast path — most people estimate, and the evidence
      is about roughly how much protein, not exact grams. `grams` is a second,
@@ -911,7 +915,7 @@ function metaPairs(e){
   const out = [];
   fieldsFor(e).forEach(f => {
     if (f.grams && e.fields && e.fields[f.grams] != null){
-      out.push([f.icon, e.fields[f.grams] + ' g protein']); return;
+      out.push([f.icon, `${f.label}: ${e.fields[f.grams]} g`]); return;
     }
     if (!(e.fields && e.fields[f.key])) return;
     /* a known interval reads better as a span than as a bare length */
@@ -919,7 +923,8 @@ function metaPairs(e){
       `${fromMin(startMin(e))}–${fromMin(endMin(e))} · ${fmtDur(e.fields[f.key])}`]);
     else {
       const val = e.fields[f.key];
-      out.push([f.icon, Array.isArray(val) ? val.join(', ') : val]);
+      const txt = Array.isArray(val) ? val.join(', ') : val;
+      out.push([f.icon, f.bare ? txt : `${f.label}: ${txt}`]);
     }
   });
   (e.meta || []).forEach(m => out.push(m));
@@ -1140,9 +1145,10 @@ function renderDetail(){
     /* "Tremor +1" rather than "2 what eased" — it names the first thing, which
        is the one most likely to be the point, and keeps the chip to one line.
        The picker underneath shows exactly which ones. */
-    const v = (g != null) ? (g + ' g')
-            : Array.isArray(raw) ? (raw.length === 1 ? raw[0] : `${raw[0]} +${raw.length - 1}`)
-            : raw;
+    const shown = (g != null) ? (g + ' g')
+                : Array.isArray(raw) ? (raw.length === 1 ? raw[0] : `${raw[0]} +${raw.length - 1}`)
+                : raw;
+    const v = shown == null ? shown : (f.bare ? shown : `${f.label}: ${shown}`);
     h += v
       ? `<button class="chip set" onclick="toggleField('${f.key}')">
            <i class="ph ${f.icon}"></i>${esc(v)}<i class="ph ph-caret-down"></i></button>`
