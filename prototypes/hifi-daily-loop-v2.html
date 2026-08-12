@@ -448,8 +448,18 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
    is a temporal fact — for an activity it is arguably the point, since the
    dose-response question is about how much movement happened, not that some
    happened. Burying it in optional context made it invisible. */
-.durrow{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap}
-.durlabel{font-size:var(--text-meta);color:var(--text-muted)}
+/* Day and anchor are secondary facts — usually already right — so they read as
+   a quiet sentence above the time ("Ended · Today") rather than as two always-
+   open chip rows. Dotted underline is the same "this can be changed" signal the
+   time and the entry name already use; one grammar, three places. */
+.minirow{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
+.minibtn{display:flex;align-items:center;gap:var(--space-1);min-height:var(--target-min);
+         font-size:var(--text-small);color:var(--text-secondary);
+         border-radius:var(--radius-sm);padding:0 var(--space-1)}
+.minibtn span{border-bottom:2px dotted var(--border-interactive);padding-bottom:1px}
+.minibtn i{font-size:15px;color:var(--text-muted)}
+.minibtn:hover{background:var(--surface-raised)}
+.minisep{color:var(--paper-400);font-size:var(--text-small)}
 /* The time is a button — tapping it swaps in numeric fields. Signalled with a
    dotted underline and a pencil, because a big number alone reads as output. */
 .timeval-btn{display:flex;align-items:center;gap:var(--space-3);
@@ -500,7 +510,12 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 /* Context — unset fields are invitations (chips), set fields are facts (rows). */
 .chips{display:flex;gap:var(--target-gap);flex-wrap:wrap}
 .chip{display:flex;align-items:center;gap:var(--space-2);min-height:var(--target-routine);
-      padding:var(--space-2) var(--space-4);border-radius:var(--radius-full);
+      /* --space-3 not --space-4: four chips at 16px side padding needed 408px in
+         a 358px row, so "3 + More" could never make one line. Trimming 4px a
+         side buys 32px and lands the row on one line at 430px while still
+         wrapping gracefully at 390. The 16px GAP between them is untouched —
+         that one is the adjacent-target accessibility rule, not taste. */
+      padding:var(--space-2) var(--space-3);border-radius:var(--radius-full);
       background:var(--surface-page);border:1px dashed var(--border-interactive);
       font-size:var(--text-small);color:var(--text-secondary)}
 .chip i{font-size:18px;color:var(--text-muted);flex:0 0 auto}
@@ -511,6 +526,51 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .chip.pick{border-style:solid}
 .chip.pick.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
 .chip.pick.on i{color:var(--on-accent)}
+/* Search + rows for open-ended lists. Rows, not chips: a chip grid makes the
+   eye scan in two dimensions, and a filtered list is read top-down.
+   FLEXIBLE height with a cap, not a fixed tall box. The case for a fixed height
+   is layout stability, but each list now owns its own step — there is nothing
+   for it to jump against, so a fixed box would only add dead space under a
+   three-item list. */
+.searchwrap{display:flex;align-items:center;gap:var(--space-2);
+            min-height:var(--target-routine);padding:0 var(--space-3);
+            background:var(--surface-page);border:1px solid var(--border-interactive);
+            border-radius:var(--radius-md)}
+.searchwrap i{font-size:19px;color:var(--text-muted);flex:0 0 auto}
+.searchin{flex:1 1 auto;min-width:0;border:none;background:none;font:inherit;
+          font-size:var(--text-small);color:var(--text-primary);outline:none;
+          min-height:var(--target-routine)}
+.rowlist{display:flex;flex-direction:column;gap:var(--space-2);
+         max-height:44vh;overflow-y:auto;overscroll-behavior:contain}
+.rowitem{display:flex;align-items:center;gap:var(--space-3);width:100%;
+         min-height:var(--target-critical);padding:0 var(--space-4);text-align:left;
+         background:var(--surface-page);border:1px solid var(--border-subtle);
+         border-radius:var(--radius-md);font-size:var(--text-small)}
+.rowitem:hover{background:var(--surface-raised)}
+.rowitem.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);
+            background:var(--surface-raised)}
+.rowitem.add{border-style:dashed;border-color:var(--border-interactive);color:var(--accent)}
+.rowitem i{font-size:18px;color:var(--text-muted);flex:0 0 auto}
+.rowitem.add i{color:var(--accent)}
+.rowempty{font-size:var(--text-small);color:var(--text-muted);padding:var(--space-4) 0}
+/* Duration is a number, so it is typed, not searched. */
+.numrow{display:flex;align-items:center;gap:var(--space-3)}
+.numin{width:5ch;min-height:var(--target-critical);text-align:center;
+       font-family:var(--font-serif);font-size:var(--text-display);font-weight:400;
+       font-variant-numeric:tabular-nums;color:var(--text-primary);
+       background:var(--surface-page);border:1px solid var(--border-interactive);
+       border-radius:var(--radius-md);padding:0 var(--space-2)}
+.numin:focus{outline:none;border-color:var(--accent);
+             box-shadow:0 0 0 var(--focus-ring-width) rgba(43,91,169,.18)}
+.numunit{font-size:var(--text-small);color:var(--text-muted)}
+/* SHAPE FOLLOWS BEHAVIOUR — the rule the chips and nudges were only half
+   obeying, written down so it stops being an accident:
+     .chip  = SELECTOR. Sets a value, can be `.on`, pill (--radius-full).
+     .nudge = ACTION.   Does a thing, never selected, rect (--radius-md).
+   "Now" was styled apart as a "jump not an increment". True, but it is still
+   an action in a row of actions, and one differently-coloured item in a set
+   reads as more important rather than as differently-shaped. Consistency wins;
+   the distinction it was making was not worth a second style. */
 .picker{display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-3);
         background:var(--surface-page);border:1px solid var(--border-subtle);
         border-radius:var(--radius-md)}
@@ -644,8 +704,8 @@ const MARK = 'var(--mark)';   /* one colour for every type — the icon does the
    remember things late, and a record you cannot correct is a record you stop trusting. */
 let DAYS = [
   { label:'Today', live:true, list:[
-    { time:'10:00', text:'Walk', type:'activity', basis:'asserted',
-      fields:{ dur:'20 min' }, meta:[['ph-map-pin','Around the block']] },
+    { time:'10:00', text:'Walk', type:'activity', basis:'asserted', anchor:'end',
+      fields:{ dur:20 }, meta:[['ph-map-pin','Around the block']] },
     { time:'09:40', text:'Meds kicked in', type:'symptom', basis:'asserted',
       meta:[['ph-clock','85 min after dose']] },
     { time:'08:15', text:'Levodopa 100mg', type:'dose', basis:'asserted',
@@ -669,9 +729,10 @@ const CONTEXT = {
                 choices:['Low','Some','High'] } ],           /* D-12: 3 levels */
   /* activity duration is handled in the time section, not here — length is a
      temporal fact, not context. Kept in CONTEXT so the picker can reuse it. */
-  activity: [ { key:'dur',     label:'How long', icon:'ph-timer', temporal:true,
-                choices:['5 min','10 min','15 min','20 min','30 min','45 min',
-                         '1 hour','1.5 hours','2 hours+'] } ],
+  /* kind drives the control, not the option count — numeric data gets typed,
+     open-ended categorical data gets searched, short closed lists stay inline. */
+  activity: [ { key:'dur', label:'How long', icon:'ph-timer', temporal:true,
+                kind:'duration', choices:[10,20,30,45,60,90] } ],
   symptom:  [ { key:'body',    label:'Where',    icon:'ph-person',
                 choices:['Left side','Right side','Both sides','Whole body'] } ], /* C-02 */
   note:     []
@@ -719,6 +780,7 @@ let editingLabel = false;   // is the entry name swapped for a text field
    nine activity types inline is the tall sheet with two competing Done buttons
    Tutu hit. Threshold lives in one place so it can be tuned. */
 let pickerStep = null;      // null | {kind:'label'} | {kind:'field', key}
+let openMini = null;        // null | 'day' | 'anchor' — which qualifier is open
 const STEP_THRESHOLD = 4;
 const usesStep = n => n >= STEP_THRESHOLD;
 let freshEntry = null;      // the entry to mark as new in the next render
@@ -730,7 +792,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c =>
   ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const nowTime = () => { const d=new Date();
   return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
-const sortDay = d => d.list.sort((a,b) => b.time.localeCompare(a.time));
+const sortDay = d => d.list.sort((a,b) => startMin(b) - startMin(a));
 
 /* ═════════ rendering — timeline ═════════ */
 function markHTML(e){
@@ -744,12 +806,51 @@ function markHTML(e){
 function metaPairs(e){
   const out = [];
   (CONTEXT[e.type] || []).forEach(f => {
-    if (e.fields && e.fields[f.key]) out.push([f.icon, e.fields[f.key]]);
+    if (!(e.fields && e.fields[f.key])) return;
+    /* a known interval reads better as a span than as a bare length */
+    if (f.temporal) out.push([f.icon,
+      `${fromMin(startMin(e))}–${fromMin(endMin(e))} · ${fmtDur(e.fields[f.key])}`]);
+    else out.push([f.icon, e.fields[f.key]]);
   });
   (e.meta || []).forEach(m => out.push(m));
   return out;
 }
 const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+const fromMin = m => { m = ((m % 1440) + 1440) % 1440;
+  return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); };
+/* Duration is stored as a plain number of minutes. Formatting is display only,
+   so nothing has to parse "1.5 hours" back into arithmetic ever again. */
+const durMin = v => (typeof v === 'number' ? v : 0);
+function fmtDur(m){
+  if (!m) return '';
+  if (m < 60) return m + ' min';
+  const h = Math.floor(m/60), r = m % 60;
+  return r ? `${h}h ${r}m` : `${h}h`;
+}
+/* An activity is an INTERVAL, not a point. `time` is whichever end the user
+   anchored it to; the other end is derived from the duration. Everything that
+   orders or reads the record uses the START, so the rail stays chronologically
+   honest however the entry was typed in. If the duration is unknown the two
+   collapse and the anchor stops mattering — which is correct, not a fallback. */
+function startMin(e){
+  const t = toMin(e.time), d = durMin(e.fields && e.fields.dur);
+  return (e.anchor === 'end' && d) ? t - d : t;
+}
+function endMin(e){
+  const t = toMin(e.time), d = durMin(e.fields && e.fields.dur);
+  return (e.anchor === 'end' || !d) ? t : t + d;
+}
+const hasInterval = type => (CONTEXT[type] || []).some(f => f.temporal);
+/* the user's own most-used values for a field, same shape as rankLabels */
+function rankField(type, key){
+  const seen = new Map();
+  DAYS.forEach(d => d.list.forEach(e => {
+    const v = e.fields && e.fields[key];
+    if (e.type !== type || e.removed || !v) return;
+    seen.set(v, (seen.get(v) || 0) + 1);
+  }));
+  return [...seen.entries()].sort((a,b) => b[1]-a[1]).map(x => x[0]);
+}
 /* Show recorded_at only when it is far enough from occurred_at to change how
    the entry should be read. Under 20 minutes is the same moment in practice. */
 function lagLabel(e){
@@ -788,7 +889,7 @@ function entryHTML(e, di, i){
   const cls = 'entry' + (e === freshEntry ? ' fresh' : '');
   return `<button class="${cls}" onclick="tapEntry(${di},${i})">
     ${markHTML(e)}
-    <span class="etime">${e.time}</span>
+    <span class="etime">${fromMin(startMin(e))}</span>
     <span class="ecard">
       <span class="etext">${esc(e.text)}</span>
       ${meta ? `<span class="emeta">${meta}</span>` : ''}
@@ -802,7 +903,7 @@ function railInner(day, di){
   let h = '';
   day.list.forEach((e,i) => {
     if (i > 0){                               /* gaps read downward: newest first */
-      const g = gapLabel(day.list[i-1].time, e.time);
+      const g = gapLabel(fromMin(startMin(day.list[i-1])), fromMin(startMin(e)));
       if (g) h += `<div class="gap"><span>${g}</span></div>`;
     }
     h += entryHTML(e, di, i);
@@ -907,10 +1008,13 @@ function renderDetail(){
   }
 
   h += timeSectionHTML(e);
+  h += durationSectionHTML(e);
 
-  /* — ENRICH: context. Unset fields are dashed invitations; set fields are solid facts.
-       Always rendered, because Note applies to every type even where CONTEXT is empty. — */
-  h += '<div class="sec"><div class="sec-h">Context <span class="sec-opt">· optional</span></div>';
+  /* — ENRICH. Unset fields are dashed invitations; set fields are solid facts.
+       Always rendered, because Note applies to every type even where CONTEXT is empty.
+       COPY, 2026-08-11: this said "Context", which is product-design vocabulary —
+       nobody says "let me add context to this". "Details" is what it is. — */
+  h += '<div class="sec"><div class="sec-h">Details <span class="sec-opt">· optional</span></div>';
   h += '<div class="chips">';
   fields.filter(f => !f.temporal).forEach(f => {
     const v = e.fields && e.fields[f.key];
@@ -932,8 +1036,19 @@ function renderDetail(){
       + (v ? `<button class="chip pick" onclick="setField('${f.key}',null)">Clear</button>` : '')
       + '</div></div>';
   }
+  /* The note lives INSIDE Details rather than under a second header. Two
+     headers for one optional group is one more than the content earns — and
+     after tapping "Note" the user has just told us what it is, so naming it
+     again is the interface repeating itself. The placeholder and the aria-label
+     carry the meaning.
+     COPY, 2026-08-11: the placeholder used to read "Anything worth remembering",
+     which sets a bar. It asks the user to judge whether a thought qualifies
+     before writing it, and casts the app as the judge of worth — the same move
+     as grading how much someone tracks [C-08, docs/patient-voice-quotes.md].
+     Someone writing "everything is awful today" should not clear a relevance
+     test first. "Anything" is the whole point. */
   if (e.note !== undefined)
-    h += `<textarea class="note-in" placeholder="Anything worth remembering"
+    h += `<textarea class="note-in" aria-label="Notes" placeholder="Write anything here"
             oninput="setNote(this.value)">${esc(e.note)}</textarea>`;
   h += '</div>';
 
@@ -1061,6 +1176,7 @@ function openCategory(t){
   if (!guess){ logStep = t; renderLogSheet(); return; }
   closeSheets();
   const e = { time:nowTime(), recorded:nowTime(), text:guess, type:t, basis:'asserted' };
+  if (hasInterval(t)) e.anchor = 'end';   /* you log a workout after it ends */
   addEntry(e, 0);
   openDetail(e, 0);
 }
@@ -1068,12 +1184,15 @@ function openCategory(t){
 /* Picking IS the log. Nothing opens afterwards. */
 function logNamed(type, text){
   closeSheets();
-  addEntry({ time:nowTime(), recorded:nowTime(), text, type, basis:'asserted' }, 0);
+  const e = { time:nowTime(), recorded:nowTime(), text, type, basis:'asserted' };
+  if (hasInterval(type)) e.anchor = 'end';
+  addEntry(e, 0);
 }
 function logOther(type){
   closeSheets();
   const e = { time:nowTime(), recorded:nowTime(), text:NEW_LABEL[type],
               type, basis:'asserted' };
+  if (hasInterval(type)) e.anchor = 'end';
   addEntry(e, 0);
   openDetail(e, 0);
   startLabelEdit();
@@ -1110,9 +1229,28 @@ const isNow = () => active.day === 0 && active.e.time === nowTime();
 
 function timeSectionHTML(e){
   const lag = lagLabel(e);
-  const days = DAY_NAMES.map((d,i) =>
-    `<button class="chip pick${i===active.day?' on':''}" onclick="setDay(${i})">${d}</button>`
-  ).join('');
+  const anchored = hasInterval(e.type);
+
+  /* "Ended · Today · 19:00" — the qualifiers stay collapsed until tapped.
+     Both lists are 2 items, below STEP_THRESHOLD, so they open inline. */
+  let mini = '<div class="minirow">';
+  if (anchored){
+    mini += `<button class="minibtn" onclick="toggleMini('anchor')">
+      <span>${e.anchor === 'start' ? 'Started' : 'Ended'}</span>
+      <i class="ph ph-caret-down"></i></button><span class="minisep">·</span>`;
+  }
+  mini += `<button class="minibtn" onclick="toggleMini('day')">
+      <span>${DAY_NAMES[active.day]}</span><i class="ph ph-caret-down"></i></button>`;
+  mini += '</div>';
+
+  if (openMini === 'anchor')
+    mini += '<div class="chips">' + [['start','Started at'],['end','Ended at']].map(([v,l]) =>
+      `<button class="chip pick${(e.anchor||'end')===v?' on':''}" onclick="setAnchor('${v}')">${l}</button>`
+    ).join('') + '</div>';
+  if (openMini === 'day')
+    mini += '<div class="chips">' + DAY_NAMES.map((d,i) =>
+      `<button class="chip pick${i===active.day?' on':''}" onclick="setDay(${i})">${d}</button>`
+    ).join('') + '</div>';
 
   const face = editingTime
     ? `<div class="timefields">
@@ -1127,78 +1265,138 @@ function timeSectionHTML(e){
          <span class="timeval">${e.time}</span><i class="ph ph-pencil-simple"></i>
        </button>`;
 
-  const nudges = [[-60,'−1h'],[-15,'−15m'],[15,'+15m'],[60,'+1h']].map(([m,l]) =>
-    `<button class="nudge" onclick="nudge(${m})"${canNudge(m)?'':' disabled'}>${l}</button>`
-  ).join('');
+  /* "+1h" gave up its slot to "Now", 2026-08-11. It was the most-often-disabled
+     button on the row — anything logged near the present time cannot move an
+     hour forward — and Now is the jump people actually reach for. Marked apart
+     because it is a jump, not an increment.
+     Now is never disabled. A disabled control asks the user to work out WHY it
+     is dead; an idempotent one just does nothing when it is already true. That
+     costs a wasted tap at worst, and the wasted tap is cheaper than the puzzle. */
+  const nudges = [[-60,'\u22121h'],[-15,'\u221215m'],[15,'+15m']].map(([m,l]) =>
+      `<button class="nudge" onclick="nudge(${m})"${canNudge(m)?'':' disabled'}>${l}</button>`
+    ).join('')
+    + `<button class="nudge" onclick="setNow()">Now</button>`;
 
-  return `<div class="sec"><div class="sec-h">When it happened</div>
-    <div class="chips">${days}</div>
+  /* Header names the anchor, so the big number is never ambiguous. */
+  const head = anchored ? (e.anchor === 'start' ? 'When it started' : 'When it ended')
+                        : 'When it happened';
+  return `<div class="sec"><div class="sec-h">${head}</div>
+    ${mini}
     ${face}
     ${lag ? `<div class="timesub">Logged at ${lag}</div>` : ''}
-    ${editingTime ? '' : `<div class="nudges">${nudges}</div>
-      <button class="nowbtn" onclick="setNow()"${isNow()?' disabled':''}>
-        <i class="ph ph-crosshair-simple"></i>Set to now</button>
-      ${durationRowHTML(e)}`}
+    ${editingTime ? '' : `<div class="nudges">${nudges}</div>`}
   </div>`;
 }
 
+/* Duration gets the same treatment as the time: its own section, a few
+   shortcuts ranked by what this user actually logs, and one door to the rest.
+   Previously it was a lone "Add" chip in a different visual idiom. */
+function durationSectionHTML(e){
+  const f = (CONTEXT[e.type] || []).find(x => x.temporal);
+  if (!f) return '';
+  const v = e.fields && e.fields[f.key];
+  /* WHICH three: by how often this user picks them. IN WHAT ORDER: by size.
+     Frequency ranking is right for categorical values, where there is no
+     natural order to violate — but 20, 10, 30 reads as broken, because numbers
+     carry their own order and the eye expects it. So: relevance chooses the
+     set, magnitude arranges it. Three plus More… keeps the row to four, which
+     fits on one line on a wider phone and wraps gracefully on a narrow one. */
+  const pool = rankField(e.type, f.key)
+                 .concat(f.choices.filter(c => !rankField(e.type, f.key).includes(c)));
+  const picks = (v ? [v] : []).concat(pool.filter(c => c !== v))
+                  .slice(0, 3).sort((a, b) => a - b);
+  const chips = picks.map(c =>
+      `<button class="chip pick${c===v?' on':''}" onclick="pickField('${f.key}',${c===v?'null':c})">${fmtDur(c)}</button>`)
+    .concat([`<button class="chip" onclick="openPicker('field','${f.key}')">More…</button>`]);
+  return `<div class="sec"><div class="sec-h">${f.label}</div>
+    <div class="chips">${chips.join('')}</div></div>`;
+}
+
 /* One exit only — back. Every choice commits the moment it is tapped, so there
-   is nothing to confirm and no second Done competing with the sheet's own. */
+   is nothing to confirm and no second Done competing with the sheet's own.
+   Two shapes, chosen by what KIND of data the field holds — not by how many
+   options it has, which was the earlier rule and the cruder one:
+     open-ended categorical → search + rows + add-your-own
+     numeric / temporal     → type the number + shortcuts (searching numbers
+                              is nonsense, and the number is unbounded anyway) */
 function renderPickerStep(){
   const e = active.e;
   const isLabel = pickerStep.kind === 'label';
   const field = isLabel ? null : (CONTEXT[e.type]||[]).find(f => f.key === pickerStep.key);
   const title = isLabel ? `${TYPE_NAME[e.type]} type` : field.label;
-  const choices = isLabel ? labelChoices(e.type) : field.choices;
-  const current = isLabel ? e.text : (e.fields && e.fields[pickerStep.key]);
 
   let h = `<div class="log-head">
       <button class="backbtn" onclick="closePicker()" aria-label="Back">
         <i class="ph ph-caret-left"></i></button>
       <h2>${esc(title)}</h2>
     </div>`;
-  h += '<div class="chips">' + choices.map(t =>
-      `<button class="chip pick${t===current?' on':''}" onclick="${isLabel
-        ? `pickLabel(${q(t)})` : `pickField('${pickerStep.key}',${q(t)})`}">${esc(t)}</button>`
-    ).join('') + (current && !isLabel
-      ? `<button class="chip pick" onclick="pickField('${pickerStep.key}',null)">Clear</button>` : '')
-    + '</div>';
-  /* naming it yourself belongs on this step, where the alternatives are */
-  if (isLabel)
-    h += `<input class="lbl-in" id="lbl-in" value="${esc(e.text)}"
-            aria-label="Name of this entry" oninput="setLabel(this.value)">`;
+
+  if (isLabel){
+    const all = labelChoices(e.type);
+    const qy = searchQ.trim().toLowerCase();
+    const hits = qy ? all.filter(t => t.toLowerCase().includes(qy)) : all;
+    const exact = all.some(t => t.toLowerCase() === qy);
+    h += `<div class="searchwrap"><i class="ph ph-magnifying-glass"></i>
+        <input class="searchin" id="search-in" value="${esc(searchQ)}"
+               placeholder="Search, or type a new one"
+               aria-label="Search ${esc(title)}" oninput="onSearch(this.value)"></div>`;
+    h += '<div class="rowlist">';
+    /* Your own words beat any list we could ship. Offered as soon as what you
+       typed is not already there. */
+    if (qy && !exact)
+      h += `<button class="rowitem add" onclick="pickLabel(${q(searchQ.trim())})">
+        <i class="ph ph-plus"></i>Use “${esc(searchQ.trim())}”</button>`;
+    h += hits.map(t =>
+      `<button class="rowitem${t===e.text?' on':''}" onclick="pickLabel(${q(t)})">${esc(t)}</button>`
+    ).join('');
+    if (!hits.length && !qy) h += '<div class="rowempty">Nothing here yet.</div>';
+    h += '</div>';
+  } else if (field.kind === 'duration'){
+    const cur = (e.fields && e.fields[field.key]) || '';
+    h += `<div class="numrow">
+        <input class="numin" id="num-in" inputmode="numeric" maxlength="3" value="${cur}"
+               aria-label="${esc(field.label)} in minutes" oninput="onNumField('${field.key}',this)">
+        <span class="numunit">minutes</span>
+      </div>`;
+    h += '<div class="chips">' + [...field.choices].sort((a,b)=>a-b).map(m =>
+        `<button class="chip pick${m===cur?' on':''}" onclick="pickField('${field.key}',${m})">${fmtDur(m)}</button>`
+      ).join('') + (cur ? `<button class="chip pick" onclick="pickField('${field.key}',null)">Clear</button>` : '')
+      + '</div>';
+  }
   el('detail-body').innerHTML = h;
+  const si = el('search-in'); if (si && searchQ) { si.focus(); si.setSelectionRange(si.value.length, si.value.length); }
 }
-function openPicker(kind, key){ pickerStep = { kind, key }; renderDetail(); }
-function closePicker(){ pickerStep = null; renderDetail(); }
+function onSearch(v){ searchQ = v; renderDetail(); }
+/* Live like the other numeric fields; never re-renders mid-keystroke. */
+function onNumField(key, node){
+  const digits = node.value.replace(/\D/g,'').slice(0,3);
+  if (digits !== node.value) node.value = digits;
+  const e = active.e; e.fields = e.fields || {};
+  if (digits === '') delete e.fields[key]; else e.fields[key] = parseInt(digits,10);
+  sortDay(DAYS[active.day]); renderTimeline();
+}
+function openPicker(kind, key){ pickerStep = { kind, key }; openMini = null; searchQ = ''; renderDetail(); }
+function closePicker(){ pickerStep = null; searchQ = ''; renderDetail(); }
 function pickField(key, val){
   const e = active.e; e.fields = e.fields || {};
   if (val === null) delete e.fields[key]; else e.fields[key] = val;
   pickerStep = null; openField = null;
+  sortDay(DAYS[active.day]);        /* duration moves the derived start */
   renderDetail(); renderTimeline();
 }
+function toggleMini(k){ openMini = (openMini === k) ? null : k; renderDetail(); }
+/* Switching anchor keeps the clock time and re-reads what it means, which is
+   what "I meant that was the start" expects. Re-sorts: the derived start moves. */
+function setAnchor(v){ active.e.anchor = v; openMini = null;
+                       sortDay(DAYS[active.day]); renderDetail(); renderTimeline(); }
 
-function durationRowHTML(e){
-  const f = (CONTEXT[e.type] || []).find(x => x.temporal);
-  if (!f) return '';
-  const v = e.fields && e.fields[f.key];
-  return `<div class="durrow">
-      <span class="durlabel">${f.label}</span>
-      <button class="chip${v?' set':''}" onclick="openPicker('field','${f.key}')">
-        <i class="ph ${f.icon}"></i>${v ? esc(v) : 'Add'}</button>
-    </div>`;
-}
-
-function startLabelEdit(){
-  if (usesStep(labelChoices(active.e.type).length)){ openPicker('label'); return; }
-  editingLabel = true; renderDetail();
-  const n = el('lbl-in'); if (n){ n.focus(); n.select(); }
-}
+/* The entry name is always open-ended, so it always gets the search step. */
+function startLabelEdit(){ openPicker('label'); }
 function endLabelEdit(){ editingLabel = false; renderDetail(); }
 /* Live, like the time fields — writes through to the rail without re-rendering
    the sheet, which would take the caret with it. */
 function setLabel(v){ active.e.text = v; renderTimeline(); }
-function pickLabel(t){ active.e.text = t; editingLabel = false; pickerStep = null;
+function pickLabel(t){ active.e.text = t; editingLabel = false; pickerStep = null; searchQ = '';
                        renderDetail(); renderTimeline(); }
 
 function startTimeEdit(){
@@ -1230,7 +1428,8 @@ function setNow(){
 }
 /* Moving days moves the entry between lists — the day IS the list it lives in. */
 function setDay(target){
-  if (target === active.day) return;
+  openMini = null;
+  if (target === active.day){ renderDetail(); return; }
   const e = active.e;
   DAYS[active.day].list = DAYS[active.day].list.filter(x => x !== e);
   DAYS[target].list.push(e);
@@ -1243,7 +1442,7 @@ function setDay(target){
 function openDetail(e, day){
   active = { e, day };
   basisOpen = (e.type === 'dose' && e.basis === 'assumed');  /* lead with what's unresolved */
-  openField = null; editingTime = false; editingLabel = false; pickerStep = null;
+  openField = null; editingTime = false; editingLabel = false; pickerStep = null; openMini = null;
   renderDetail();
   openSheet('sheet-detail');
 }
@@ -1267,8 +1466,8 @@ function nudge(mins){
 }
 function toggleField(key){
   const f = (CONTEXT[active.e.type]||[]).find(x => x.key === key);
-  if (f && usesStep(f.choices.length)){ openPicker('field', key); return; }
-  openField = (openField === key) ? null : key; renderDetail();
+  if (f && f.kind === 'duration'){ openPicker('field', key); return; }
+  openField = (openField === key) ? null : key; renderDetail();   /* short closed list */
 }
 function setField(key, val){
   const e = active.e;
@@ -1384,7 +1583,7 @@ function openSheet(id){
 function closeSheets(){
   el('scrim').classList.remove('open');
   SHEETS.forEach(s => el(s).classList.remove('open'));
-  active = null; openField = null; editingTime = false; editingLabel = false; pickerStep = null;
+  active = null; openField = null; editingTime = false; editingLabel = false; pickerStep = null; openMini = null;
   if (lastFocus && lastFocus.focus) lastFocus.focus();
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(); });
