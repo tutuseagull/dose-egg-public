@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoseEgg — Look Back statement bank</title>
+<style>
+  :root {
+    --bg: #FAF7F0;
+    --card: #FFFFFF;
+    --text: #2A2823;
+    --text-muted: #6B665C;
+    --text-soft: #8E8779;
+    --divider: #E8E1D2;
+    --accent: #7A6080;
+    --accent-soft: rgba(122, 96, 128, 0.07);
+    --accent-border: rgba(122, 96, 128, 0.18);
+    --zh: #5F7E6E;
+    --zh-soft: rgba(95, 126, 110, 0.07);
+
+    /* chart marks — one hue for doses, one neutral warm for notes.
+       Never red/green, never a good/bad scale. [AGENTS.md · Tone & framing] */
+    --mark-dose: #4E6B84;
+    --mark-note: #8C7B6A;
+    --mark-faint: #C9C2B4;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { max-width: 880px; margin: 0 auto; padding: 64px 40px 96px; }
+
+  .back {
+    position: fixed; top: 14px; left: 14px; z-index: 999;
+    background: rgba(250,247,240,0.92);
+    border: 1px solid var(--divider); border-radius: 20px;
+    padding: 5px 14px; font-size: 11px; font-weight: 600;
+    color: #666; text-decoration: none; backdrop-filter: blur(4px);
+  }
+  .back:hover { color: var(--text); }
+
+  header { margin-bottom: 44px; padding-bottom: 28px; border-bottom: 1px solid var(--divider); }
+
+  .eyebrow {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--text-soft); font-weight: 600; margin-bottom: 10px;
+  }
+
+  h1 { font-size: 34px; font-weight: 600; margin: 0 0 10px; letter-spacing: -0.02em; line-height: 1.2; }
+
+  .subtitle { font-size: 15px; color: var(--text-muted); margin: 0; max-width: 600px; line-height: 1.6; }
+
+  .meta { font-size: 12px; color: var(--text-soft); margin-top: 14px; font-style: italic; }
+
+  h2 {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--text-soft); margin: 56px 0 18px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--divider);
+  }
+
+  h3 { font-size: 17px; font-weight: 600; margin: 34px 0 8px; letter-spacing: -0.01em; }
+
+  p { margin: 0 0 14px; }
+  .lede { font-size: 15px; color: var(--text-muted); max-width: 640px; }
+
+  .rule {
+    background: var(--accent-soft); border: 1px solid var(--accent-border);
+    border-radius: 10px; padding: 16px 20px; margin: 20px 0;
+    font-size: 14px; line-height: 1.6;
+  }
+  .rule strong { color: var(--accent); }
+
+  .rule.warn { background: rgba(140,123,106,0.07); border-color: rgba(140,123,106,0.22); }
+  .rule.warn strong { color: #6E5C48; }
+
+  /* ─── Era header ─── */
+  .era {
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    margin: 48px 0 6px;
+  }
+  .era-name { font-size: 21px; font-weight: 600; letter-spacing: -0.01em; }
+  .era-when {
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--accent); background: var(--accent-soft);
+    border: 1px solid var(--accent-border); border-radius: 4px; padding: 2px 9px;
+  }
+  .era-job { font-size: 14px; color: var(--text-muted); margin: 0 0 22px; max-width: 620px; }
+
+  /* ─── Statement card ─── */
+  .stmt {
+    background: var(--card); border: 1px solid var(--divider);
+    border-radius: 12px; padding: 20px 22px; margin-bottom: 14px;
+  }
+
+  .stmt-id {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    color: var(--text-soft); margin-bottom: 8px;
+  }
+
+  .stmt-text {
+    font-size: 16px; line-height: 1.55; color: var(--text);
+    margin: 0 0 16px; font-weight: 500;
+  }
+
+  .stmt-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 12px 28px; padding-top: 14px; border-top: 1px solid var(--divider);
+  }
+
+  .field { }
+  .field-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text-soft); margin-bottom: 3px;
+  }
+  .field-value { font-size: 13px; line-height: 1.55; color: var(--text-muted); }
+  .field-value.forbid { color: #6E5C48; }
+
+  /* ─── Chart figure ─── */
+  figure {
+    margin: 24px 0 32px; padding: 22px 24px 18px;
+    background: var(--card); border: 1px solid var(--divider); border-radius: 12px;
+  }
+  figure svg { display: block; width: 100%; height: auto; max-width: 680px; }
+  figcaption { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-top: 14px; }
+  figcaption b { color: var(--text); font-weight: 600; }
+
+  .opt-tag {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--zh-soft); color: var(--zh);
+    border: 1px solid rgba(95,126,110,0.2); border-radius: 4px;
+    padding: 2px 8px; margin-bottom: 10px;
+  }
+
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 12px; font-size: 12px; color: var(--text-muted); }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .swatch { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  ul { margin: 0 0 16px; padding-left: 20px; }
+  li { margin-bottom: 7px; line-height: 1.6; }
+
+  .zh { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
+
+  footer {
+    margin-top: 72px; padding-top: 20px; border-top: 1px solid var(--divider);
+    font-size: 12px; color: var(--text-soft);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  }
+
+  @media (max-width: 700px) {
+    .page { padding: 40px 20px 64px; }
+    h1 { font-size: 26px; }
+    .stmt-grid { grid-template-columns: 1fr; }
+    .pair { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<a href="index.html" class="back">← Home</a>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">DoseEgg · Design</div>
+    <h1>Look Back — statement bank</h1>
+    <p class="subtitle">The sentences a patient would open the app to read, written before any screen. Each one carries what it needs to be true, what it may be drawn as, and what may never be drawn on it.</p>
+    <p class="meta">Draft 2 · August 2026 · for P01 and the domain lead to react to. Not a spec.</p>
+  </header>
+
+  <p class="lede">The method here is deliberate. The failure mode in an analytics surface is building a chart and then hunting for a story in it. So this page is written in the other order: the statement first, the visual second, and for several statements the honest answer is <em>no visual at all</em>.</p>
+
+  <div class="rule">
+    <strong>How to read this page.</strong> Everything is a proposal. The most useful thing a reader can do is mark statements as <em>would open the app for this</em> / <em>don't care</em> / <em>this would upset me</em>. The third category is the most valuable of the three.
+  </div>
+
+
+  <!-- ══════════════════ TWO READERS ══════════════════ -->
+  <h2>Two readers, two scenarios</h2>
+
+  <p>The same surface has two plausible audiences, and they want opposite things. Naming both keeps us from designing a compromise that serves neither.</p>
+
+  <h3>Scenario 1 — the 8am reader</h3>
+  <p class="lede">Opens the app over coffee. Wants to know <em>what should I expect today</em>, so they can decide whether to schedule the meeting, take the trip, book the class.</p>
+  <p class="lede">We cannot serve this honestly. Research is explicit that ON/OFF periods are plannable but not predictable [C-03]; a confident morning forecast would be manufactured confidence, and a wrong one costs the user a day. Everything we could truthfully say to this reader is a description of the past, which is Scenario 2's content arriving at the wrong hour.</p>
+
+  <h3>Scenario 2 — the night-before-the-appointment reader</h3>
+  <p class="lede">Opens the app the evening before a neurology visit, or the weekend before. Wants to know <em>what do I tell them</em> — and underneath that, <em>do I have the standing to ask for a change</em>.</p>
+  <p class="lede">This we can serve completely and honestly, because it is entirely retrospective. It is also where the interval is naturally long enough for the data to say something.</p>
+
+  <div class="rule">
+    <strong>Where this leaves MVP.</strong> Build the retrospective surface first, as a neutral, non-judgmental way to see your own record. The pre-appointment framing is the destination, not the first build — designing the visit-prep flow is a later conversation and carries a research dependency on doctors that the retrospective view does not.
+  </div>
+
+  <div class="rule warn">
+    <strong>Parked, deliberately.</strong> Reading the user's calendar to connect planning with doses and meals — plausible and interesting, but it edges toward telling someone how to arrange their day, which is medical suggestion. Revisit with the ambient-AI consent bar [C-14], not before.
+  </div>
+
+
+  <!-- ══════════════════ RULES ══════════════════ -->
+  <h2>Rules every statement obeys</h2>
+
+  <div class="rule">
+    <strong>1 · Every claim carries its coverage.</strong> A statement names how many days it is built from and how many it could not see. "Six of nine" is a fact; "six" is a rhetorical trick.
+  </div>
+  <div class="rule">
+    <strong>2 · Absence of a log is unknown, never zero.</strong> A day with no entry is not a day with no symptoms. It stays a gap in the picture, and it never renders as an empty bar at the baseline. [AGENTS.md · Logging &amp; data model]
+  </div>
+  <div class="rule">
+    <strong>3 · A bare entry still counts in the denominator.</strong> Depth is optional, identity is not — an entry without context is a full member of the population, it simply cannot serve as evidence for a context claim. Excluding bare entries would compute every pattern over only the days someone felt well enough to elaborate.
+  </div>
+  <div class="rule">
+    <strong>4 · Assumed doses are excluded from timing claims.</strong> A scheduled time is a plan, not an observation. Timing statements are built from <code>asserted</code> entries only, and the count of excluded assumptions is part of the coverage. [AGENTS.md · <code>basis</code>]
+  </div>
+  <div class="rule">
+    <strong>5 · Never emit a pattern whose obvious action is to do less of something.</strong> The same correlation can be aimed at the medication schedule or at the person's life. Always aim it at the schedule.
+  </div>
+  <div class="rule">
+    <strong>6 · No locked or greyed-out insight, ever.</strong> When there isn't enough yet, say something shorter and true, or say when to come back. Never show the shape of a reward that has been withheld.
+  </div>
+  <div class="rule">
+    <strong>7 · The mark may not claim more resolution than the data has.</strong> See the visual language section below.
+  </div>
+
+
+  <!-- ══════════════════ VISUAL LANGUAGE ══════════════════ -->
+  <h2>Visual language — four options</h2>
+
+  <p>Glucose has a sensor. A CGM samples every few minutes, so a continuous line is an honest rendering — the data really is continuous. DoseEgg has sparse, self-reported, irregular events. A line drawn between two self-reports invents the gap between them and implies a trajectory nobody measured.</p>
+
+  <div class="rule">
+    <strong>So: no line charts, no areas, no smoothing, no trendlines.</strong> Sparse events are <em>dots</em>. Counts over a bounded period are <em>bars</em>. What we know versus don't know is a <em>grid</em>. The mark must not claim more resolution than the data has.
+  </div>
+
+  <!-- ── OPTION A ── -->
+  <figure>
+    <div class="opt-tag">Option A — day rows</div>
+    <svg viewBox="0 0 660 246" role="img" aria-label="Seven rows, one per day, showing dose times across the day from 6am to 10pm as dots.">
+      <!-- gridlines -->
+      <g stroke="#EDE7DA" stroke-width="1">
+        <line x1="60" y1="24" x2="60" y2="206"/>
+        <line x1="200" y1="24" x2="200" y2="206"/>
+        <line x1="340" y1="24" x2="340" y2="206"/>
+        <line x1="480" y1="24" x2="480" y2="206"/>
+        <line x1="620" y1="24" x2="620" y2="206"/>
+      </g>
+      <!-- day labels -->
+      <g font-size="12" fill="#8E8779" font-family="-apple-system, sans-serif">
+        <text x="0" y="34">Mon</text><text x="0" y="60">Tue</text><text x="0" y="86">Wed</text>
+        <text x="0" y="112">Thu</text><text x="0" y="138">Fri</text><text x="0" y="164">Sat</text>
+        <text x="0" y="190">Sun</text>
+      </g>
+      <!-- row baselines -->
+      <g stroke="#F2ECE0" stroke-width="1">
+        <line x1="60" y1="30" x2="620" y2="30"/><line x1="60" y1="56" x2="620" y2="56"/>
+        <line x1="60" y1="82" x2="620" y2="82"/><line x1="60" y1="108" x2="620" y2="108"/>
+        <line x1="60" y1="134" x2="620" y2="134"/><line x1="60" y1="160" x2="620" y2="160"/>
+        <line x1="60" y1="186" x2="620" y2="186"/>
+      </g>
+      <!-- dose dots (filled = asserted) -->
+      <g fill="#4E6B84">
+        <circle cx="104" cy="30" r="5"/><circle cx="282" cy="30" r="5"/><circle cx="462" cy="30" r="5"/>
+        <circle cx="118" cy="56" r="5"/><circle cx="311" cy="56" r="5"/><circle cx="471" cy="56" r="5"/>
+        <circle cx="107" cy="82" r="5"/><circle cx="290" cy="82" r="5"/><circle cx="457" cy="82" r="5"/>
+        <circle cx="133" cy="108" r="5"/><circle cx="486" cy="108" r="5"/>
+        <circle cx="110" cy="134" r="5"/><circle cx="279" cy="134" r="5"/><circle cx="465" cy="134" r="5"/>
+        <circle cx="153" cy="160" r="5"/><circle cx="322" cy="160" r="5"/><circle cx="480" cy="160" r="5"/>
+        <circle cx="142" cy="186" r="5"/><circle cx="299" cy="186" r="5"/><circle cx="468" cy="186" r="5"/>
+      </g>
+      <!-- assumed dose = hollow -->
+      <circle cx="340" cy="108" r="5" fill="#FFFFFF" stroke="#4E6B84" stroke-width="1.5" stroke-dasharray="2 2"/>
+      <!-- note marks -->
+      <g fill="#8C7B6A">
+        <rect x="376" y="105" width="7" height="7" rx="1.5"/>
+        <rect x="392" y="157" width="7" height="7" rx="1.5"/>
+        <rect x="368" y="79" width="7" height="7" rx="1.5"/>
+      </g>
+      <!-- axis -->
+      <g font-size="11" fill="#A8A192" font-family="-apple-system, sans-serif" text-anchor="middle">
+        <text x="60" y="224">6am</text><text x="200" y="224">10am</text><text x="340" y="224">2pm</text>
+        <text x="480" y="224">6pm</text><text x="620" y="224">10pm</text>
+      </g>
+    </svg>
+    <div class="legend">
+      <span><i class="swatch" style="background:#4E6B84"></i> dose you confirmed</span>
+      <span><i class="swatch" style="background:#fff;border:1.5px dashed #4E6B84"></i> assumed — not counted</span>
+      <span><i class="swatch" style="background:#8C7B6A;border-radius:2px"></i> a note you left</span>
+    </div>
+    <figcaption><b>What it's for:</b> "what did my week actually look like." The whole shape of the interval in one glance, and the only form where a dose and a note can sit next to each other in real time. <b>Reads as:</b> a record, not a score. <b>Watch:</b> seven rows is comfortable, twenty-eight is a wall — this is a week-scale form, not a quarter-scale one.</figcaption>
+  </figure>
+
+  <!-- ── OPTION B ── -->
+  <figure>
+    <div class="opt-tag">Option B — slot columns</div>
+    <svg viewBox="0 0 660 236" role="img" aria-label="Three columns, one per dose slot, each showing seven dots for the seven days at the clock time the dose was taken.">
+      <!-- y axis labels -->
+      <g font-size="11" fill="#A8A192" font-family="-apple-system, sans-serif" text-anchor="end">
+        <text x="52" y="34">7am</text><text x="52" y="94">12pm</text><text x="52" y="155">5pm</text><text x="52" y="204">9pm</text>
+      </g>
+      <g stroke="#F2ECE0" stroke-width="1">
+        <line x1="60" y1="30" x2="620" y2="30"/><line x1="60" y1="90" x2="620" y2="90"/>
+        <line x1="60" y1="151" x2="620" y2="151"/><line x1="60" y1="200" x2="620" y2="200"/>
+      </g>
+      <!-- planned time reference (the user's own plan, not a norm) -->
+      <g stroke="#C9C2B4" stroke-width="1.5" stroke-dasharray="4 4">
+        <line x1="110" y1="48" x2="230" y2="48"/>
+        <line x1="270" y1="109" x2="390" y2="109"/>
+        <line x1="430" y1="170" x2="550" y2="170"/>
+      </g>
+      <!-- morning cluster — x is only jitter to separate days, never an axis,
+           so the order is deliberately non-monotonic in y: a slope here would
+           read as a trend the data does not contain -->
+      <g fill="#4E6B84">
+        <circle cx="122" cy="55" r="5"/><circle cx="134" cy="45" r="5"/><circle cx="146" cy="62" r="5"/>
+        <circle cx="158" cy="47" r="5"/><circle cx="170" cy="58" r="5"/><circle cx="182" cy="46" r="5"/>
+        <circle cx="194" cy="50" r="5"/>
+        <!-- midday cluster — visibly wider spread -->
+        <circle cx="282" cy="117" r="5"/><circle cx="294" cy="127" r="5"/><circle cx="306" cy="106" r="5"/>
+        <circle cx="318" cy="113" r="5"/><circle cx="330" cy="121" r="5"/><circle cx="342" cy="107" r="5"/>
+        <circle cx="354" cy="110" r="5"/>
+        <!-- evening cluster — visibly tight -->
+        <circle cx="442" cy="173" r="5"/><circle cx="454" cy="168" r="5"/><circle cx="466" cy="178" r="5"/>
+        <circle cx="478" cy="170" r="5"/><circle cx="490" cy="176" r="5"/><circle cx="502" cy="171" r="5"/>
+        <circle cx="514" cy="172" r="5"/>
+      </g>
+      <g font-size="12" fill="#6B665C" font-family="-apple-system, sans-serif" text-anchor="middle">
+        <text x="158" y="222">Morning</text><text x="318" y="222">Midday</text><text x="478" y="222">Evening</text>
+      </g>
+    </svg>
+    <div class="legend">
+      <span><i class="swatch" style="background:#4E6B84"></i> one day</span>
+      <span><i class="swatch" style="background:none;border-top:2px dashed #C9C2B4;border-radius:0;height:2px;width:14px"></i> the time you planned</span>
+    </div>
+    <figcaption><b>What it's for:</b> "how steady is each dose." The scatter <em>is</em> the message — a tight cluster and a loose one need no words at all. <b>Why it's safe:</b> the only reference line is the user's own plan, never a population norm [C-10]. <b>Watch:</b> resist adding a mean marker or a shaded "on target" band; the moment a band appears, dots outside it become failures.</figcaption>
+  </figure>
+
+  <!-- ── OPTION C ── -->
+  <figure>
+    <div class="opt-tag">Option C — count bars</div>
+    <svg viewBox="0 0 660 208" role="img" aria-label="Six bars showing the number of movement sessions logged in each of six weeks.">
+      <g stroke="#F2ECE0" stroke-width="1">
+        <line x1="60" y1="30" x2="620" y2="30"/><line x1="60" y1="70" x2="620" y2="70"/>
+        <line x1="60" y1="110" x2="620" y2="110"/><line x1="60" y1="150" x2="620" y2="150"/>
+      </g>
+      <g font-size="11" fill="#A8A192" font-family="-apple-system, sans-serif" text-anchor="end">
+        <text x="52" y="34">6</text><text x="52" y="74">4</text><text x="52" y="114">2</text><text x="52" y="154">0</text>
+      </g>
+      <g fill="#4E6B84">
+        <rect x="92" y="90" width="52" height="60" rx="3"/>
+        <rect x="182" y="110" width="52" height="40" rx="3"/>
+        <rect x="272" y="70" width="52" height="80" rx="3"/>
+        <rect x="362" y="90" width="52" height="60" rx="3"/>
+        <rect x="452" y="50" width="52" height="100" rx="3"/>
+        <rect x="542" y="90" width="52" height="60" rx="3"/>
+      </g>
+      <g font-size="11" fill="#8E8779" font-family="-apple-system, sans-serif" text-anchor="middle">
+        <text x="118" y="170">6 wks ago</text><text x="208" y="170">5</text><text x="298" y="170">4</text>
+        <text x="388" y="170">3</text><text x="478" y="170">2</text><text x="568" y="170">last wk</text>
+      </g>
+      <text x="60" y="196" font-size="12" fill="#6B665C" font-family="-apple-system, sans-serif">Movement sessions logged</text>
+    </svg>
+    <figcaption><b>What it's for:</b> counting a therapy — walks, PT, boxing, tai chi. Legitimate because it counts treatment delivered, not app usage. <b>Watch:</b> no goal line, no target, no "up from last week." A goal line converts every short bar into a failure, and this is precisely the metric a person on a bad month cannot control.</figcaption>
+  </figure>
+
+  <!-- ── OPTION D ── -->
+  <figure>
+    <div class="opt-tag">Option D — coverage grid</div>
+    <svg viewBox="0 0 660 200" role="img" aria-label="A grid of four weeks by seven days showing which days have entries and which are unknown.">
+      <g font-size="11" fill="#A8A192" font-family="-apple-system, sans-serif" text-anchor="middle">
+        <text x="94" y="22">M</text><text x="150" y="22">T</text><text x="206" y="22">W</text><text x="262" y="22">T</text>
+        <text x="318" y="22">F</text><text x="374" y="22">S</text><text x="430" y="22">S</text>
+      </g>
+      <g font-size="11" fill="#A8A192" font-family="-apple-system, sans-serif" text-anchor="end">
+        <text x="72" y="50">wk 1</text><text x="72" y="90">wk 2</text><text x="72" y="130">wk 3</text><text x="72" y="170">wk 4</text>
+      </g>
+      <!-- filled = has entries -->
+      <g fill="#4E6B84">
+        <rect x="80" y="32" width="28" height="24" rx="4"/><rect x="136" y="32" width="28" height="24" rx="4"/>
+        <rect x="192" y="32" width="28" height="24" rx="4"/><rect x="304" y="32" width="28" height="24" rx="4"/>
+        <rect x="360" y="32" width="28" height="24" rx="4"/><rect x="416" y="32" width="28" height="24" rx="4"/>
+        <rect x="80" y="72" width="28" height="24" rx="4"/><rect x="136" y="72" width="28" height="24" rx="4"/>
+        <rect x="192" y="72" width="28" height="24" rx="4"/><rect x="248" y="72" width="28" height="24" rx="4"/>
+        <rect x="304" y="72" width="28" height="24" rx="4"/><rect x="416" y="72" width="28" height="24" rx="4"/>
+        <rect x="136" y="112" width="28" height="24" rx="4"/><rect x="192" y="112" width="28" height="24" rx="4"/>
+        <rect x="248" y="112" width="28" height="24" rx="4"/><rect x="304" y="112" width="28" height="24" rx="4"/>
+        <rect x="360" y="112" width="28" height="24" rx="4"/><rect x="416" y="112" width="28" height="24" rx="4"/>
+        <rect x="80" y="152" width="28" height="24" rx="4"/><rect x="136" y="152" width="28" height="24" rx="4"/>
+        <rect x="192" y="152" width="28" height="24" rx="4"/><rect x="248" y="152" width="28" height="24" rx="4"/>
+      </g>
+      <!-- unknown = dashed outline, never a filled zero -->
+      <g fill="none" stroke="#C9C2B4" stroke-width="1.5" stroke-dasharray="3 3">
+        <rect x="248" y="32" width="28" height="24" rx="4"/>
+        <rect x="360" y="72" width="28" height="24" rx="4"/>
+        <rect x="80" y="112" width="28" height="24" rx="4"/>
+        <rect x="304" y="152" width="28" height="24" rx="4"/>
+        <rect x="360" y="152" width="28" height="24" rx="4"/>
+        <rect x="416" y="152" width="28" height="24" rx="4"/>
+      </g>
+      <g font-size="12" fill="#6B665C" font-family="-apple-system, sans-serif">
+        <text x="480" y="46">days with entries</text>
+        <text x="480" y="88">days we know</text>
+        <text x="480" y="104">nothing about</text>
+      </g>
+      <line x1="452" y1="42" x2="470" y2="42" stroke="#4E6B84" stroke-width="8"/>
+      <rect x="452" y="80" width="18" height="8" fill="none" stroke="#C9C2B4" stroke-width="1.5" stroke-dasharray="3 3"/>
+    </svg>
+    <figcaption><b>What it's for:</b> making coverage visible — how much of the interval the record can actually speak for. This is the honest version of the contribution graph. <b>The reframe that makes it safe:</b> it is a statement about <em>what the app knows</em>, not about what the person did. A dashed square is a gap in the picture, not a missed day.</figcaption>
+    <div class="rule warn" style="margin-bottom:0">
+      <strong>The trap in Option D.</strong> This form is one design decision away from a GitHub-style streak grid, which is a machine for making people feel bad about gaps. Three things keep it on the right side: the empty state is <em>dashed outline</em> (unknown) not <em>pale fill</em> (zero); there is no total, no longest-run, no percentage; and the caption talks about the record, never about the person. Remove any one of those and it becomes the thing we banned. [C-08]
+    </div>
+  </figure>
+
+  <!-- ── THE ALIGNMENT PAIR ── -->
+  <h3>The one place a chart beats a sentence</h3>
+  <p class="lede">C-07 requires that a circadian dip (same clock time every day) be distinguishable from a dose-cycle dip (same interval after a dose). Those two causes need completely different responses — one is a medication conversation, the other is a sleep and light conversation — and no single sentence separates them. Two renderings of the same five marks do it instantly.</p>
+
+  <figure>
+    <div class="pair">
+      <div>
+        <svg viewBox="0 0 300 150" role="img" aria-label="Five marks plotted by clock time, clustered tightly around 3pm.">
+          <line x1="20" y1="100" x2="285" y2="100" stroke="#E8E1D2" stroke-width="1"/>
+          <g fill="#8C7B6A">
+            <rect x="150" y="60" width="8" height="8" rx="2"/><rect x="162" y="74" width="8" height="8" rx="2"/>
+            <rect x="142" y="82" width="8" height="8" rx="2"/><rect x="156" y="46" width="8" height="8" rx="2"/>
+            <rect x="168" y="60" width="8" height="8" rx="2"/>
+          </g>
+          <g font-size="10" fill="#A8A192" font-family="-apple-system, sans-serif" text-anchor="middle">
+            <text x="20" y="118">9am</text><text x="90" y="118">12pm</text><text x="160" y="118">3pm</text>
+            <text x="230" y="118">6pm</text>
+          </g>
+          <text x="20" y="26" font-size="12" font-weight="600" fill="#2A2823" font-family="-apple-system, sans-serif">by clock time</text>
+          <text x="20" y="142" font-size="11" fill="#6B665C" font-family="-apple-system, sans-serif">tight — same hour every day</text>
+        </svg>
+      </div>
+      <div>
+        <svg viewBox="0 0 300 150" role="img" aria-label="The same five marks plotted by hours since the last dose, scattered widely.">
+          <line x1="20" y1="100" x2="285" y2="100" stroke="#E8E1D2" stroke-width="1"/>
+          <g fill="#8C7B6A">
+            <rect x="86" y="58" width="8" height="8" rx="2"/><rect x="196" y="76" width="8" height="8" rx="2"/>
+            <rect x="48" y="84" width="8" height="8" rx="2"/><rect x="244" y="48" width="8" height="8" rx="2"/>
+            <rect x="132" y="66" width="8" height="8" rx="2"/>
+          </g>
+          <g font-size="10" fill="#A8A192" font-family="-apple-system, sans-serif" text-anchor="middle">
+            <text x="20" y="118">0h</text><text x="90" y="118">2h</text><text x="160" y="118">4h</text>
+            <text x="230" y="118">6h</text>
+          </g>
+          <text x="20" y="26" font-size="12" font-weight="600" fill="#2A2823" font-family="-apple-system, sans-serif">by time since dose</text>
+          <text x="20" y="142" font-size="11" fill="#6B665C" font-family="-apple-system, sans-serif">scattered — no relation to the dose</text>
+        </svg>
+      </div>
+    </div>
+    <figcaption>Same five notes, two alignments. Tight on the left and scattered on the right means the dip tracks the clock, not the medication — which is the difference between "ask about my dose spacing" and "ask about my sleep." A toggle between the two alignments may be the single highest-value interaction on this surface. <b>Copy rule:</b> the app shows both and names neither cause. [AGENTS.md · never frame an observed pattern as a diagnosis]</figcaption>
+    <div class="rule">
+      <strong>The two words underneath this.</strong> <b>Circadian</b> means the body's own ~24-hour clock — the things that happen at the same time of day whatever you did, like the mid-afternoon alertness trough. <b>Pharmacokinetic</b> means what the body does to a drug over time: absorb, peak, decline, clear. A pharmacokinetic dip arrives a fixed <em>interval after a dose</em> — four hours later, wherever that lands on the clock. Patients call it wearing-off. The two produce an identical felt experience and take opposite responses: wearing-off is a dose-spacing or formulation conversation, a circadian trough is a sleep and light conversation, and a medication change aimed at the wrong one adds side effects without fixing anything.
+    </div>
+    <div class="rule warn">
+      <strong>The irony in this test — and a rule that came out of it.</strong> It only computes if the person's dose times actually vary; with a perfectly consistent schedule the two alignments are the same picture and the question is unanswerable. So the most disciplined logger is the one this statement can never serve. E-03 therefore carries a ≥90-minute-spread requirement — and the tempting fix, nudging someone to vary a dose so the contrast appears, is now banned outright: <b>never ask the user to change anything about their medication, least of all for the app's own benefit.</b> That is prescribing, and prescribing to improve our own data is worse than prescribing. If a statement needs variation the schedule doesn't have, the statement does not get made. [AGENTS.md · AI features]
+    </div>
+  </figure>
+
+
+  <!-- ══════════════════ INTERACTION ══════════════════ -->
+  <h2>Interaction — reading a chart with a tremor</h2>
+
+  <p>These are inline SVG, so every mark is a real element in the page and attaching a tap handler is a few lines. The interesting question was never the code — it was whether marks below the 48px routine tier are acceptable here at all. <b>Settled: yes, because a chart is a different context of use</b>, which is what the touch-target rule already says to size against [AGENTS.md]. Three reasons, all worth keeping:</p>
+
+  <ul>
+    <li><b>Drill-down targets outliers</b> — and an outlier is by definition the mark with space around it. Precision matters least exactly where the clutter is worst.</li>
+    <li><b>A near-miss inside a cluster is forgiving</b>, because the neighbour it lands on is nearly the same value. The cost of a mis-tap scales with how far apart the options are.</li>
+    <li><b>Reading a chart closely is a good-capacity activity</b>, not something done mid-OFF. It takes cognitive room as well as motor control, so the crisis tier does not apply.</li>
+  </ul>
+
+  <div class="rule">
+    <strong>Floor in this context: the WCAG 2.2 AA minimum, 24px effective</strong> — with a no-aim path always present (stepper buttons, arrow keys). The floor was never about the size of the ink; it is about the size of the region that responds. A 5px dot inside a 40×170px invisible band is a bigger target than most buttons.
+  </div>
+
+  <div class="rule">
+    <strong>Scrub is fine here — I was wrong to rule it out.</strong> Dragging a vertical line converts a two-dimensional precision task into a one-dimensional one and hands over the full height of the chart as target area, which is <em>more</em> forgiving than poking a dot. The scroll-wheel time picker was a bad analogy: that gesture landed a value on the record, so a slip had a consequence. A scrub is exploratory and reversible, and a slip costs nothing. <b>The rule that survives: gesture cost scales with consequence — drag to read, tap to write. A drag may never write to the record.</b>
+  </div>
+
+  <div class="rule warn">
+    <strong>What the scrub forced.</strong> A vertical line only means something if the x-axis means something. In the first draft of Option B, horizontal position was pure jitter — spacing to stop dots overlapping — so a scrub line would have selected nothing. Wanting the interaction is what turned x into <em>the day</em>. The interaction improved the chart, which is the opposite of the usual order. It also bought something unplanned: one line now reads morning, midday and evening at once, which is the comparison a person actually wants — not "what time was Thursday's midday dose" but "what did Thursday look like."
+  </div>
+
+  <div class="rule">
+    <strong>Selection and navigation are different jobs and must not look the same.</strong> <em>Selection</em> moves inside the view — which day am I reading. <em>Navigation</em> moves the view — which week am I reading. A first draft gave each chart "‹ Earlier day / Later day ›" buttons and they were misread as week navigation, because a pair of arrows under a chart is conventionally a period control. Worse, they pointed sideways while Option A's selection moves <em>down</em> the rows — the control contradicted the motion it caused. <b>Arrows mean weeks. Selection is touch and arrow keys only.</b> And <b>Clear belongs beside the thing it clears</b> — in the readout, next to the day and times, not orphaned in a button row.
+  </div>
+
+  <div class="rule">
+    <strong>An accident worth keeping.</strong> Because selection is stored as a day index rather than a date, stepping to another week holds the same weekday — pick Tuesday, go back a week, still Tuesday with that week's times. That is the two-day comparison the domain lead raised, in embryo: same weekday, different weeks, compared across time rather than across space. Cheap, already working, and worth showing her.
+  </div>
+
+  <p>Both forms are built and touchable in <b><code>chart-interaction-test.html</code></b> — open it on a phone. Same house as <code>touch-target-test.html</code>: the way to settle an argument about targets is to tap them. Note what stays true across both: <b>Option A reads the shape of a day, Option B reads steadiness across days.</b> Linked views of one dataset, not competing options.</p>
+
+  <h3>Granularity — the D / W / M / 6M question</h3>
+
+  <p>Apple's period tabs are a <em>zoom</em> control over continuous sensor data. Our three eras are a <em>statement-type</em> progression. They look similar and are not the same thing, and conflating them would be confusing — a longer window doesn't unlock a different kind of sentence, having more data does.</p>
+
+  <p>Post-MVP, agreed — but the reason is not only that there won't be enough data yet:</p>
+
+  <div class="rule">
+    <strong>Zooming out must change the mark, not shrink it.</strong> Apple's own 6M sleep view is the demonstration: it stops drawing individual nights and collapses each week into a single earliest-to-latest range bar. If Look Back ever gets a 6-month view, the dose-time dot strip becomes a weekly range band — not 180 unreadable dots.
+  </div>
+
+  <p>Two more things worth taking from those screens. Apple's 6M view carries <b>no trendline, no arrow, no percentage change</b> — a company with a full sensor stack and six months of continuous data still declines to tell you your sleep is getting worse. That is independent support for the annotation rule. And the daily hypnogram — the stacked Awake / REM / Core / Deep bands — is the shape we would want for continuous ON/OFF state, <em>if a wearable ever supplies it</em>. It is on the list of forms to reserve, not to imitate: drawing that shape from self-report would claim a resolution we don't have [rule 7].</p>
+
+
+  <!-- ══════════════════ COVERAGE CONTROL ══════════════════ -->
+  <h2>The coverage control</h2>
+
+  <p>Proposed by Tutu: let the user decide whether days with no entry count in the denominator, since only they know whether a blank day was a hard day or an unbothered one. Good instinct — it makes an assumption visible that every other health app makes silently. Three refinements before it gets designed.</p>
+
+  <div class="rule">
+    <strong>1 · It only affects rate statements.</strong> "You noted 4 rough afternoons" — out of the 21 days on the calendar, or the 15 you logged? That is a real fork and the control belongs there. It does <em>not</em> affect co-occurrence statements: a day with no entry is neither an X day nor a not-X day, so it sits outside that comparison entirely. Building the control globally would imply it changes numbers it cannot change.
+  </div>
+
+  <div class="rule">
+    <strong>2 · Not a toggle in the chrome — a property of the statement.</strong> Persistent controls in the header ask the user to think like a statistician before they've read anything. Instead let the coverage line itself be the control: "4 rough afternoons, across the 15 days you logged · 6 days have no entry" — tapping the second half recomputes. Contextual, discoverable, invisible where it wouldn't change the number.
+  </div>
+
+  <div class="rule warn">
+    <strong>3 · The tooltip describes the app's limit, not the user's motive.</strong> "Some people don't log on their hardest days" is true of a population and an accusation when said to one person. Write the uncertainty as ours: <em>"A day with no entry could be a quiet day or just an unlogged one — we can't tell from here. You can decide how they're counted."</em> Same information, no verdict. [see the R-05 craft note]
+  </div>
+
+  <p>On learning the default from usage: which setting people choose is <em>behaviour</em>, not content, so it sits inside the first-party analytics rule [docs/storage-and-privacy.md §4]. Worth measuring. One guard — use it to pick a better <b>global</b> default in a later release, never to silently personalise. A number that changes because the app quietly re-decided how to count is the same failure mode as tone that adapts to outcome: the interface starts holding an opinion it never states.</p>
+
+
+  <!-- ══════════════════ THE BANK ══════════════════ -->
+  <h2>The statement bank</h2>
+
+  <div class="era">
+    <span class="era-name">Recall</span>
+    <span class="era-when">from ~day 6</span>
+  </div>
+  <p class="era-job">Job: show me what happened. No comparison, no inference — arithmetic on my own week. This is a memory prosthesis, and it is worth opening the app for on its own.</p>
+
+  <div class="stmt">
+    <div class="stmt-id">R-01</div>
+    <p class="stmt-text">"Last week you confirmed 19 doses. Two are still unconfirmed — Thursday midday and Saturday evening."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">6 days with at least one dose entry each</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Count, from <code>basis</code></div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Option A, or none — the sentence stands alone</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>An adherence percentage. "You missed two." A ring or meter.</div></div>
+    </div>
+  </div>
+
+  <div class="stmt">
+    <div class="stmt-id">R-02</div>
+    <p class="stmt-text">"Your evening dose lands close to when you planned it. Your midday dose moves around more — anywhere from 12:15 to 2:00 this week."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">≥4 <code>asserted</code> times in each slot compared</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Spread (range, not variance)</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Option B — this is the statement B exists for</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>A consistency score. A shaded on-target band. The word "should."</div></div>
+    </div>
+  </div>
+
+  <div class="stmt">
+    <div class="stmt-id">R-03</div>
+    <p class="stmt-text">"Three movement sessions this week — two walks and a PT appointment."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">≥1 activity entry in the period</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Count, named not just totalled</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Option C at 4+ weeks; below that the sentence alone</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>A weekly goal. "Keep it up." Comparison to last week in the same breath.</div></div>
+    </div>
+  </div>
+
+  <div class="stmt">
+    <div class="stmt-id">R-04</div>
+    <p class="stmt-text">"You left four notes about feeling off this week. All four were between 2 and 6pm."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">≥3 timestamped symptom or feeling entries</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Clustering in time</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Option A, note marks only</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>A severity axis. A count compared to any other week. The word "episodes."</div></div>
+    </div>
+  </div>
+
+  <div class="stmt">
+    <div class="stmt-id">R-05</div>
+    <p class="stmt-text">"Tuesday and Saturday have no entries, so this picture doesn't cover them."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">Any period containing an empty day</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Coverage disclosure</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Option D</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>"You didn't log." Any sentence whose subject is the user rather than the record.</div></div>
+    </div>
+  </div>
+  <div class="rule">
+    <strong>Craft note on R-05.</strong> The whole trick is the grammatical subject. "You missed two days" makes the person the actor and the failure. "This picture doesn't cover them" makes the <em>record</em> the limited thing. Same fact, no verdict. Worth applying to every statement on this page as a final pass.
+  </div>
+
+  <div class="stmt">
+    <div class="stmt-id">R-06</div>
+    <p class="stmt-text">"Your first dose was earlier on the two days you had somewhere to be."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">≥2 days with both a dose time and a context chip</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Co-occurrence at n=2 — <em>too thin to emit</em></div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">None</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>Ship this one. It is in the bank as a boundary case: a true observation that is not yet a pattern. Included so we can agree where the line is.</div></div>
+    </div>
+  </div>
+
+  <div class="era">
+    <span class="era-name">Compare</span>
+    <span class="era-when">from ~week 3</span>
+  </div>
+  <p class="era-job">Job: show me how this stretch sits against my own past. Still no causal claim — only my baseline, never anyone else's [C-10].</p>
+
+  <div class="stmt">
+    <div class="stmt-id">C-01</div>
+    <p class="stmt-text">"Your first dose has moved about 40 minutes earlier over the past three weeks."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">3 weeks; ≥12 <code>asserted</code> first doses</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Drift in central time</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Option B, three panels side by side</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>An arrow. A trendline. "Improving" or "slipping."</div></div>
+    </div>
+  </div>
+
+  <div class="stmt">
+    <div class="stmt-id">C-02</div>
+    <p class="stmt-text">"Your midday dose was within 20 minutes of plan on 11 of the last 14 days."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">14 days; ≥12 <code>asserted</code> midday doses</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Proportion with stated denominator</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Option B</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>A streak count. "11 days in a row." A percentage in place of the fraction.</div></div>
+    </div>
+  </div>
+
+  <div class="stmt">
+    <div class="stmt-id">C-03</div>
+    <p class="stmt-text">"Movement sessions by week: 3, 2, 4, 3, 5, 3."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">4+ weeks of activity entries</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Count series</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Option C</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>A line connecting the bars. An average. A best-week marker.</div></div>
+    </div>
+  </div>
+
+  <div class="stmt">
+    <div class="stmt-id">C-04</div>
+    <p class="stmt-text">"Your notes about stiffness came earlier in the day this month than last — mostly before noon, where last month they were mostly after 3."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">2 months; ≥8 timestamped notes of one kind in each</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Shift in time-of-day distribution</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Option A, two months stacked</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>A severity scale. "Worse." Any implication that earlier is better or worse.</div></div>
+    </div>
+  </div>
+
+  <div class="stmt">
+    <div class="stmt-id">C-05</div>
+    <p class="stmt-text">"This month looks much like last month — timing, notes, and sessions are all in the same range."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">2 comparable months, ≥60% coverage in each</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Null result, stated as a finding</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">None</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>Suppressing it. Saying nothing is worse than saying nothing changed.</div></div>
+    </div>
+  </div>
+  <div class="rule">
+    <strong>Why C-05 matters more than it looks.</strong> Almost no consumer health app will tell you it found nothing, because a null result reads as the product failing. But for a progressive condition, "this month looks like last month" is often the news the person most wants — and an app that can say it is an app you can believe when it says something did change. Shipping the null result is what makes the non-null results credible.
+  </div>
+
+  <div class="era">
+    <span class="era-name">Explain</span>
+    <span class="era-when">from ~week 6–8</span>
+  </div>
+  <p class="era-job">Job: show me what goes with what. Co-occurrence only, never causation, and only when both sides of the comparison have enough days to be worth stating.</p>
+
+  <div class="stmt">
+    <div class="stmt-id">E-01</div>
+    <p class="stmt-text">"On the 9 days you ate lunch within half an hour of your midday dose, you noted a rough afternoon on 6. On the 11 days lunch was further away, on 2."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">≥5 days on <em>each</em> side; both meal and afternoon note present</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Co-occurrence, both denominators stated</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Two dot columns, Option B form</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>A causal verb. A p-value. "Avoid eating before your dose" — that is advice, and it is the doctor's to give.</div></div>
+    </div>
+  </div>
+
+  <div class="stmt">
+    <div class="stmt-id">E-02</div>
+    <p class="stmt-text">"The afternoons you noted as rough tended to follow a midday dose taken later than planned — 5 of the 7."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">≥7 noted afternoons; all doses <code>asserted</code></div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Co-occurrence with timing</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Option A, the 7 days only</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>"Your medication is failing." Any framing that reads as a dose being wrong rather than late.</div></div>
+    </div>
+  </div>
+
+  <div class="stmt">
+    <div class="stmt-id">E-03</div>
+    <p class="stmt-text">"Your afternoon dips landed at about the same clock time each day, whatever time you took your midday dose."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">≥6 dips with a same-day <code>asserted</code> midday dose, ≥90 min spread in dose times</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Alignment test — clock vs dose-relative [C-07]</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">The alignment pair above. This is the one that needs a chart.</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>Naming a cause. Not "this is circadian," not "this isn't your medication." Show both alignments; let the doctor say why.</div></div>
+    </div>
+  </div>
+
+  <div class="stmt">
+    <div class="stmt-id">E-04</div>
+    <p class="stmt-text">"On the 6 days with a movement session, you left fewer stiffness notes than on the 9 days without."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">≥5 days each side</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Co-occurrence</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Two dot columns</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>"So exercise more." The observation is allowed to point somewhere useful; the instruction is not ours to give.</div></div>
+    </div>
+  </div>
+  <div class="rule">
+    <strong>E-04 is the rule-5 test case.</strong> It is the same statistical shape as "your dose runs short on days you walk before lunch" — but that one, however hedged, will be heard as <em>walk less</em>, and exercise is the strongest non-drug intervention there is. E-04 points the same evidence somewhere it costs nothing to act on. When a co-occurrence can be stated in either direction, state the one whose obvious action is to do more, or to ask a question — never to withdraw.
+  </div>
+
+  <div class="stmt">
+    <div class="stmt-id">E-05</div>
+    <p class="stmt-text">"Nothing in the last six weeks stands out from the six before it."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">12 weeks, ≥60% coverage</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Null result</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">None</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>Reaching for something to say instead.</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ BELOW THRESHOLD ══════════════════ -->
+  <h2>What we say below the threshold</h2>
+
+  <p>Never a locked card, never a greyed-out preview, never a progress bar toward an insight. Two moves only: say something shorter and true, or name when to come back.</p>
+
+  <div class="stmt">
+    <div class="stmt-id">T-01 · shorter and true</div>
+    <p class="stmt-text">"So far this is a picture of four days."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Paired with</div><div class="field-value">The week-in-progress chart, partially filled — the same Option A that will be complete on Sunday, not a placeholder</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>"3 more days until your first insight."</div></div>
+    </div>
+  </div>
+
+  <div class="stmt">
+    <div class="stmt-id">T-02 · come back later</div>
+    <p class="stmt-text">"Timing patterns start to show up after a couple of weeks. There's not much to say yet."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Tone target</div><div class="field-value">A colleague saying "too early to tell" — not a system withholding a reward</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>A countdown, a percentage, a lock icon, a blurred preview.</div></div>
+    </div>
+  </div>
+
+  <div class="stmt">
+    <div class="stmt-id">T-03 · depth invitation</div>
+    <p class="stmt-text">"You've been logging doses. If you ever want to see what your afternoons have to do with the rest of your day, adding what you were up to is what makes that visible — a walk, PT, gardening, table tennis, choir, drums, a nap in the sun."</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Fires when</div><div class="field-value">≥2 weeks of dose entries with &lt;20% carrying any activity or context</div></div>
+      <div class="field"><div class="field-label">Frequency cap</div><div class="field-value">Once. Not once a week — once. Then never again unless the user asks.</div></div>
+      <div class="field"><div class="field-label">Why the examples matter</div><div class="field-value">A clinical list ("exercise, meals, sleep") reads as homework. A human list gives permission for the small and the odd, which is where the real signal is.</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>"Log more to unlock insights." Any framing where the app is owed something.</div></div>
+    </div>
+  </div>
+
+  <div class="rule warn">
+    <strong>Open — the targeted question.</strong> A stronger version of T-03 exists: instead of a general invitation, ask for one specific missing fact on the day where knowing it would change the most — "was the 14th a walk day?" This is uncertainty sampling from active learning, applied to consumer UX: query the single highest-information missing label rather than asking for everything. It is a real idea and probably a good one, but it needs a full user story before it can be designed — who asks, when, how the user says "I don't remember," what happens to the answer, and what the hard cap is. Uncapped it becomes 鸡肋 within a fortnight. <em>Not scoped here.</em>
+  </div>
+
+
+  <!-- ══════════════════ OPEN ══════════════════ -->
+  <h2>Open questions this page does not settle</h2>
+  <ul>
+    <li><b>The interval anchor.</b> Does the period run from the last appointment, or is it a rolling 30/90 days? The appointment anchor is more meaningful and requires the user to enter a date we do not currently ask for.</li>
+    <li><b>How many statements at once.</b> Three feels right; more starts to read as a dashboard. Untested.</li>
+    <li><b>Ordering.</b> By recency, by confidence, or by how much the user has engaged with that kind of statement before? The third is adaptive and needs care — an adaptive surface can leak a judgment it never states.</li>
+    <li><b>Dismissal.</b> If a statement can find the user on the Timeline, the user must be able to send it away. What "away" means — this one, this kind, forever — is unresolved.</li>
+    <li><b>Two days side by side.</b> Raised by the domain lead, not yet specified. Possibly the strongest idea here: it needs exactly two days and the user supplies the hypothesis, so it works in week one. Tracked in <code>TASKS.md</code>.</li>
+    <li><b>Where the coverage control lives at the screen level</b>, and whether tapping a coverage line is discoverable enough without a persistent affordance.</li>
+  </ul>
+
+  <div class="rule">
+    <strong>Decided.</strong> The surface is called <b>Look Back</b> (Aug 2026). "Analyze" promises inference the first month cannot deliver; "Review" collides with a meaning the product already has, since past days are editable and "review" reads as <em>check and correct your entries</em>.
+  </div>
+
+  <footer>
+    <span>DoseEgg · Design · Look Back statement bank</span>
+    <span>Draft 2 · August 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>

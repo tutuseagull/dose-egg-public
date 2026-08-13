@@ -252,7 +252,7 @@
     <div class="eyebrow">DoseEgg · Learning</div>
     <h1>Glossary</h1>
     <p class="subtitle">Key terms in English and Chinese — clinical, UX, and conceptual. Added as they come up in the project.</p>
-    <p class="meta">9 entries · Last updated May 2026</p>
+    <p class="meta">16 entries · Last updated August 2026</p>
   </header>
 
 
@@ -374,6 +374,23 @@
 
   <div class="entry">
     <div class="entry-terms">
+      <div class="entry-en">Pharmacokinetics (PK) · Wearing-off</div>
+      <div class="entry-zh">药代动力学 · 剂末现象</div>
+      <div class="entry-pinyin">yào dài dònglì xué · jì mò xiànxiàng</div>
+    </div>
+    <div class="entry-body">
+      <p class="entry-def"><b>Pharmacokinetics</b> — abbreviated <b>PK</b> in clinical and pharma writing, and the form you will meet most often in papers — is what the body does to a drug over time — absorb, peak, decline, clear. (Pharmaco<i>dynamics</i> is the reverse: what the drug does to the body.) <b>Wearing-off</b> is the patient-facing name for the end of that curve in PD: levodopa levels fall and symptoms return before the next dose is due. A wearing-off dip arrives at a fixed <em>interval after a dose</em> — say four hours later — wherever that happens to land on the clock.</p>
+      <p class="entry-context">The distinction that matters for DoseEgg is <b>clock-aligned vs dose-aligned</b>. A <b>circadian</b> dip (see <i>Circadian Resynchronization</i> above) lands at the same time of day whatever you did; a pharmacokinetic dip lands a fixed interval after the dose. They feel identical and take opposite responses — one is a dose-spacing or formulation conversation, the other is a sleep and light conversation, and treating the wrong one adds side effects without fixing anything. Plotting the same marks twice, once by clock time and once by time-since-dose, separates them instantly [C-07]. Caveat worth remembering: the test only computes if the person's dose times actually vary — with a perfectly consistent schedule both alignments look the same, so the most disciplined logger is the one it cannot serve. The app must never suggest varying a dose to create the contrast.</p>
+      <div class="entry-tags">
+        <span class="etag clinical">Clinical</span>
+        <span class="etag concept">Pharmacology</span>
+        <span class="etag ux">Analyze</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-terms">
       <div class="entry-en">Medication Titration</div>
       <div class="entry-zh">滴定</div>
       <div class="entry-pinyin">dī dìng</div>
@@ -385,6 +402,89 @@
         <span class="etag clinical">Clinical</span>
         <span class="etag ux">Log design</span>
         <span class="etag concept">Pharmacology</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── PD Exercise & Rehab ─── -->
+  <div class="cat-label">PD — Exercise & rehab</div>
+
+  <div class="entry">
+    <div class="entry-terms">
+      <div class="entry-en">Exercise · Physical Therapy (PT) · Rehab</div>
+      <div class="entry-zh">运动 · 物理治疗 · 康复</div>
+      <div class="entry-pinyin">yùndòng · wùlǐ zhìliáo · kāngfù</div>
+    </div>
+    <div class="entry-body">
+      <p class="entry-def">The umbrella terms for structured physical activity in PD. <b>Exercise</b> is the broadest and the safest default. <b>Physical therapy (PT)</b> means clinician-led sessions, usually prescribed. <b>Rehab</b> is the programme-level word. Exercise is the strongest evidence-backed non-drug intervention in Parkinson's — it is a treatment, not a lifestyle extra.</p>
+      <p class="entry-context">Terminology decision (Aug 2026): <b>"recovery exercise" is the wrong phrase</b> and should not appear in UI copy. "Recovery" implies returning to a previous baseline, which a progressive condition does not do — it sets up a promise the product cannot keep and the user will feel the gap. Use <b>exercise</b>, <b>PT</b>, or the softest single-word umbrella, <b>movement</b>. Note the asymmetry with Chinese: 康复 is standard and unloaded in clinical Mandarin, so this constraint is English-specific — relevant if bilingual support returns post-MVP. Counting these sessions is legitimate in Analyze because it counts a therapy delivered, never app usage.</p>
+      <div class="entry-tags">
+        <span class="etag clinical">Clinical</span>
+        <span class="etag ux">Copy rule</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-terms">
+      <div class="entry-en">LSVT BIG</div>
+      <div class="entry-zh">大幅度运动训练</div>
+      <div class="entry-pinyin">dà fúdù yùndòng xùnliàn</div>
+    </div>
+    <div class="entry-body">
+      <p class="entry-def">A standardised PD physical therapy protocol built around deliberately oversized movements. PD shrinks movement amplitude without the person noticing (the same mechanism behind micrographia — small handwriting), so the training retrains the internal sense of "normal size" by practising exaggerated reaching, stepping, and turning. Typically delivered as an intensive block of sessions with a certified therapist.</p>
+      <p class="entry-context">Relevant as a named log type: a patient in an LSVT BIG block is doing something structurally different from "a walk," and the distinction is one a doctor would want to see. Also a titration-adjacent moment — function can change noticeably during a block, which makes the surrounding weeks unusually informative.</p>
+      <div class="entry-tags">
+        <span class="etag clinical">Clinical</span>
+        <span class="etag ux">Log design</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-terms">
+      <div class="entry-en">LSVT LOUD</div>
+      <div class="entry-zh">大声训练</div>
+      <div class="entry-pinyin">dàshēng xùnliàn</div>
+    </div>
+    <div class="entry-body">
+      <p class="entry-def">The speech-therapy counterpart to LSVT BIG. PD reduces vocal loudness and the person's own perception of it — they believe they are speaking normally while others cannot hear them (hypophonia). The protocol trains sustained loud phonation to recalibrate that perception.</p>
+      <p class="entry-context">A reminder that PD is not only motor. Voice, swallowing, and facial expression are affected, and a product framed entirely around walking and stiffness will feel incomplete to anyone in speech therapy. Singing and choir participation sit adjacent to this and are worth offering as activity examples.</p>
+      <div class="entry-tags">
+        <span class="etag clinical">Clinical</span>
+        <span class="etag concept">Non-motor</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-terms">
+      <div class="entry-en">Rock Steady Boxing</div>
+      <div class="entry-zh">帕金森拳击</div>
+      <div class="entry-pinyin">pàjīnsēn quánjí</div>
+    </div>
+    <div class="entry-body">
+      <p class="entry-def">A non-contact boxing programme designed specifically for people with PD, run through affiliate gyms internationally. Combines the large, forceful, rhythmic movement that PD training favours with a group setting.</p>
+      <p class="entry-context">Worth knowing because of what it signals about motivation: participants often describe the community as the reason they keep going, not the exercise. A product that treats a boxing class as one more logged activity misses that it may be the anchor of someone's week. Named programmes like this, tai chi, and dance for PD are good examples to offer in activity prompts — they give permission for the specific and the social rather than the generic "exercise."</p>
+      <div class="entry-tags">
+        <span class="etag clinical">Clinical</span>
+        <span class="etag ux">Log design</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-terms">
+      <div class="entry-en">Tai Chi</div>
+      <div class="entry-zh">太极拳</div>
+      <div class="entry-pinyin">tàijíquán</div>
+    </div>
+    <div class="entry-body">
+      <p class="entry-def">A slow, weight-shifting movement practice widely recommended in PD for balance and fall prevention. One of the more studied non-drug interventions, and low-barrier relative to gym-based programmes.</p>
+      <p class="entry-context">Culturally significant for the project: it is one of the few PD exercise modalities that is already familiar in a Chinese context, which matters if bilingual support returns post-MVP. Also a useful counterexample to the assumption that "activity" means intensity — a form of movement that generates little accelerometer signal but real therapeutic value, which is an argument against relying on passive sensing alone to count sessions.</p>
+      <div class="entry-tags">
+        <span class="etag clinical">Clinical</span>
+        <span class="etag concept">Sensor-relevant</span>
       </div>
     </div>
   </div>
@@ -409,13 +509,29 @@
   </div>
 
 
+  <div class="entry">
+    <div class="entry-terms">
+      <div class="entry-en">Coverage (the denominator)</div>
+      <div class="entry-zh">覆盖率 · 分母</div>
+      <div class="entry-pinyin">fùgàilǜ · fēnmǔ</div>
+    </div>
+    <div class="entry-body">
+      <p class="entry-def">The number of days a statement could actually see, stated alongside the statement itself. "You had a rough afternoon on 5 of the 9 days lunch was close to your dose" — 9 is the coverage. Without it, "5 days" is a rhetorical device rather than a fact: 5 out of 6 and 5 out of 40 are opposite findings that look identical when the denominator is hidden.</p>
+      <p class="entry-context">A hard rule for the Analyze surface: every claim carries its coverage. Two consequences follow. An entry logged without any depth still counts in the denominator — excluding bare entries would compute every pattern over only the days someone felt well enough to elaborate, biasing the whole product toward good days. And a day with no entry at all is <b>unknown, never zero</b>: it reduces coverage rather than adding a zero to the data. The clinical precedent is the CGM standard in type 1 diabetes, where a report is considered meaningful only at ~14 days <em>and</em> ≥70% data capture — a duration and a coverage floor together.</p>
+      <div class="entry-tags">
+        <span class="etag ux">UX principle</span>
+        <span class="etag concept">Analyze</span>
+      </div>
+    </div>
+  </div>
+
   <div class="add-note">
     Terms are added as they come up in the project. If something is missing, add it.
   </div>
 
   <footer>
     <span>DoseEgg · Learning · Glossary</span>
-    <span>Last updated May 2026</span>
+    <span>Last updated August 2026</span>
   </footer>
 
 </div>

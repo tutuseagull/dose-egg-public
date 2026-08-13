@@ -242,7 +242,7 @@
     <div class="eyebrow">DoseEgg · Working Doc</div>
     <h1>Open Questions</h1>
     <p class="subtitle">A running log of product and design questions — by feature area. Updated as decisions are made. This page holds <strong>unknowns only</strong>: feature requirements live in the <span class="unpublished">Feature Backlog</span>, interaction decisions (D-xx) in the <span class="unpublished">Daily Loop Flow</span>, and rules (C-xx) in <span class="unpublished">Design Constraints</span>. When a question gets answered, it's marked Decided here with a pointer to where the answer now lives.</p>
-    <p class="meta">Last updated July 2026</p>
+    <p class="meta">Last updated August 2026</p>
   </header>
 
   <div class="legend">
@@ -250,6 +250,114 @@
     <div class="legend-item"><span class="dot" style="background:var(--decided)"></span> Decided</div>
     <div class="legend-item"><span class="dot" style="background:var(--future)"></span> Future / post-MVP</div>
     <div class="legend-item"><span class="dot" style="background:var(--research)"></span> Needs external input</div>
+  </div>
+
+
+  <!-- ══════════════════════
+       FEATURE: ANALYZE / LOOK BACK
+  ══════════════════════ -->
+  <div class="feature-block">
+    <div class="feature-head">
+      <span class="feature-tag mvp">MVP</span>
+      <h2>Analyze / Look Back — the retrospective surface</h2>
+    </div>
+    <p class="feature-desc">
+      The third surface alongside Timeline and the doctor export. Opened as an outcome-first workstream in August 2026: the statements a patient would return for were written before any chart, and live in the <a href="analyze-statements.html" style="color:var(--decided,#4A7A8A);">Analyze statement bank</a> along with the visual language and the rules every statement obeys. <em>Direction: build the retrospective, non-judgmental view first — a rewarding way to see your own record. The pre-appointment / visit-prep framing is the destination, not the first build.</em>
+    </p>
+
+    <div class="questions">
+
+      <div class="q">
+        <span class="q-status decided"></span>
+        <div class="q-body">
+          <span class="q-label decided">Decided</span>
+          <p class="q-text">What is this surface called? — <strong>"Look Back" (2026-08-13).</strong></p>
+          <p class="q-note">"Analyze" was rejected because it promises inference the first month cannot deliver. "Review" was rejected because it collides with a meaning the product already has — past days are editable, so "review" reads as <em>check and correct your entries</em>. "Look Back" is warmer, carries no second meaning, and survives all three eras of the surface (Recall → Compare → Explain). Nine characters, so it fits a menu row at 200% text.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">Should the user be able to include or exclude no-entry days from the denominator?</p>
+          <p class="q-note">Tutu's proposal: only the user knows whether a blank day was a hard day or an unbothered one, so let them decide how it counts, with an explanation attached. Three refinements agreed while scoping it. <strong>(1) It only affects rate statements</strong> ("4 rough afternoons out of 21 days, or out of the 15 you logged?"). It does not affect co-occurrence statements — a day with no entry is neither an X day nor a not-X day, so it is outside that comparison; a global control would imply it changes numbers it cannot. <strong>(2) Not a toggle in the chrome</strong> — make the coverage line itself the control, so it appears only where it would change the number. <strong>(3) The tooltip describes the app's limit, not the user's motive</strong> — "some people don't log on hard days" is true of a population and an accusation said to one person; write it as "we can't tell from here." Measuring which setting people choose is behaviour not content, so it is inside the analytics rule — but use it to pick a better <em>global</em> default later, never to silently personalise, or the number changes because the app quietly re-decided how to count.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status future"></span>
+        <div class="q-body">
+          <span class="q-label future">Future</span>
+          <p class="q-text">Chart interactivity and period granularity (D / W / M / 6M, swipe between periods).</p>
+          <p class="q-note">Prompted by Apple Health's Sleep screens (Aug 2026). Post-MVP on data volume, but three design positions were settled meanwhile. <strong>Do not copy Apple's scrub gesture</strong> — dragging a caret is sustained fine motor control, the same interaction v2 already rejected when it replaced the scroll-wheel time picker with ±15m nudges; horizontal swipe between weeks fails for the same reason, and prev/next buttons do the job with a tap. <strong>The selectable unit is the day, not the mark</strong> — a full-width day row is a comfortable target, whereas seven dots stacked in ~70px cannot carry 48px hit areas; tapping a column and listing its days beats a tooltip and works with a screen reader. <strong>Zooming out must change the mark, not shrink it</strong> — Apple's own 6M view collapses each week into an earliest-to-latest range bar rather than drawing 180 nights. Also noted: Apple's 6M carries no trendline, arrow, or delta, which is independent support for our annotation rule; and their daily hypnogram is the shape we would want for continuous ON/OFF state <em>if</em> a wearable ever supplies it — reserved, not to be imitated from self-report.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status research"></span>
+        <div class="q-body">
+          <span class="q-label research">Needs input</span>
+          <p class="q-text">"Compare two days side by side" — what did the domain lead mean?</p>
+          <p class="q-note">Raised in an earlier sync, never specified; Tutu is following up (tracked in <code>TASKS.md</code> with five questions to probe). Potentially the strongest idea on this surface: it needs exactly two days and the <em>user</em> supplies the hypothesis, so it works in week one — the cold-start problem solved rather than managed — and it is Option A zoomed from seven days to two, so nearly free to build. Position to test: the app renders both days completely and says <strong>nothing</strong> about the difference, because two days differ in fifty ways and whichever one the app highlights becomes the explanation. Risk to watch: a "good day vs bad day" picker rebuilds the report card [C-08] — pick by date instead.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">How much data before the surface says anything — and what does it show below that?</p>
+          <p class="q-note">Working answer: the data requirement is a property of each <em>statement</em>, not a global gate on the surface, so the page renders whatever currently qualifies. Rough ladder — rhythm statements from ~6 days, week-over-week comparison from ~3 weeks, co-occurrence from ~6–8 weeks and only with ≥5 days on each side. Below the threshold: the week-in-progress chart filling in, plus a shorter true sentence. <strong>Never a locked card, greyed-out preview, countdown, or progress bar toward an insight.</strong> Research to do: N-of-1 trial methodology (the domain lead already runs one) and the CGM consensus standard in T1D (~14 days at ≥70% data capture — a duration <em>and</em> a coverage floor; verify the figures before citing).</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">Does the interval run from the last appointment, or is it a rolling window?</p>
+          <p class="q-note">An appointment anchor ("since your last visit") is more meaningful than a rolling 30/90 days and reframes the cold-start problem entirely — but it requires the user to enter a date the app does not currently ask for, and needs a fallback for anyone who never does. It would also be the one legitimate notification trigger, since it fires on a real event rather than on an engagement target.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">How many statements at once, in what order, and how does a user dismiss one?</p>
+          <p class="q-note">Three at a time feels right; more reads as a dashboard. Ordering by recency and by confidence are both defensible — ordering by past engagement is adaptive and risky, because an adaptive surface can leak a judgment it never states. If a statement can find the user on the Timeline, the user must be able to send it away; what "away" means (this one / this kind / forever) is unresolved.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">Should the app ask one targeted question instead of a general plea to log more?</p>
+          <p class="q-note">Rather than "add more detail," ask for the single missing fact that would change the most — "was the 14th a walk day?" This is uncertainty sampling from active learning applied to consumer UX: query the highest-information missing label instead of asking for everything. Promising, but it needs a full user story before design — who asks, when, how the user says "I don't remember," what happens to the answer, and what the hard frequency cap is. Uncapped it is 鸡肋 within a fortnight.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status future"></span>
+        <div class="q-body">
+          <span class="q-label future">Future</span>
+          <p class="q-text">Should the app ask permission to read the user's calendar?</p>
+          <p class="q-note">Planning is clearly connected to dose and meal timing, and a calendar would supply context that manual logging misses. <strong>Parked deliberately (Aug 2026):</strong> using it to shape a day edges into medical suggestion, and reading a calendar continuously sits squarely inside the ambient-AI consent bar [C-14]. Revisit only with that framework in place, never as a convenience feature.</p>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="q-status future"></span>
+        <div class="q-body">
+          <span class="q-label future">Future</span>
+          <p class="q-text">Effort-acknowledgment — re-parked August 2026.</p>
+          <p class="q-note">Reopened briefly while scoping this surface, and closed again the same day. Two positions were settled in the process and are worth keeping. <strong>Praising days logged is rejected outright</strong> — it praises app usage rather than health, manufactures a streak, and punishes exactly the weeks someone was too unwell to log. <strong>Counting exercise or PT sessions is legitimate</strong>, but as clinical evidence rather than praise: count the therapy, never count the app. Also settled: <strong>tone must not adapt to outcome</strong> — if warmth rises with improvement and flattens with decline, users learn to read tone as diagnosis and silence becomes bad news. Vary content by tenure; hold warmth constant. MVP position unchanged from [C-08]: no encouragement copy at all.</p>
+        </div>
+      </div>
+
+    </div>
   </div>
 
 

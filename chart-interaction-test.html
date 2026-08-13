@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DoseEgg — Chart interaction, actually touched</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper-0:#FFF;--paper-50:#F9F8F5;--paper-100:#F2F1EC;--paper-200:#E8E6DF;
+  --paper-300:#D9D6CC;--paper-500:#8D8A7D;--paper-600:#6E6B5F;--paper-700:#46443C;--paper-900:#1A1916;
+  --ink-500:#1F4A52;--ink-600:#163940;
+  --mark:#4E6B84;
+  --font-serif:'Newsreader',Georgia,serif;--font-sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;padding:24px 18px 64px;background:var(--paper-50);color:var(--paper-900);
+     font-family:var(--font-sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:460px;margin:0 auto}
+h1{font-family:var(--font-serif);font-size:28px;font-weight:400;line-height:1.2;margin:0 0 6px}
+h2{font-family:var(--font-serif);font-size:22px;font-weight:400;margin:40px 0 8px;
+   padding-bottom:10px;border-bottom:1px solid var(--paper-200)}
+h3{font-size:15px;font-weight:600;margin:22px 0 6px}
+p{margin:0 0 12px;color:var(--paper-700);font-size:16px}
+.lede{color:var(--paper-600)}
+.label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--paper-600);font-weight:500}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.85em;background:var(--paper-200);
+     padding:2px 5px;border-radius:5px}
+ul{margin:0 0 14px;padding-left:20px}
+li{margin-bottom:7px;color:var(--paper-700);font-size:16px}
+.note{background:var(--paper-100);border-left:3px solid var(--ink-500);border-radius:0 10px 10px 0;
+      padding:14px;margin:16px 0;font-size:15px;color:var(--paper-700)}
+.note b{color:var(--paper-900)}
+.card{background:var(--paper-0);border:1px solid var(--paper-200);border-radius:14px;
+      padding:14px;margin:14px 0}
+
+/* ── Readout. Fixed min-height so the chart never jumps when selection changes.
+      Clear lives here, beside the thing it clears. ── */
+.readout{min-height:62px;background:var(--paper-100);border-radius:10px;padding:9px 10px 9px 12px;
+         margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.ro-text{flex:1;min-width:0}
+.ro-day{font-weight:600;color:var(--paper-900);font-size:16px;line-height:1.3}
+.ro-times{font-family:ui-monospace,Menlo,monospace;font-size:14px;color:var(--ink-500);line-height:1.4}
+.ro-empty{color:var(--paper-500);font-size:15px}
+.ro-clear{flex:0 0 auto;min-height:44px;padding:0 14px;border-radius:9px;
+  border:1px solid var(--paper-300);background:var(--paper-0);color:var(--paper-600);
+  font-family:inherit;font-size:15px;font-weight:500;cursor:pointer}
+.ro-clear:active{transform:scale(.98)}
+.ro-clear[hidden]{display:none}
+
+svg{display:block;width:100%;height:auto;touch-action:none}
+svg:focus{outline:none}
+svg:focus-visible{outline:2px solid var(--ink-500);outline-offset:3px;border-radius:8px}
+.rowhit{fill:transparent;cursor:pointer}
+.rowhit:focus{outline:none}
+.rowhit:focus-visible{outline:2px solid var(--ink-500);outline-offset:-2px}
+.rowband{fill:var(--paper-100);opacity:0}
+.rowband.on{opacity:1}
+
+/* ── Week navigation. This moves the VIEW. Selection moves inside it. ── */
+.weeknav{display:flex;align-items:stretch;gap:8px;margin-top:12px}
+.weeknav button{min-height:48px;border-radius:10px;border:1px solid var(--paper-300);
+  background:var(--paper-0);color:var(--paper-900);font-family:inherit;font-size:15px;
+  font-weight:500;cursor:pointer;padding:0 14px}
+.weeknav button:active{transform:scale(.98)}
+.weeknav button[disabled]{opacity:.35;cursor:default}
+.wk{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;gap:2px}
+.wk-range{font-size:15px;font-weight:600;color:var(--paper-900);line-height:1.2}
+.wk-now{font-size:12px;color:var(--paper-500)}
+/* full-width and comfortable — it only appears once you've navigated away */
+.wk-jump{width:100%;min-height:48px;margin-top:8px;border-radius:10px;
+  border:1px solid var(--paper-300);background:var(--paper-0);color:var(--ink-500);
+  font-family:inherit;font-size:15px;font-weight:500;cursor:pointer}
+.wk-jump:active{transform:scale(.99)}
+.wk-jump[hidden]{display:none}
+
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--paper-600);margin-top:12px}
+.legend span{display:flex;align-items:center;gap:6px}
+.sw{width:11px;height:11px;border-radius:50%;background:var(--mark);display:inline-block}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<span class="label">Test · 2026-08-13</span>
+<h1>Chart interaction, actually touched</h1>
+<p class="lede">Open this on your phone. Two questions we were arguing about: whether a 10px dot
+is a usable target, and whether dragging a line is harder or easier than poking a mark. Rather
+than settle it in prose — try both.</p>
+
+<div class="note">
+  <b>Why the marks are small here.</b> Two arguments, both Tutu's. <b>One:</b> people drill into
+  a data point mostly when it looks like an outlier — and an outlier is by definition the mark
+  with space around it. So precision matters least exactly where the clutter is worst.
+  <b>Two:</b> reading a chart carefully is a good-capacity activity, not something done mid-OFF.
+  That makes data exploration a <em>different context of use</em> — which is what the
+  touch-target rule already says to size against.
+</div>
+
+<div class="note">
+  <b>Two kinds of movement, kept apart.</b> <em>Selection</em> moves inside the view — which day
+  am I looking at. <em>Navigation</em> moves the view itself — which week am I looking at.
+  An earlier draft had "‹ Earlier day / Later day ›" buttons and they read as week navigation,
+  because that is the job a pair of arrows under a chart normally does. They also pointed
+  sideways while Option A's selection moves down the rows. Both gone. Arrows now mean weeks in
+  both charts; selection is by touch and by arrow key only; and <b>Clear sits next to the thing
+  it clears.</b>
+</div>
+
+
+<h2>Option A — day rows</h2>
+<p>Each row is a day; the dots are the times doses actually landed. The row is the target, so
+there is nothing small to hit. Tap any row.</p>
+
+<div class="card">
+  <div class="readout">
+    <div class="ro-text" id="raText"><span class="ro-empty">Tap a row to see that day.</span></div>
+    <button type="button" class="ro-clear" id="raClear" hidden onclick="selectA(null)">Clear</button>
+  </div>
+  <svg id="chartA" viewBox="0 0 340 252" role="application"
+       aria-label="Seven day rows showing dose times. Tap a row, or use up and down arrow keys, to select a day.">
+    <g stroke="#E8E6DF" stroke-width="1">
+      <line x1="42" y1="12" x2="42" y2="220"/><line x1="113" y1="12" x2="113" y2="220"/>
+      <line x1="184" y1="12" x2="184" y2="220"/><line x1="255" y1="12" x2="255" y2="220"/>
+      <line x1="326" y1="12" x2="326" y2="220"/>
+    </g>
+    <g id="aBands"></g>
+    <g id="aLabels" font-size="12" fill="#6E6B5F" font-family="Inter, sans-serif"></g>
+    <g id="aBaselines" stroke="#F2F1EC" stroke-width="1"></g>
+    <g id="aDots"></g>
+    <g id="aHits"></g>
+    <g font-size="11" fill="#8D8A7D" font-family="Inter, sans-serif" text-anchor="middle">
+      <text x="42" y="240">6am</text><text x="113" y="240">10am</text><text x="184" y="240">2pm</text>
+      <text x="255" y="240">6pm</text><text x="326" y="240">10pm</text>
+    </g>
+  </svg>
+  <div class="weeknav">
+    <button type="button" id="aPrev" onclick="stepWeek(-1)" aria-label="Earlier week">‹</button>
+    <div class="wk">
+      <span class="wk-range" id="aRange"></span>
+      <span class="wk-now" id="aNow"></span>
+    </div>
+    <button type="button" id="aNext" onclick="stepWeek(1)" aria-label="Later week">›</button>
+  </div>
+  <button type="button" class="wk-jump" id="aJump" hidden onclick="jumpToCurrentWeek()">Jump to this week</button>
+  <div class="legend">
+    <span><i class="sw"></i> dose you confirmed</span>
+    <span><i class="sw" style="background:#fff;border:1.5px dashed var(--mark)"></i> assumed</span>
+  </div>
+</div>
+
+<div class="note">
+  <b>The selected day survives a week change.</b> Pick Tuesday, step back a week, and it is still
+  Tuesday — with that week's times. That was not planned; it fell out of keeping selection as an
+  index. It is also the two-day comparison the domain lead asked about, in embryo: same weekday,
+  different weeks, side by side in time rather than in space. Worth raising with her.
+</div>
+
+
+<h2>Option B — days across, clock time up</h2>
+<p>The transpose of A: each column is a day, height is the time on the clock. Drag the line, or
+just tap. One line reads all three doses of that day at once.</p>
+
+<div class="card">
+  <div class="readout">
+    <div class="ro-text" id="rbText"><span class="ro-empty">Drag or tap anywhere on the chart.</span></div>
+    <button type="button" class="ro-clear" id="rbClear" hidden onclick="selectB(null)">Clear</button>
+  </div>
+  <svg id="chartB" viewBox="0 0 340 226" role="application"
+       aria-label="Seven day columns showing dose times by clock hour. Drag, tap, or use left and right arrow keys to select a day.">
+    <g stroke="#E8E6DF" stroke-width="1">
+      <line x1="40" y1="35" x2="326" y2="35"/><line x1="40" y1="91" x2="326" y2="91"/>
+      <line x1="40" y1="147" x2="326" y2="147"/>
+    </g>
+    <g font-size="11" fill="#8D8A7D" font-family="Inter, sans-serif" text-anchor="end">
+      <text x="34" y="39">7am</text><text x="34" y="95">12pm</text><text x="34" y="151">5pm</text>
+    </g>
+    <line id="bLine" x1="0" y1="14" x2="0" y2="186" stroke="#1F4A52" stroke-width="2" opacity="0"/>
+    <g id="bDots"></g>
+    <g id="bHits"></g>
+    <g id="bLabels" font-size="12" fill="#6E6B5F" font-family="Inter, sans-serif" text-anchor="middle"></g>
+  </svg>
+  <div class="weeknav">
+    <button type="button" id="bPrev" onclick="stepWeek(-1)" aria-label="Earlier week">‹</button>
+    <div class="wk">
+      <span class="wk-range" id="bRange"></span>
+      <span class="wk-now" id="bNow"></span>
+    </div>
+    <button type="button" id="bNext" onclick="stepWeek(1)" aria-label="Later week">›</button>
+  </div>
+  <button type="button" class="wk-jump" id="bJump" hidden onclick="jumpToCurrentWeek()">Jump to this week</button>
+</div>
+
+<div class="note">
+  <b>What the scrub forced.</b> A vertical line only means something if the x-axis means
+  something. In the first draft of Option B the horizontal position was pure jitter — spacing to
+  stop dots overlapping — so a scrub line would have selected nothing. Wanting the interaction
+  is what turned x into <em>the day</em>. The interaction improved the chart, which is the
+  opposite of the usual order.<br><br>
+  It also bought something unplanned: one line now reads morning, midday and evening
+  <em>simultaneously</em>. That is the comparison a person actually wants — not "what time was
+  my midday dose on Thursday" but "what did Thursday look like."
+</div>
+
+<h3>What each form is still for</h3>
+<p><b>A</b> reads the shape of a day — where doses sit inside waking hours, and how much of the
+day falls between them. <b>B</b> reads steadiness across days — a slot that holds its height is a
+steady slot. Same data, different question. Linked views, not competing options.</p>
+
+<div class="note">
+  <b>One line held.</b> A drag may never write anything. Scrubbing is exploratory and reversible,
+  so a missed target costs nothing — which is exactly why it is safe here and why the
+  scroll-wheel time picker was not: that gesture landed a value on the record. <b>Gesture cost
+  should scale with consequence: drag to read, tap to write.</b>
+</div>
+
+<h3>Where the 48px floor actually lands</h3>
+<p>The marks are 5px radius — nowhere near the routine floor. What is tappable is the invisible
+band behind each day: full-width in A, and the whole chart area in B, where a tap anywhere
+selects the nearest column. Both are more forgiving than a 48px button. The floor was never
+about the size of the ink; it is about the size of the region that responds. The WCAG 2.2 AA
+minimum for a target is 24px and every path here clears it several times over, with arrow keys
+underneath for anyone who would rather not aim at all.</p>
+
+<script>
+/* ─────────────────────────────────────────────────────────
+   Three weeks of fake data. Times are decimal hours
+   (7.25 = 7:15am). `assumed` marks a dose inferred from the
+   schedule rather than confirmed by the person — drawn hollow,
+   and never counted in a timing claim.
+   Weeks run Friday→Thursday, ending today (13 Aug 2026).
+   ───────────────────────────────────────────────────────── */
+const DAY_NAMES = ['Fri','Sat','Sun','Mon','Tue','Wed','Thu'];
+
+const WEEKS = [
+  { range:'Jul 24 – 30', days:[
+    [7.75, 13.25, 18.25], [9.0, 14.0, 18.75], [8.75, 13.75, 18.5],
+    [7.5, 12.75, 17.75],  [7.667, {h:13.0, assumed:1}, 18.0],
+    [8.25, 13.5, 18.33],  [7.583, 12.5, 17.5] ]},
+  { range:'Jul 31 – Aug 6', days:[
+    [7.5, 12.75, 17.83], [8.5, 13.25, 18.25], [8.25, 13.0, 18.0],
+    [7.333, 12.5, 17.667], [7.75, 12.917, 17.75],
+    [7.417, {h:12.667, assumed:1}, 17.583], [7.667, 12.833, 17.917] ]},
+  { range:'Aug 7 – 13', days:[
+    [7.25, 12.333, 17.5], [8.667, 13.5, 18.0], [8.333, 12.833, 17.667],
+    [7.333, 12.583, 17.333], [7.667, 13.167, 17.75],
+    [7.417, 12.25, 17.583], [8.083, {h:14.0, assumed:1}, 18.167] ]},
+];
+const CURRENT_WEEK = WEEKS.length - 1;
+let week = CURRENT_WEEK;
+
+/* normalise a cell: a bare number means a confirmed dose */
+const dose = d => (typeof d === 'number') ? {h:d} : d;
+const weekDays = () => WEEKS[week].days.map((doses, i) => ({
+  day: DAY_NAMES[i], doses: doses.map(dose)
+}));
+
+/* decimal hour 7.25 → "7:15am" */
+function fmt(h){
+  const hr = Math.floor(h), mn = Math.round((h - hr) * 60);
+  const ampm = hr >= 12 ? 'pm' : 'am';
+  const h12 = hr > 12 ? hr - 12 : hr;
+  return h12 + ':' + String(mn).padStart(2,'0') + ampm;
+}
+function svgEl(name, attrs){
+  const e = document.createElementNS('http://www.w3.org/2000/svg', name);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function clear(el){ while (el.firstChild) el.removeChild(el.firstChild); }
+
+/* dot: filled when confirmed, hollow dashed when assumed */
+function dot(cx, cy, assumed){
+  return assumed
+    ? svgEl('circle', {cx, cy, r:5, fill:'#fff', stroke:'#4E6B84',
+        'stroke-width':1.5, 'stroke-dasharray':'2 2'})
+    : svgEl('circle', {cx, cy, r:5, fill:'#4E6B84'});
+}
+/* "8:05am · 2:00pm (assumed) · 6:10pm" */
+const timeLine = d => d.doses.map(x => fmt(x.h) + (x.assumed ? ' (assumed)' : '')).join(' · ');
+
+/* shared readout writer — keeps Clear beside the thing it clears */
+function writeReadout(textEl, clearEl, d, emptyMsg){
+  if (!d){
+    textEl.innerHTML = '<span class="ro-empty">' + emptyMsg + '</span>';
+    clearEl.hidden = true;
+    return;
+  }
+  textEl.innerHTML = '<div class="ro-day">' + d.day + '</div>' +
+                     '<div class="ro-times">' + timeLine(d) + '</div>';
+  clearEl.hidden = false;
+}
+
+/* ───────────── Option A — rows are days, x is time of day ───────────── */
+const A = {x0:42, x1:326, y0:26, rowH:30, hrs:[6,22], vbW:340};
+A.pxPerHour = (A.x1 - A.x0) / (A.hrs[1] - A.hrs[0]);
+const aX = h => A.x0 + (h - A.hrs[0]) * A.pxPerHour;
+let aSel = null;
+
+function drawA(){
+  const bands = document.getElementById('aBands'),
+        labels = document.getElementById('aLabels'),
+        lines  = document.getElementById('aBaselines'),
+        dots   = document.getElementById('aDots'),
+        hits   = document.getElementById('aHits');
+  [bands, labels, lines, dots, hits].forEach(clear);
+
+  weekDays().forEach((d, i) => {
+    const y = A.y0 + i * A.rowH;
+    bands.appendChild(svgEl('rect', {x:4, y:y-13, width:332, height:26, rx:6,
+      class:'rowband', 'data-i':i}));
+    const t = svgEl('text', {x:6, y:y+4}); t.textContent = d.day; labels.appendChild(t);
+    lines.appendChild(svgEl('line', {x1:A.x0, y1:y, x2:A.x1, y2:y}));
+    d.doses.forEach(x => dots.appendChild(dot(aX(x.h), y, x.assumed)));
+
+    /* the target: the whole row. tabindex makes it keyboard-reachable. */
+    const hit = svgEl('rect', {x:0, y:y - A.rowH/2, width:A.vbW, height:A.rowH,
+      class:'rowhit', tabindex:0, role:'button',
+      'aria-label': d.day + ', ' + timeLine(d)});
+    hit.addEventListener('click', () => selectA(i));
+    hit.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); selectA(i); }
+      if (e.key === 'ArrowDown'){ e.preventDefault(); selectA(Math.min(6, i+1)); }
+      if (e.key === 'ArrowUp')  { e.preventDefault(); selectA(Math.max(0, i-1)); }
+    });
+    hits.appendChild(hit);
+  });
+  paintA();
+}
+function paintA(){
+  document.querySelectorAll('#aBands .rowband')
+    .forEach(b => b.classList.toggle('on', Number(b.dataset.i) === aSel));
+  writeReadout(document.getElementById('raText'), document.getElementById('raClear'),
+    aSel === null ? null : weekDays()[aSel], 'Tap a row to see that day.');
+}
+function selectA(i){ aSel = i; paintA(); }
+
+/* ───────────── Option B — x is the day, y is clock time ───────────── */
+const B = {x0:40, x1:326, y0:24, y1:180, hrs:[6,20], vbW:340};
+B.slot = (B.x1 - B.x0) / 7;
+B.pxPerHour = (B.y1 - B.y0) / (B.hrs[1] - B.hrs[0]);
+const bCx = i => B.x0 + B.slot * (i + 0.5);
+const bY  = h => B.y0 + (h - B.hrs[0]) * B.pxPerHour;
+let bSel = null;
+
+function drawB(){
+  const dots = document.getElementById('bDots'),
+        hits = document.getElementById('bHits'),
+        labs = document.getElementById('bLabels');
+  [dots, hits, labs].forEach(clear);
+
+  weekDays().forEach((d, i) => {
+    const cx = bCx(i);
+    d.doses.forEach(x => dots.appendChild(dot(cx, bY(x.h), x.assumed)));
+    const t = svgEl('text', {x:cx, y:206}); t.textContent = d.day; labs.appendChild(t);
+    /* one invisible full-height band per day — the real target */
+    hits.appendChild(svgEl('rect', {x:B.x0 + B.slot*i, y:14, width:B.slot, height:172,
+      fill:'transparent'}));
+  });
+  paintB();
+}
+function paintB(){
+  const line = document.getElementById('bLine');
+  if (bSel === null){ line.setAttribute('opacity', 0); }
+  else {
+    const cx = bCx(bSel);
+    line.setAttribute('x1', cx); line.setAttribute('x2', cx); line.setAttribute('opacity', 0.35);
+  }
+  writeReadout(document.getElementById('rbText'), document.getElementById('rbClear'),
+    bSel === null ? null : weekDays()[bSel], 'Drag or tap anywhere on the chart.');
+}
+function selectB(i){ bSel = i; paintB(); }
+
+/* map a pointer position anywhere in the SVG to the nearest day.
+   getBoundingClientRect + the viewBox width converts screen px to chart units. */
+const svgB = document.getElementById('chartB');
+function dayFromEvent(e){
+  const r = svgB.getBoundingClientRect();
+  const xChart = (e.clientX - r.left) / r.width * B.vbW;
+  return Math.max(0, Math.min(6, Math.floor((xChart - B.x0) / B.slot)));
+}
+let dragging = false;
+svgB.addEventListener('pointerdown', e => {
+  dragging = true; svgB.setPointerCapture(e.pointerId); selectB(dayFromEvent(e));
+});
+svgB.addEventListener('pointermove', e => { if (dragging) selectB(dayFromEvent(e)); });
+svgB.addEventListener('pointerup',     () => { dragging = false; });
+svgB.addEventListener('pointercancel', () => { dragging = false; });
+svgB.setAttribute('tabindex', 0);
+svgB.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight'){ e.preventDefault(); selectB(bSel === null ? 0 : Math.min(6, bSel+1)); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); selectB(bSel === null ? 6 : Math.max(0, bSel-1)); }
+});
+
+/* ───────────── Week navigation — moves the view, not the selection ─────────────
+   Selection is kept as a day index, so stepping weeks holds the same weekday.  */
+function stepWeek(dir){
+  week = Math.max(0, Math.min(WEEKS.length - 1, week + dir));
+  render();
+}
+function jumpToCurrentWeek(){ week = CURRENT_WEEK; render(); }
+
+function renderWeekNav(){
+  ['a','b'].forEach(p => {
+    document.getElementById(p + 'Range').textContent = WEEKS[week].range;
+    document.getElementById(p + 'Prev').disabled = (week === 0);
+    document.getElementById(p + 'Next').disabled = (week === WEEKS.length - 1);
+    /* on the current week this is a status line; off it, the way back appears below */
+    const onNow = (week === CURRENT_WEEK);
+    document.getElementById(p + 'Now').textContent = onNow ? 'This week' : '';
+    document.getElementById(p + 'Jump').hidden = onNow;
+  });
+}
+function render(){ renderWeekNav(); drawA(); drawB(); }
+render();
+</script>
+
+</div>
+</body>
+</html>
