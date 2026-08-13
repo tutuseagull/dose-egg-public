@@ -506,7 +506,15 @@
     <strong>An accident worth keeping.</strong> Because selection is stored as a day index rather than a date, stepping to another week holds the same weekday — pick Tuesday, go back a week, still Tuesday with that week's times. That is the two-day comparison the domain lead raised, in embryo: same weekday, different weeks, compared across time rather than across space. Cheap, already working, and worth showing her.
   </div>
 
-  <p>Both forms are built and touchable in <b><code>chart-interaction-test.html</code></b> — open it on a phone. Same house as <code>touch-target-test.html</code>: the way to settle an argument about targets is to tap them. Note what stays true across both: <b>Option A reads the shape of a day, Option B reads steadiness across days.</b> Linked views of one dataset, not competing options.</p>
+  <p>All four forms plus the alignment pair are built and touchable in <b><code>chart-interaction-test.html</code></b> — open it on a phone. Same house as <code>touch-target-test.html</code>: the way to settle an argument about targets is to tap them. Note what stays true across A and B: <b>A reads the shape of a day, B reads steadiness across days.</b> Linked views of one dataset, not competing options.</p>
+
+  <div class="rule">
+    <strong>One dataset behind all five.</strong> The test page runs every chart off a single six-week array in which a day is either a list of doses or <code>null</code>. That one <code>null</code> is what makes the empty rows in A, the gaps in the coverage grid, and the "this picture doesn't cover it" copy agree with each other without being maintained separately — the honesty rule is enforced by the data model rather than remembered by whoever draws the next chart. Worth carrying into the build: <b>if "unknown" is a value in the schema, no chart can accidentally render it as a zero.</b>
+  </div>
+
+  <div class="rule">
+    <strong>The count bars are the only form that lives above the week.</strong> A, B and the coverage grid answer questions inside a period; counts answer a question about periods. Which makes the bar chart a natural <em>period picker</em> — tapping a bar moves the other charts — rather than a separate destination. Built that way in the test page.
+  </div>
 
   <h3>Granularity — the D / W / M / 6M question</h3>
 
