@@ -497,6 +497,12 @@
   </div>
 
   <div class="rule">
+    <strong>Period context goes above the chart, and the awkward control has a cheap fix.</strong> Reading order is period → value → plot, so the week sits on top. What had pushed it below was "Jump to this week" — a control that only exists once you've navigated away, so it either shifts the layout or squats on space it hasn't earned. Two moves solve it. <b>The centre of the nav is one fixed-height block</b> whose second line is a status ("This week") or an action ("↩ Jump to this week"): same footprint either way, and when it's an action the whole block is the target — ~212×52px, not a line of text. <b>And the readout is never empty</b> — with nothing selected it describes the week ("Whole week · 21 doses on the record · 1 assumed") instead of prompting you to tap. Neither row ever changes height, so the chart never moves.
+  </div>
+
+  <p>The general form of that fix is worth keeping: <b>when a control only exists in one state, give the slot a job in the other state rather than letting it collapse.</b> A status line and an action can share a footprint. An empty state and a summary can share one too — and the summary is more useful than the prompt it replaces.</p>
+
+  <div class="rule">
     <strong>An accident worth keeping.</strong> Because selection is stored as a day index rather than a date, stepping to another week holds the same weekday — pick Tuesday, go back a week, still Tuesday with that week's times. That is the two-day comparison the domain lead raised, in embryo: same weekday, different weeks, compared across time rather than across space. Cheap, already working, and worth showing her.
   </div>
 

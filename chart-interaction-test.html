@@ -57,23 +57,26 @@ svg:focus-visible{outline:2px solid var(--ink-500);outline-offset:3px;border-rad
 .rowband{fill:var(--paper-100);opacity:0}
 .rowband.on{opacity:1}
 
-/* ── Week navigation. This moves the VIEW. Selection moves inside it. ── */
-.weeknav{display:flex;align-items:stretch;gap:8px;margin-top:12px}
-.weeknav button{min-height:48px;border-radius:10px;border:1px solid var(--paper-300);
-  background:var(--paper-0);color:var(--paper-900);font-family:inherit;font-size:15px;
-  font-weight:500;cursor:pointer;padding:0 14px}
-.weeknav button:active{transform:scale(.98)}
-.weeknav button[disabled]{opacity:.35;cursor:default}
-.wk{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    text-align:center;gap:2px}
-.wk-range{font-size:15px;font-weight:600;color:var(--paper-900);line-height:1.2}
-.wk-now{font-size:12px;color:var(--paper-500)}
-/* full-width and comfortable — it only appears once you've navigated away */
-.wk-jump{width:100%;min-height:48px;margin-top:8px;border-radius:10px;
-  border:1px solid var(--paper-300);background:var(--paper-0);color:var(--ink-500);
-  font-family:inherit;font-size:15px;font-weight:500;cursor:pointer}
-.wk-jump:active{transform:scale(.99)}
-.wk-jump[hidden]{display:none}
+/* ── Week navigation — sits ABOVE the chart, because it is context.
+      This moves the VIEW. Selection moves inside it. ── */
+.weeknav{display:flex;align-items:stretch;gap:8px;margin-bottom:10px}
+.arrow{width:48px;min-height:52px;border-radius:10px;border:1px solid var(--paper-300);
+  background:var(--paper-0);color:var(--paper-900);font-family:inherit;font-size:18px;
+  font-weight:500;cursor:pointer;flex:0 0 auto}
+.arrow:active{transform:scale(.97)}
+.arrow[disabled]{opacity:.32;cursor:default}
+/* The centre is one block with a fixed height, so nothing shifts when its
+   second line changes from a status to an action. When it IS an action, the
+   whole block is the target — ~150 x 52px, not a 20px line of text. */
+.wk{flex:1;min-height:52px;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;text-align:center;gap:1px;padding:4px 6px;border-radius:10px;
+    border:1px solid transparent;background:transparent;font-family:inherit;cursor:default}
+.wk.actionable{border-color:var(--paper-300);background:var(--paper-0);cursor:pointer}
+.wk.actionable:active{transform:scale(.98)}
+.wk-range{font-size:15px;font-weight:600;color:var(--paper-900);line-height:1.25}
+.wk-now{font-size:12.5px;color:var(--paper-500);line-height:1.25}
+.wk.actionable .wk-now{color:var(--ink-500);font-weight:500}
+.wk[disabled]{opacity:1}  /* it's a label in this state, not a dimmed control */
 
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--paper-600);margin-top:12px}
 .legend span{display:flex;align-items:center;gap:6px}
@@ -108,14 +111,34 @@ than settle it in prose — try both.</p>
   it clears.</b>
 </div>
 
+<div class="note">
+  <b>Where the controls sit, and the one that was awkward.</b> Period context reads before the
+  data, so the week sits <em>above</em> the chart — nav, then the value readout, then the plot.
+  The problem that had pushed it below was "Jump to this week": a control that only exists when
+  you have navigated away, so it either shifts the layout or squats on space it does not earn.
+  Two fixes, both cheap. <b>One:</b> the centre of the nav is a single fixed-height block whose
+  second line is a status ("This week") or an action ("↩ Jump to this week") — same footprint
+  either way, and when it is an action the whole block is the target, roughly 150 × 52px rather
+  than a line of text. <b>Two:</b> with nothing selected the readout describes the week instead
+  of sitting empty, so that row never nags and never changes height either.
+</div>
+
 
 <h2>Option A — day rows</h2>
 <p>Each row is a day; the dots are the times doses actually landed. The row is the target, so
 there is nothing small to hit. Tap any row.</p>
 
 <div class="card">
+  <div class="weeknav">
+    <button type="button" class="arrow" id="aPrev" onclick="stepWeek(-1)" aria-label="Earlier week">‹</button>
+    <button type="button" class="wk" id="aWk" onclick="jumpToCurrentWeek()">
+      <span class="wk-range" id="aRange"></span>
+      <span class="wk-now" id="aNow"></span>
+    </button>
+    <button type="button" class="arrow" id="aNext" onclick="stepWeek(1)" aria-label="Later week">›</button>
+  </div>
   <div class="readout">
-    <div class="ro-text" id="raText"><span class="ro-empty">Tap a row to see that day.</span></div>
+    <div class="ro-text" id="raText"></div>
     <button type="button" class="ro-clear" id="raClear" hidden onclick="selectA(null)">Clear</button>
   </div>
   <svg id="chartA" viewBox="0 0 340 252" role="application"
@@ -135,15 +158,6 @@ there is nothing small to hit. Tap any row.</p>
       <text x="255" y="240">6pm</text><text x="326" y="240">10pm</text>
     </g>
   </svg>
-  <div class="weeknav">
-    <button type="button" id="aPrev" onclick="stepWeek(-1)" aria-label="Earlier week">‹</button>
-    <div class="wk">
-      <span class="wk-range" id="aRange"></span>
-      <span class="wk-now" id="aNow"></span>
-    </div>
-    <button type="button" id="aNext" onclick="stepWeek(1)" aria-label="Later week">›</button>
-  </div>
-  <button type="button" class="wk-jump" id="aJump" hidden onclick="jumpToCurrentWeek()">Jump to this week</button>
   <div class="legend">
     <span><i class="sw"></i> dose you confirmed</span>
     <span><i class="sw" style="background:#fff;border:1.5px dashed var(--mark)"></i> assumed</span>
@@ -163,8 +177,16 @@ there is nothing small to hit. Tap any row.</p>
 just tap. One line reads all three doses of that day at once.</p>
 
 <div class="card">
+  <div class="weeknav">
+    <button type="button" class="arrow" id="bPrev" onclick="stepWeek(-1)" aria-label="Earlier week">‹</button>
+    <button type="button" class="wk" id="bWk" onclick="jumpToCurrentWeek()">
+      <span class="wk-range" id="bRange"></span>
+      <span class="wk-now" id="bNow"></span>
+    </button>
+    <button type="button" class="arrow" id="bNext" onclick="stepWeek(1)" aria-label="Later week">›</button>
+  </div>
   <div class="readout">
-    <div class="ro-text" id="rbText"><span class="ro-empty">Drag or tap anywhere on the chart.</span></div>
+    <div class="ro-text" id="rbText"></div>
     <button type="button" class="ro-clear" id="rbClear" hidden onclick="selectB(null)">Clear</button>
   </div>
   <svg id="chartB" viewBox="0 0 340 226" role="application"
@@ -181,15 +203,6 @@ just tap. One line reads all three doses of that day at once.</p>
     <g id="bHits"></g>
     <g id="bLabels" font-size="12" fill="#6E6B5F" font-family="Inter, sans-serif" text-anchor="middle"></g>
   </svg>
-  <div class="weeknav">
-    <button type="button" id="bPrev" onclick="stepWeek(-1)" aria-label="Earlier week">‹</button>
-    <div class="wk">
-      <span class="wk-range" id="bRange"></span>
-      <span class="wk-now" id="bNow"></span>
-    </div>
-    <button type="button" id="bNext" onclick="stepWeek(1)" aria-label="Later week">›</button>
-  </div>
-  <button type="button" class="wk-jump" id="bJump" hidden onclick="jumpToCurrentWeek()">Jump to this week</button>
 </div>
 
 <div class="note">
@@ -280,16 +293,25 @@ function dot(cx, cy, assumed){
 /* "8:05am · 2:00pm (assumed) · 6:10pm" */
 const timeLine = d => d.doses.map(x => fmt(x.h) + (x.assumed ? ' (assumed)' : '')).join(' · ');
 
+/* With nothing selected the readout describes the whole week rather than
+   sitting empty or nagging you to tap. The row is never blank, so its height
+   never changes and the chart never jumps. */
+function weekSummary(){
+  const days = weekDays();
+  const all = days.flatMap(d => d.doses);
+  const assumed = all.filter(x => x.assumed).length;
+  return {
+    day: 'Whole week',
+    line: all.length + ' doses on the record' +
+          (assumed ? ' · ' + assumed + ' assumed' : '')
+  };
+}
 /* shared readout writer — keeps Clear beside the thing it clears */
-function writeReadout(textEl, clearEl, d, emptyMsg){
-  if (!d){
-    textEl.innerHTML = '<span class="ro-empty">' + emptyMsg + '</span>';
-    clearEl.hidden = true;
-    return;
-  }
-  textEl.innerHTML = '<div class="ro-day">' + d.day + '</div>' +
-                     '<div class="ro-times">' + timeLine(d) + '</div>';
-  clearEl.hidden = false;
+function writeReadout(textEl, clearEl, d){
+  const body = d ? {day:d.day, line:timeLine(d)} : weekSummary();
+  textEl.innerHTML = '<div class="ro-day">' + body.day + '</div>' +
+                     '<div class="ro-times">' + body.line + '</div>';
+  clearEl.hidden = !d;
 }
 
 /* ───────────── Option A — rows are days, x is time of day ───────────── */
@@ -332,7 +354,7 @@ function paintA(){
   document.querySelectorAll('#aBands .rowband')
     .forEach(b => b.classList.toggle('on', Number(b.dataset.i) === aSel));
   writeReadout(document.getElementById('raText'), document.getElementById('raClear'),
-    aSel === null ? null : weekDays()[aSel], 'Tap a row to see that day.');
+    aSel === null ? null : weekDays()[aSel]);
 }
 function selectA(i){ aSel = i; paintA(); }
 
@@ -368,7 +390,7 @@ function paintB(){
     line.setAttribute('x1', cx); line.setAttribute('x2', cx); line.setAttribute('opacity', 0.35);
   }
   writeReadout(document.getElementById('rbText'), document.getElementById('rbClear'),
-    bSel === null ? null : weekDays()[bSel], 'Drag or tap anywhere on the chart.');
+    bSel === null ? null : weekDays()[bSel]);
 }
 function selectB(i){ bSel = i; paintB(); }
 
@@ -406,10 +428,14 @@ function renderWeekNav(){
     document.getElementById(p + 'Range').textContent = WEEKS[week].range;
     document.getElementById(p + 'Prev').disabled = (week === 0);
     document.getElementById(p + 'Next').disabled = (week === WEEKS.length - 1);
-    /* on the current week this is a status line; off it, the way back appears below */
+    /* Same block, same height, two jobs: a status when you're on the current
+       week, the way back when you're not. Disabled on the current week so it
+       leaves the tab order — it isn't an action then. */
     const onNow = (week === CURRENT_WEEK);
-    document.getElementById(p + 'Now').textContent = onNow ? 'This week' : '';
-    document.getElementById(p + 'Jump').hidden = onNow;
+    const wk = document.getElementById(p + 'Wk');
+    document.getElementById(p + 'Now').textContent = onNow ? 'This week' : '↩ Jump to this week';
+    wk.classList.toggle('actionable', !onNow);
+    wk.disabled = onNow;
   });
 }
 function render(){ renderWeekNav(); drawA(); drawB(); }
