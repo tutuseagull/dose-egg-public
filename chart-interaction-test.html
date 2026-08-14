@@ -89,6 +89,10 @@ svg:focus-visible{outline:2px solid var(--ink-500);outline-offset:3px;border-rad
 .seg button[aria-pressed="true"]{background:var(--paper-0);border-color:var(--paper-300);
   color:var(--paper-900)}
 
+.softbtn{width:100%;min-height:48px;margin-top:10px;border-radius:10px;
+  border:1px solid var(--paper-300);background:var(--paper-0);color:var(--ink-500);
+  font-family:inherit;font-size:15px;font-weight:500;cursor:pointer}
+.softbtn:active{transform:scale(.99)}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--paper-600);margin-top:12px}
 .legend span{display:flex;align-items:center;gap:6px}
 .sw{width:11px;height:11px;border-radius:50%;background:var(--mark);display:inline-block}
@@ -206,18 +210,33 @@ just tap. One line reads all three doses of that day at once.</p>
   </div>
   <svg id="chartB" viewBox="0 0 340 226" role="application"
        aria-label="Seven day columns showing dose times by clock hour. Drag, tap, or use left and right arrow keys.">
-    <g stroke="#E8E6DF" stroke-width="1">
-      <line x1="40" y1="35" x2="326" y2="35"/><line x1="40" y1="91" x2="326" y2="91"/>
-      <line x1="40" y1="147" x2="326" y2="147"/>
-    </g>
-    <g font-size="11" fill="#8D8A7D" font-family="Inter, sans-serif" text-anchor="end">
-      <text x="34" y="39">7am</text><text x="34" y="95">12pm</text><text x="34" y="151">5pm</text>
-    </g>
     <line id="bLine" x1="0" y1="14" x2="0" y2="186" stroke="#1F4A52" stroke-width="2" opacity="0"/>
+    <g id="bPlan"></g>
+    <g id="bAxis" font-size="11" fill="#8D8A7D" font-family="Inter, sans-serif" text-anchor="end"></g>
     <g id="bDots"></g>
     <g id="bHits"></g>
     <g id="bLabels" font-size="12" fill="#6E6B5F" font-family="Inter, sans-serif" text-anchor="middle"></g>
   </svg>
+  <div class="legend">
+    <span><i class="sw"></i> dose you confirmed</span>
+    <span id="bPlanKey"><i class="sw" style="background:none;border:0;border-top:2px dashed var(--paper-300);border-radius:0;height:2px;width:16px"></i> the time you planned</span>
+  </div>
+  <button type="button" class="softbtn" id="bPlanToggle" aria-pressed="true"
+          onclick="togglePlan()">Hide the times you planned</button>
+</div>
+
+<div class="note">
+  <b>The dashed rails are the times you planned — not your average.</b> That distinction is the
+  whole rule. <b>A reference line is legitimate only if somebody chose it.</b> A planned dose
+  time is a decision you made with your doctor, so missing it is information and it points
+  somewhere useful: the schedule. An <em>average</em> of your own dose times is emergent, not
+  chosen — it is made out of the very dots you are looking at, so "distance from average" is
+  just the spread restated, with a line added that reads like a target nobody set. And a shaded
+  "on target" band is worse still: it sorts your days into pass and fail.<br><br>
+  <b>Chosen → a line. Emergent → no line. Imposed by a population → never [C-10].</b>
+  Try the toggle: without the rails you can still see spread, but you cannot see drift. That is
+  what the rails buy, and it is why the statement "your evening dose lands close to when you
+  planned it" needs them as evidence.
 </div>
 
 <div class="note">
@@ -513,17 +532,40 @@ function paintA(){
 function selectA(i){ aSel = i; paintA(); }
 
 /* ═══════════ B — x is the day, y is clock time ═══════════ */
-const B = {x0:40, x1:326, y0:24, y1:180, hrs:[6,20], vbW:340};
+/* x0 leaves room for the y labels, which now read "12:30pm" rather than "12pm" */
+const B = {x0:54, x1:328, y0:24, y1:180, hrs:[6,20], vbW:340};
 B.slot = (B.x1 - B.x0) / 7;
 B.pxPerHour = (B.y1 - B.y0) / (B.hrs[1] - B.hrs[0]);
 const bCx = i => B.x0 + B.slot * (i + 0.5);
 const bY  = h => B.y0 + (h - B.hrs[0]) * B.pxPerHour;
 let bSel = null;
 
+/* The times this person set with their doctor. A reference line is legitimate
+   here because somebody CHOSE it — see the note under the chart for why an
+   average would not be. */
+const PLANNED = [7.5, 12.5, 17.5];
+let showPlan = true;
+
 function drawB(){
-  const g = ['bDots','bHits','bLabels'].map(id => document.getElementById(id));
+  const g = ['bPlan','bAxis','bDots','bHits','bLabels'].map(id => document.getElementById(id));
   g.forEach(wipe);
-  const [dots, hits, labs] = g;
+  const [plan, axis, dots, hits, labs] = g;
+
+  /* The horizontal reference SWAPS rather than doubling up: either the times
+     you planned, or plain clock hours. Drawing both put a dashed line 5px from
+     a solid one and read as noise — and it hid the real point, which is that a
+     gridline is never neutral. It is always a claim about what to measure
+     against. */
+  const rows = showPlan
+    ? PLANNED.map(h => ({h, label:fmt(h), dash:true}))
+    : [7, 12, 17].map(h => ({h, label:fmt(h), dash:false}));
+  rows.forEach(r => {
+    plan.appendChild(svgEl('line', {x1:B.x0, y1:bY(r.h), x2:B.x1, y2:bY(r.h),
+      stroke: r.dash ? '#C9C2B4' : '#E8E6DF', 'stroke-width': r.dash ? 1.5 : 1,
+      'stroke-dasharray': r.dash ? '5 5' : 'none'}));
+    const t = svgEl('text', {x:48, y:bY(r.h) + 4}); t.textContent = r.label;
+    axis.appendChild(t);
+  });
 
   weekDays().forEach((d, i) => {
     const cx = bCx(i);
@@ -546,6 +588,15 @@ function paintB(){
   writeReadout(document.getElementById('rbText'), document.getElementById('rbClear'), body);
 }
 function selectB(i){ bSel = i; paintB(); }
+
+function togglePlan(){
+  showPlan = !showPlan;
+  const btn = document.getElementById('bPlanToggle');
+  btn.textContent = showPlan ? 'Hide the times you planned' : 'Show the times you planned';
+  btn.setAttribute('aria-pressed', showPlan);
+  document.getElementById('bPlanKey').style.display = showPlan ? '' : 'none';
+  drawB();
+}
 
 const svgB = document.getElementById('chartB');
 function dayFromEvent(e){

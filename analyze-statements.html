@@ -301,7 +301,7 @@
 
   <!-- ── OPTION B ── -->
   <figure>
-    <div class="opt-tag">Option B — slot columns</div>
+    <div class="opt-tag">Option B — slot columns · superseded draft</div>
     <svg viewBox="0 0 660 236" role="img" aria-label="Three columns, one per dose slot, each showing seven dots for the seven days at the clock time the dose was taken.">
       <!-- y axis labels -->
       <g font-size="11" fill="#A8A192" font-family="-apple-system, sans-serif" text-anchor="end">
@@ -342,7 +342,19 @@
       <span><i class="swatch" style="background:none;border-top:2px dashed #C9C2B4;border-radius:0;height:2px;width:14px"></i> the time you planned</span>
     </div>
     <figcaption><b>What it's for:</b> "how steady is each dose." The scatter <em>is</em> the message — a tight cluster and a loose one need no words at all. <b>Why it's safe:</b> the only reference line is the user's own plan, never a population norm [C-10]. <b>Watch:</b> resist adding a mean marker or a shaded "on target" band; the moment a band appears, dots outside it become failures.</figcaption>
+    <div class="rule warn" style="margin-bottom:0">
+      <strong>Superseded — and it is worth knowing how.</strong> This form was not rejected on its merits; it was <em>absorbed</em>. Here x is pure jitter — spacing so the dots don't overlap — which means no dot has an identity and there is nothing to select. The moment we wanted a scrub, x had to become the day, and the chart transposed into the day-column form that is live in <code>chart-interaction-test.html</code>. Two things carried over: the dots, and these dashed reference rails. One thing was lost and has since been restored — the rails, which fell out of the restructure without anyone arguing for it. See the rule below.
+    </div>
   </figure>
+
+  <div class="rule">
+    <strong>A reference line is legitimate only if somebody chose it.</strong> The dashed rails are <em>the times you planned</em> — a decision made with a doctor. Missing one is information, and it points at the schedule, which is where we want it pointed. An <b>average</b> of your own dose times is emergent rather than chosen: it is made out of the very dots you are looking at, so "distance from average" restates the spread while adding a line that reads like a target nobody set. A shaded <b>"on target" band</b> is worse still — it sorts days into pass and fail. And a <b>population norm</b> is banned outright [C-10].<br><br>
+    <b>Chosen → a line. Emergent → no line. Imposed → never.</b> The rails also matter because statement R-02 ("your evening dose lands close to when you planned it") has no evidence without them — hide them and you can still read spread, but you cannot read drift.
+  </div>
+
+  <div class="rule">
+    <strong>A gridline is never neutral.</strong> Drawing the planned rails <em>and</em> plain clock gridlines put a dashed line five pixels from a solid one — visually noisy, and it obscured the real point. So in the live version the horizontal reference <em>swaps</em>: either the times you planned, or plain clock hours, never both. Toggling between them is the clearest demonstration on the whole page that a chart's background is a claim about what to measure against.
+  </div>
 
   <!-- ── OPTION C ── -->
   <figure>
