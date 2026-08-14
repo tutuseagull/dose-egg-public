@@ -551,6 +551,11 @@
     The coverage grid was the one that had drifted. It was writing a day into the readout with no highlight and no way back, so it behaved like neither. Now it selects: a ring on the chosen cell, a second tap for the whole span. <b>The ring is deliberately not a fill colour</b> — a third colour in that grid would read as a third kind of day, alongside "has entries" and "unknown".
   </div>
 
+  <div class="rule">
+    <strong>At six-week scale you select a cluster, not a dot.</strong> An individual dot in that view is one dose among a hundred, and nobody has a question about it. A <em>slot</em> is a real thing to ask about, so tapping anywhere in a column chooses that cluster: the other two fade, the label thickens, and a second tap returns to the whole span. Fading is the right signal here precisely because this is a selection, which is what it was not on the movement bars.<br><br>
+    Two things the chosen note does that the summary cannot. It <b>carries its own exclusions</b> rather than borrowing the whole-span footnote, so "Midday: 31 confirmed · 4 assumed left out" states the coverage of that claim beside the claim [rule 1]. And isolating a cluster makes shape legible that the combined view hides: with the other two faded, the morning column resolves into two groups, a tight one near the plan and a lower one about an hour later. That is a weekday and weekend split, and it is invisible in the week view, which is the whole reason this scale exists.
+  </div>
+
   <div class="rule warn">
     <strong>Building the toggle found a layout bug I had claimed was fixed.</strong> Tapping the same row twice selected a different day the second time. The readout is taller with nothing chosen, because the week summary wraps to three lines while a day's times fit two, so choosing a day shortened the block and slid the chart upward under the finger. A reserved <code>min-height</code> was not enough on its own; the copy had to shrink to fit it. <b>Reserving space only works if you have measured the longest string that can land in it</b> — and on touch, a block that changes height above a chart moves the target mid-gesture.
   </div>

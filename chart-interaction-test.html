@@ -252,6 +252,7 @@ same question, one zoom level out.</p>
     <g id="b6Axis" font-size="11" fill="#8D8A7D" font-family="Inter, sans-serif" text-anchor="end"></g>
     <g id="b6Dots"></g>
     <g id="b6Labels" font-size="12" fill="#6E6B5F" font-family="Inter, sans-serif" text-anchor="middle"></g>
+    <g id="b6Hits"></g>
   </svg>
 
   <div class="legend" id="bLegend" data-note="bNote">
@@ -686,7 +687,8 @@ function paintB(){
     line.setAttribute('x1', cx); line.setAttribute('x2', cx); line.setAttribute('opacity', 0.35);
   }
   if (scale === 'six'){
-    writeReadout(document.getElementById('rbText'), sixWeekSummary());
+    writeReadout(document.getElementById('rbText'),
+      b6Sel === null ? sixWeekSummary() : slotSummary(b6Sel));
     return;
   }
   const body = bSel === null ? weekSummary() : dayBody(weekDays()[bSel]);
@@ -752,6 +754,7 @@ document.querySelectorAll('.legend').forEach(legend => {
    `assumed` doses are excluded: a schedule is a plan, not an observation,
    so it may not appear in a claim about timing. [rule 4]                */
 const SLOTS = ['Morning','Midday','Evening'];
+let b6Sel = null;   /* which cluster is chosen, or null for the whole span */
 /* y is MINUTES AROUND THE PLANNED TIME, not clock time. On a shared clock axis
    each slot's 90-minute spread collapses into a flat smear and the three
    clouds can't be compared. Measuring each slot against its own planned time
@@ -773,11 +776,16 @@ function slotValues(){
   return out;
 }
 function countAssumed(){
-  let n = 0;
+  return slotAssumed().reduce((a, b) => a + b, 0);
+}
+/* per slot, so a chosen cluster can disclose its own exclusions rather than
+   borrowing the whole-span figure [rule 1: every claim carries its coverage] */
+function slotAssumed(){
+  const out = [0, 0, 0];
   WEEKS.forEach((w, wi) => daysOf(wi).forEach(d => {
-    if (d.doses) d.doses.forEach(x => { if (x.assumed) n++; });
+    if (d.doses) d.doses.forEach((x, si) => { if (x.assumed) out[si]++; });
   }));
-  return n;
+  return out;
 }
 
 /* Beeswarm: bucket by vertical position, then fan out left and right inside
@@ -800,9 +808,9 @@ function swarm(values){
 }
 
 function drawB6(){
-  const g = ['b6Plan','b6Axis','b6Dots','b6Labels'].map(id => document.getElementById(id));
+  const g = ['b6Plan','b6Axis','b6Dots','b6Labels','b6Hits'].map(id => document.getElementById(id));
   g.forEach(wipe);
-  const [plan, axis, dots, labs] = g;
+  const [plan, axis, dots, labs, hits] = g;
 
   /* the zero line IS the planned time here — it is the axis, not decoration,
      so this view has no hide-the-plan option */
@@ -818,13 +826,37 @@ function drawB6(){
   });
 
   slotValues().forEach((list, si) => {
+    /* Selecting a CLUSTER, not a dot. Individual dots are not selectable here
+       (that is what the week view is for), but a slot is a real thing to ask
+       about. Fading the other two is legitimate precisely because this IS a
+       selection, unlike the movement bars where the highlight was a position. */
+    const dim = b6Sel !== null && b6Sel !== si;
     swarm(list).forEach(pt => {
       dots.appendChild(svgEl('circle',
-        {cx: B6.cx[si] + pt.dx, cy: pt.y, r:3.5, fill:'#4E6B84', opacity:0.85}));
+        {cx: B6.cx[si] + pt.dx, cy: pt.y, r:3.5, fill:'#4E6B84',
+         opacity: dim ? 0.2 : 0.85}));
     });
     const t = svgEl('text', {x:B6.cx[si], y:200}); t.textContent = SLOTS[si];
+    if (b6Sel === si){ t.setAttribute('fill', '#1A1916'); t.setAttribute('font-weight', '600'); }
+    else if (dim) t.setAttribute('opacity', '0.45');
     labs.appendChild(t);
+
+    const hit = svgEl('rect', {x:B6.cx[si] - 39, y:14, width:78, height:172,
+      class:'cellhit', tabindex:0, role:'button', 'aria-pressed':String(b6Sel === si),
+      'aria-label': SLOTS[si] + ' doses, ' + list.length + ' of them'});
+    const pick = () => selectSlot(si);
+    hit.addEventListener('click', pick);
+    hit.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); pick(); }
+    });
+    hits.appendChild(hit);
   });
+}
+
+/* same toggle as every other selectable chart on the page */
+function selectSlot(si){
+  b6Sel = (b6Sel === si) ? null : si;
+  drawB6(); paintB();
 }
 
 /* "-15" → "15m earlier", "70" → "1h10m later" */
@@ -834,13 +866,26 @@ function relMin(m){
   if (m === 0) return 'on plan';
   return size + (m < 0 ? ' earlier' : ' later');
 }
+/* one cluster's own note. The exclusions travel with the claim rather than
+   sitting in a whole-span footnote. */
+function slotSummary(si){
+  const list = slotValues()[si], assumed = slotAssumed()[si];
+  return { title: SLOTS[si],
+    line: list.length + ' confirmed' +
+          (assumed ? ' · ' + assumed + ' assumed left out' : '') +
+          ' · ' + relMin(Math.min(...list)) + ' to ' + relMin(Math.max(...list)),
+    muted:false };
+}
 function sixWeekSummary(){
-  const spread = slotValues().map((list, si) =>
-    SLOTS[si] + ' ' + relMin(Math.min(...list)) + ' to ' + relMin(Math.max(...list))
-  ).join(' · ');
+  /* Deliberately short. Listing all three ranges here made this block taller
+     than a chosen cluster's note, so selecting one slid the chart out from
+     under the finger. The per-slot ranges are what the chart itself shows. */
+  const total = slotValues().reduce((n, list) => n + list.length, 0);
   const assumed = countAssumed();
+  const days = WEEKS.reduce((n, w, wi) => n + daysOf(wi).filter(d => d.doses).length, 0);
   return { title:'Six weeks · how wide is each slot',
-    line: spread + (assumed ? '  ·  ' + assumed + ' assumed doses left out' : ''),
+    line: total + ' confirmed doses across ' + days + ' days' +
+          (assumed ? ' · ' + assumed + ' assumed left out' : ''),
     muted:false };
 }
 
