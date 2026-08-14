@@ -540,6 +540,15 @@
   </div>
 
   <div class="rule">
+    <strong>No "Clear" button. Choosing is a toggle.</strong> Tapping the day you are already reading takes you back to the whole week, which is the same gesture that got you there. Three reasons the dedicated button had to go. <b>One:</b> "Clear" is a UI verb, and the answer-first rule already says a control is labelled with its outcome, never with the mechanism. If a button survived here it would read "Whole week", not "Clear" and not "Reset". <b>Two:</b> in an app that stores someone's medical record, a control labelled <em>Clear</em> sitting next to their data is an alarming word for an action that destroys nothing. <b>Three:</b> it is a permanent control on a phone screen earning its keep only in a state the user is often not in.<br><br>
+    <b>The consistency lives in the model, not in the control.</b> A chart either has a selectable dimension or it does not. Day rows and day columns do, so a second tap turns the choice off. The movement bars do not, because their highlight is the week open above rather than something the user picked, so there is nothing to turn off and no missing button. That difference is already visible without reading anything: selection highlights a <em>mark</em>, position marks the <em>axis</em>.
+  </div>
+
+  <div class="rule warn">
+    <strong>Building the toggle found a layout bug I had claimed was fixed.</strong> Tapping the same row twice selected a different day the second time. The readout is taller with nothing chosen, because the week summary wraps to three lines while a day's times fit two, so choosing a day shortened the block and slid the chart upward under the finger. A reserved <code>min-height</code> was not enough on its own; the copy had to shrink to fit it. <b>Reserving space only works if you have measured the longest string that can land in it</b> — and on touch, a block that changes height above a chart moves the target mid-gesture.
+  </div>
+
+  <div class="rule">
     <strong>Selection and navigation are different jobs and must not look the same.</strong> <em>Selection</em> moves inside the view — which day am I reading. <em>Navigation</em> moves the view — which week am I reading. A first draft gave each chart "‹ Earlier day / Later day ›" buttons and they were misread as week navigation, because a pair of arrows under a chart is conventionally a period control. Worse, they pointed sideways while Option A's selection moves <em>down</em> the rows — the control contradicted the motion it caused. <b>Arrows mean weeks. Selection is touch and arrow keys only.</b> And <b>Clear belongs beside the thing it clears</b> — in the readout, next to the day and times, not orphaned in a button row.
   </div>
 

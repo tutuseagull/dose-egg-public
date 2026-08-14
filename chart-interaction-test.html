@@ -37,18 +37,13 @@ li{margin-bottom:7px;color:var(--paper-700);font-size:16px}
       padding:14px;margin:14px 0}
 
 /* ── Readout. Never empty, so its height never changes and the chart never jumps.
-      Clear lives here, beside the thing it clears. ── */
-.readout{min-height:62px;background:var(--paper-100);border-radius:10px;padding:9px 10px 9px 12px;
+      With no day chosen it describes the week. ── */
+.readout{min-height:80px;background:var(--paper-100);border-radius:10px;padding:9px 10px 9px 12px;
          margin-bottom:12px;display:flex;align-items:center;gap:10px}
 .ro-text{flex:1;min-width:0}
 .ro-day{font-weight:600;color:var(--paper-900);font-size:16px;line-height:1.3}
 .ro-times{font-family:ui-monospace,Menlo,monospace;font-size:14px;color:var(--ink-500);line-height:1.4}
 .ro-times.muted{font-family:var(--font-sans);color:var(--paper-500)}
-.ro-clear{flex:0 0 auto;min-height:44px;padding:0 14px;border-radius:9px;
-  border:1px solid var(--paper-300);background:var(--paper-0);color:var(--paper-600);
-  font-family:inherit;font-size:15px;font-weight:500;cursor:pointer}
-.ro-clear:active{transform:scale(.98)}
-.ro-clear[hidden]{display:none}
 
 svg{display:block;width:100%;height:auto;touch-action:none}
 /* `display` is set on svg and .weeknav further down, so this needs to win.
@@ -172,7 +167,6 @@ so there is nothing small to hit. Tap any row — including an empty one.</p>
   </div>
   <div class="readout">
     <div class="ro-text" id="raText"></div>
-    <button type="button" class="ro-clear" id="raClear" hidden onclick="selectA(null)">Clear</button>
   </div>
   <svg id="chartA" viewBox="0 0 340 252" role="application"
        aria-label="Seven day rows showing dose times. Tap a row, or use up and down arrow keys.">
@@ -239,9 +233,8 @@ same question, one zoom level out.</p>
   </div>
   <div class="readout">
     <div class="ro-text" id="rbText"></div>
-    <button type="button" class="ro-clear" id="rbClear" hidden onclick="selectB(null)">Clear</button>
   </div>
-  <svg id="chartB" viewBox="0 0 340 226" role="application"
+  <svg id="chartB" viewBox="0 0 340 216" role="application"
        aria-label="Seven day columns showing dose times by clock hour. Drag, tap, or use left and right arrow keys.">
     <line id="bLine" x1="0" y1="14" x2="0" y2="186" stroke="#1F4A52" stroke-width="2" opacity="0"/>
     <g id="bPlan"></g>
@@ -253,7 +246,7 @@ same question, one zoom level out.</p>
 
   <!-- Same question, zoomed out. Nothing here is selectable, which is exactly
        what makes meaningless x-jitter acceptable again. -->
-  <svg id="chartB6" viewBox="0 0 340 226" hidden role="img"
+  <svg id="chartB6" viewBox="0 0 340 212" hidden role="img"
        aria-label="Six weeks of dose times, gathered into three slot clouds.">
     <g id="b6Plan"></g>
     <g id="b6Axis" font-size="11" fill="#8D8A7D" font-family="Inter, sans-serif" text-anchor="end"></g>
@@ -434,7 +427,7 @@ charts above jump to that week.</p>
   <div class="readout">
     <div class="ro-text" id="reText"></div>
   </div>
-  <svg id="chartE" viewBox="0 0 340 192" role="application"
+  <svg id="chartE" viewBox="0 0 340 156" role="application"
        aria-label="Movement sessions logged in each of six weeks. Tap a bar to open that week.">
     <g stroke="#F2F1EC" stroke-width="1">
       <line x1="34" y1="24" x2="330" y2="24"/><line x1="34" y1="56" x2="330" y2="56"/>
@@ -578,9 +571,9 @@ function weekSummary(){
   const assumed = all.filter(x => x.assumed).length;
   const gaps = 7 - logged.length;
   return { title:'Whole week',
-    line: all.length + ' doses on the record' +
+    line: all.length + ' doses' +
           (assumed ? ' · ' + assumed + ' assumed' : '') +
-          (gaps ? ' · ' + gaps + (gaps === 1 ? ' day' : ' days') + ' with no entry' : ''),
+          (gaps ? ' · ' + gaps + (gaps === 1 ? ' blank day' : ' blank days') : ''),
     muted:false };
 }
 function dayBody(d){
@@ -589,10 +582,9 @@ function dayBody(d){
     ? { title:d.day, line:timeLine(d), muted:false }
     : { title:d.day, line:"No entries. This picture doesn't cover it.", muted:true };
 }
-function writeReadout(textEl, clearEl, body){
+function writeReadout(textEl, body){
   textEl.innerHTML = '<div class="ro-day">' + body.title + '</div>' +
     '<div class="ro-times' + (body.muted ? ' muted' : '') + '">' + body.line + '</div>';
-  if (clearEl) clearEl.hidden = !body.selected;
 }
 
 /* ═══════════ A — rows are days, x is time of day ═══════════ */
@@ -617,6 +609,7 @@ function drawA(){
 
     const hit = svgEl('rect', {x:0, y:y - A.rowH/2, width:A.vbW, height:A.rowH,
       class:'rowhit', tabindex:0, role:'button',
+      'aria-pressed': String(i === aSel),
       'aria-label': d.day + ', ' + (d.doses ? timeLine(d) : 'no entries')});
     hit.addEventListener('click', () => selectA(i));
     hit.addEventListener('keydown', e => {
@@ -633,9 +626,12 @@ function paintA(){
     .forEach(b => b.classList.toggle('on', Number(b.dataset.i) === aSel));
   const body = aSel === null ? weekSummary() : dayBody(weekDays()[aSel]);
   body.selected = aSel !== null;
-  writeReadout(document.getElementById('raText'), document.getElementById('raClear'), body);
+  writeReadout(document.getElementById('raText'), body);
 }
-function selectA(i){ aSel = i; paintA(); }
+/* Choosing is a toggle: tap the row you are on to go back to the whole week.
+   That is the same gesture that got you here, so there is no separate control
+   to label, and no verb like "clear" sitting next to someone's health record. */
+function selectA(i){ aSel = (i !== null && i === aSel) ? null : i; paintA(); }
 
 /* ═══════════ B — x is the day, y is clock time ═══════════ */
 /* x0 leaves room for the y labels, which now read "12:30pm" rather than "12pm" */
@@ -690,13 +686,12 @@ function paintB(){
     line.setAttribute('x1', cx); line.setAttribute('x2', cx); line.setAttribute('opacity', 0.35);
   }
   if (scale === 'six'){
-    writeReadout(document.getElementById('rbText'),
-      document.getElementById('rbClear'), sixWeekSummary());
+    writeReadout(document.getElementById('rbText'), sixWeekSummary());
     return;
   }
   const body = bSel === null ? weekSummary() : dayBody(weekDays()[bSel]);
   body.selected = bSel !== null;
-  writeReadout(document.getElementById('rbText'), document.getElementById('rbClear'), body);
+  writeReadout(document.getElementById('rbText'), body);
 }
 
 /* ── Scale. Zooming out changes the MARK, not just the window: a week is
@@ -724,7 +719,7 @@ function setScale(s){
   if (six) bSel = null;
   drawB6(); paintB();
 }
-function selectB(i){ bSel = i; paintB(); }
+function selectB(i){ bSel = i; paintB(); }   /* raw set; the toggle lives in the tap handler */
 
 function togglePlan(){
   showPlan = !showPlan;
@@ -855,12 +850,26 @@ function dayFromEvent(e){
   const xChart = (e.clientX - r.left) / r.width * B.vbW;
   return Math.max(0, Math.min(6, Math.floor((xChart - B.x0) / B.slot)));
 }
-let dragging = false;
+let dragging = false, dragMoved = false, selBeforeDrag = null, downOn = null;
 svgB.addEventListener('pointerdown', e => {
-  dragging = true; svgB.setPointerCapture(e.pointerId); selectB(dayFromEvent(e));
+  dragging = true; dragMoved = false;
+  selBeforeDrag = bSel; downOn = dayFromEvent(e);
+  svgB.setPointerCapture(e.pointerId);
+  selectB(downOn);
 });
-svgB.addEventListener('pointermove', e => { if (dragging) selectB(dayFromEvent(e)); });
-svgB.addEventListener('pointerup',     () => { dragging = false; });
+svgB.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  const d = dayFromEvent(e);
+  if (d !== downOn) dragMoved = true;   /* a scrub, not a tap */
+  selectB(d);
+});
+svgB.addEventListener('pointerup', () => {
+  dragging = false;
+  /* A tap on the day you are already reading takes you back to the whole week.
+     A scrub never does, or the gesture would cancel itself when it passed over
+     the current column. */
+  if (!dragMoved && downOn === selBeforeDrag) selectB(null);
+});
 svgB.addEventListener('pointercancel', () => { dragging = false; });
 svgB.setAttribute('tabindex', 0);
 svgB.addEventListener('keydown', e => {
@@ -919,7 +928,7 @@ function paintAlign(){
     : 'hours since that day’s midday dose';
   document.getElementById('segClock').setAttribute('aria-pressed', align === 'clock');
   document.getElementById('segDose').setAttribute('aria-pressed', align === 'dose');
-  writeReadout(document.getElementById('rdText'), null, align === 'clock'
+  writeReadout(document.getElementById('rdText'), align === 'clock'
     ? { title:'By clock time', line:'Eight notes, all between 2:40 and 3:20pm.', muted:false }
     : { title:'By time since dose', line:'The same eight, spread from 1.5 to 5 hours after.', muted:false });
 }
@@ -952,7 +961,7 @@ function drawCoverage(){
         class:'cellhit', tabindex:0, role:'button',
         'aria-label': WEEKS[wi].range + ', ' + d.day + ', ' +
                       (d.doses ? d.doses.length + ' doses' : 'no entries')});
-      const say = () => writeReadout(document.getElementById('rcText'), null, d.doses
+      const say = () => writeReadout(document.getElementById('rcText'), d.doses
         ? { title: d.day + ' · ' + WEEKS[wi].range, line: timeLine(d), muted:false }
         : { title: d.day + ' · ' + WEEKS[wi].range,
             line: "No entries. This picture doesn't cover it.", muted:true });
@@ -968,7 +977,7 @@ function drawCoverage(){
 function coverageSummary(){
   let known = 0, total = 0;
   WEEKS.forEach((w, wi) => daysOf(wi).forEach(d => { total++; if (d.doses) known++; }));
-  writeReadout(document.getElementById('rcText'), null,
+  writeReadout(document.getElementById('rcText'),
     { title:'Six weeks', line: known + ' of ' + total + ' days have entries', muted:false });
 }
 
@@ -1014,7 +1023,7 @@ function drawSessions(){
     });
     hits.appendChild(hit);
   });
-  writeReadout(document.getElementById('reText'), null,
+  writeReadout(document.getElementById('reText'),
     { title: WEEKS[week].range,
       line: WEEKS[week].sessions + ' movement sessions logged', muted:false });
 }
