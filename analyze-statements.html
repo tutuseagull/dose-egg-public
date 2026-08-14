@@ -353,6 +353,14 @@
   </div>
 
   <div class="rule">
+    <strong>Slot columns earned its way back — as a scale, not a separate chart.</strong> The day-column form and the slot-cloud form are now two zoom levels of the same card, switched like Apple's D/W/M/6M: <em>This week</em> shows seven day columns you can scrub; <em>Six weeks</em> gathers every confirmed dose into three clouds you read as shapes. Zooming out <b>changes the mark</b>, it does not just widen the window. And the jitter that was fatal at week scale is fine here, because <b>nothing in this view is selectable</b> — jitter is only a lie when you can point at a dot and ask which day it is.
+  </div>
+
+  <div class="rule">
+    <strong>The long view had to change its y-axis to work.</strong> On a shared clock axis each slot's 90-minute spread collapses into a flat smear beside its own hour, and the three clouds cannot be compared at all. Plotting <b>minutes around that slot's planned time</b> puts all three on one scale, and "how wide is each slot" becomes the literal height of the cloud. It is also the one chart where a dot's distance from a line <em>is</em> the message — so the labels stay descriptive (<em>earlier</em> and <em>later</em>, never <em>early</em> and <em>late</em>) and no colour ever sorts them. Two further consequences: the spread is a <b>beeswarm</b>, so cloud width reads as density rather than noise; and <b>assumed doses are excluded</b> with the count disclosed, because a schedule is a plan, not an observation [rule 4].
+  </div>
+
+  <div class="rule">
     <strong>A gridline is never neutral.</strong> Drawing the planned rails <em>and</em> plain clock gridlines put a dashed line five pixels from a solid one — visually noisy, and it obscured the real point. So in the live version the horizontal reference <em>swaps</em>: either the times you planned, or plain clock hours, never both. Toggling between them is the clearest demonstration on the whole page that a chart's background is a claim about what to measure against.
   </div>
 

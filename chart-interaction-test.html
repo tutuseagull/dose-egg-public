@@ -51,6 +51,10 @@ li{margin-bottom:7px;color:var(--paper-700);font-size:16px}
 .ro-clear[hidden]{display:none}
 
 svg{display:block;width:100%;height:auto;touch-action:none}
+/* `display` is set on svg and .weeknav further down, so this needs to win.
+   Note also: SVG elements have no `.hidden` IDL property — the JS below sets
+   the attribute directly rather than assigning el.hidden. */
+[hidden]{display:none!important}
 svg:focus{outline:none}
 svg:focus-visible{outline:2px solid var(--ink-500);outline-offset:3px;border-radius:8px}
 .rowhit{fill:transparent;cursor:pointer}
@@ -193,10 +197,15 @@ so there is nothing small to hit. Tap any row — including an empty one.</p>
 <h2>B — days across, clock time up</h2>
 <p class="q">"How steady is each dose?"</p>
 <p>The transpose of A: each column is a day, height is the time on the clock. Drag the line, or
-just tap. One line reads all three doses of that day at once.</p>
+just tap. One line reads all three doses of that day at once. Then switch to <b>Six weeks</b> —
+same question, one zoom level out.</p>
 
 <div class="card">
-  <div class="weeknav">
+  <div class="seg" role="group" aria-label="Scale">
+    <button type="button" id="segWeek" aria-pressed="true" onclick="setScale('week')">This week</button>
+    <button type="button" id="segSix" aria-pressed="false" onclick="setScale('six')">Six weeks</button>
+  </div>
+  <div class="weeknav" id="bNav">
     <button type="button" class="arrow" id="bPrev" onclick="stepWeek(-1)" aria-label="Earlier week">‹</button>
     <button type="button" class="wk" id="bWk" onclick="jumpToCurrentWeek()">
       <span class="wk-range" id="bRange"></span>
@@ -217,12 +226,52 @@ just tap. One line reads all three doses of that day at once.</p>
     <g id="bHits"></g>
     <g id="bLabels" font-size="12" fill="#6E6B5F" font-family="Inter, sans-serif" text-anchor="middle"></g>
   </svg>
-  <div class="legend">
+
+  <!-- Same question, zoomed out. Nothing here is selectable, which is exactly
+       what makes meaningless x-jitter acceptable again. -->
+  <svg id="chartB6" viewBox="0 0 340 226" hidden role="img"
+       aria-label="Six weeks of dose times, gathered into three slot clouds.">
+    <g id="b6Plan"></g>
+    <g id="b6Axis" font-size="11" fill="#8D8A7D" font-family="Inter, sans-serif" text-anchor="end"></g>
+    <g id="b6Dots"></g>
+    <g id="b6Labels" font-size="12" fill="#6E6B5F" font-family="Inter, sans-serif" text-anchor="middle"></g>
+  </svg>
+
+  <div class="legend" id="bLegend">
     <span><i class="sw"></i> dose you confirmed</span>
     <span id="bPlanKey"><i class="sw" style="background:none;border:0;border-top:2px dashed var(--paper-300);border-radius:0;height:2px;width:16px"></i> the time you planned</span>
   </div>
+  <div class="legend" id="b6Legend" hidden>
+    <span><i class="sw"></i> one confirmed dose</span>
+    <span>− earlier than planned · + later</span>
+  </div>
   <button type="button" class="softbtn" id="bPlanToggle" aria-pressed="true"
           onclick="togglePlan()">Hide the times you planned</button>
+</div>
+
+<div class="note">
+  <b>What the scale switch actually does.</b> Zooming out here <em>changes the mark</em>, it does
+  not just widen the window — which is the same move Apple's six-month sleep view makes when it
+  stops drawing individual nights and collapses each week into a range. At week scale a day is a
+  column you can scrub. At six-week scale the days are gathered into three clouds and you read
+  <em>shape</em>: a narrow cloud is a steady slot, a tall one wanders. Different question, so a
+  different mark.<br><br>
+  Two details worth noticing. The horizontal spread is a <b>beeswarm</b>, not random jitter — dots
+  fan out symmetrically from the centre, so the width of the cloud is density. And it is fine
+  that x means nothing here, because <b>nothing in this view is selectable</b>. Jitter is only a
+  lie when you can point at a dot and ask which day it is. That is why the old slot-columns draft
+  had to become day columns the moment we wanted a scrub — and why it earns its place back at
+  this scale.<br><br>
+  <b>One thing changed on the way: the y-axis is minutes around your planned time, not clock
+  time.</b> On a shared clock axis each slot's 90-minute spread collapses into a flat smear near
+  its own hour and the three clouds cannot be compared at all. Measuring each slot against its
+  own planned time puts all three on one scale, and the question — how wide is each slot — becomes
+  the literal height of the cloud. This is the one chart here where distance from a line <em>is</em>
+  the message, so it must stay descriptive: earlier and later, never early and late, and never a
+  colour that sorts them.<br><br>
+  <b>Assumed doses are left out of the clouds.</b> A schedule is a plan, not an observation, so it
+  cannot appear in a claim about timing — and the readout says how many were excluded rather than
+  quietly dropping them.
 </div>
 
 <div class="note">
@@ -583,9 +632,40 @@ function paintB(){
     const cx = bCx(bSel);
     line.setAttribute('x1', cx); line.setAttribute('x2', cx); line.setAttribute('opacity', 0.35);
   }
+  if (scale === 'six'){
+    writeReadout(document.getElementById('rbText'),
+      document.getElementById('rbClear'), sixWeekSummary());
+    return;
+  }
   const body = bSel === null ? weekSummary() : dayBody(weekDays()[bSel]);
   body.selected = bSel !== null;
   writeReadout(document.getElementById('rbText'), document.getElementById('rbClear'), body);
+}
+
+/* ── Scale. Zooming out changes the MARK, not just the window: a week is
+      seven day-columns you can scrub; six weeks is three density clouds you
+      read as shapes. Same question, different resolution. ── */
+let scale = 'week';
+/* attribute, not property: SVGElement doesn't implement `.hidden` */
+function setHidden(id, on){
+  const el = document.getElementById(id);
+  if (on) el.setAttribute('hidden', ''); else el.removeAttribute('hidden');
+}
+function setScale(s){
+  scale = s;
+  const six = s === 'six';
+  setHidden('chartB', six);
+  setHidden('chartB6', !six);
+  setHidden('bNav', six);        /* six weeks is not a week view */
+  /* in the six-week view the planned time is the axis itself, so there is
+     nothing to hide — and the day legend doesn't apply either */
+  setHidden('bPlanToggle', six);
+  setHidden('bLegend', six);
+  setHidden('b6Legend', !six);
+  document.getElementById('segWeek').setAttribute('aria-pressed', !six);
+  document.getElementById('segSix').setAttribute('aria-pressed', six);
+  if (six) bSel = null;
+  drawB6(); paintB();
 }
 function selectB(i){ bSel = i; paintB(); }
 
@@ -595,7 +675,107 @@ function togglePlan(){
   btn.textContent = showPlan ? 'Hide the times you planned' : 'Show the times you planned';
   btn.setAttribute('aria-pressed', showPlan);
   document.getElementById('bPlanKey').style.display = showPlan ? '' : 'none';
-  drawB();
+  drawB(); drawB6();
+}
+
+/* ═══════════ B at six-week scale — slot clouds ═══════════
+   The same question one zoom level out: not "how steady was this week"
+   but "how steady is each slot, over the long run".
+   Nothing here is selectable, which is what makes meaningless x-jitter
+   acceptable again — jitter is only a lie when you can point at a dot.
+   `assumed` doses are excluded: a schedule is a plan, not an observation,
+   so it may not appear in a claim about timing. [rule 4]                */
+const SLOTS = ['Morning','Midday','Evening'];
+/* y is MINUTES AROUND THE PLANNED TIME, not clock time. On a shared clock axis
+   each slot's 90-minute spread collapses into a flat smear and the three
+   clouds can't be compared. Measuring each slot against its own planned time
+   puts all three on one scale, and the question — how wide is each slot —
+   becomes the literal height of the cloud. */
+const B6 = {cx:[118, 200, 282], minLo:-30, minHi:90, yLo:30, yHi:170, bucket:7, step:7, x0:76};
+B6.pxPerMin = (B6.yHi - B6.yLo) / (B6.minHi - B6.minLo);
+const b6Y = m => B6.yLo + (m - B6.minLo) * B6.pxPerMin;
+
+/* every confirmed dose, as minutes away from that slot's planned time */
+function slotValues(){
+  const out = [[], [], []];
+  WEEKS.forEach((w, wi) => daysOf(wi).forEach(d => {
+    if (!d.doses) return;
+    d.doses.forEach((x, si) => {
+      if (!x.assumed) out[si].push(Math.round((x.h - PLANNED[si]) * 60));
+    });
+  }));
+  return out;
+}
+function countAssumed(){
+  let n = 0;
+  WEEKS.forEach((w, wi) => daysOf(wi).forEach(d => {
+    if (d.doses) d.doses.forEach(x => { if (x.assumed) n++; });
+  }));
+  return n;
+}
+
+/* Beeswarm: bucket by vertical position, then fan out left and right inside
+   each bucket. The width of the cloud becomes density — which is the point of
+   this view — instead of random jitter that means nothing. */
+function swarm(values){
+  const placed = [];
+  const byBucket = new Map();
+  values.slice().sort((a,b) => a-b).forEach(m => {
+    const y = b6Y(m);
+    const key = Math.round(y / B6.bucket);
+    const n = byBucket.get(key) || 0;
+    byBucket.set(key, n + 1);
+    /* 0, +1, -1, +2, -2 … so the cloud grows symmetrically from the centre
+       and its WIDTH becomes density rather than random jitter */
+    const rank = Math.ceil(n / 2) * (n % 2 === 0 ? 1 : -1);
+    placed.push({y, dx: rank * B6.step});
+  });
+  return placed;
+}
+
+function drawB6(){
+  const g = ['b6Plan','b6Axis','b6Dots','b6Labels'].map(id => document.getElementById(id));
+  g.forEach(wipe);
+  const [plan, axis, dots, labs] = g;
+
+  /* the zero line IS the planned time here — it is the axis, not decoration,
+     so this view has no hide-the-plan option */
+  [[-30,'−30m'], [0,'planned'], [30,'+30m'], [60,'+1h'], [90,'+1½h']].forEach(([m, label]) => {
+    const zero = m === 0;
+    plan.appendChild(svgEl('line', {x1:B6.x0, y1:b6Y(m), x2:322, y2:b6Y(m),
+      stroke: zero ? '#C9C2B4' : '#F2F1EC', 'stroke-width': zero ? 1.5 : 1,
+      'stroke-dasharray': zero ? '5 5' : 'none'}));
+    const t = svgEl('text', {x:B6.x0 - 8, y:b6Y(m) + 4});
+    t.textContent = label;
+    t.setAttribute('font-weight', zero ? '600' : '400');
+    axis.appendChild(t);
+  });
+
+  slotValues().forEach((list, si) => {
+    swarm(list).forEach(pt => {
+      dots.appendChild(svgEl('circle',
+        {cx: B6.cx[si] + pt.dx, cy: pt.y, r:3.5, fill:'#4E6B84', opacity:0.85}));
+    });
+    const t = svgEl('text', {x:B6.cx[si], y:200}); t.textContent = SLOTS[si];
+    labs.appendChild(t);
+  });
+}
+
+/* "-15" → "15m earlier", "70" → "1h10m later" */
+function relMin(m){
+  const a = Math.abs(m), h = Math.floor(a / 60), mm = a % 60;
+  const size = h ? (h + 'h' + (mm ? mm + 'm' : '')) : (mm + 'm');
+  if (m === 0) return 'on plan';
+  return size + (m < 0 ? ' earlier' : ' later');
+}
+function sixWeekSummary(){
+  const spread = slotValues().map((list, si) =>
+    SLOTS[si] + ' ' + relMin(Math.min(...list)) + ' to ' + relMin(Math.max(...list))
+  ).join(' · ');
+  const assumed = countAssumed();
+  return { title:'Six weeks · how wide is each slot',
+    line: spread + (assumed ? '  ·  ' + assumed + ' assumed doses left out' : ''),
+    muted:false };
 }
 
 const svgB = document.getElementById('chartB');
@@ -772,7 +952,7 @@ function renderWeekNav(){
     wk.disabled = onNow;
   });
 }
-function render(){ renderWeekNav(); drawA(); drawB(); drawSessions(); }
+function render(){ renderWeekNav(); drawA(); drawB(); drawB6(); drawSessions(); }
 
 render();
 drawAlign();
