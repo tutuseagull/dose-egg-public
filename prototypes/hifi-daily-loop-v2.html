@@ -395,7 +395,6 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
        border-radius:var(--radius-md);font-size:var(--text-small)}
 .photo-add:hover{background:var(--surface-raised)}
 .photo-add > i{font-size:22px;color:var(--text-muted);flex:0 0 auto}
-.photo-add .sub{color:var(--text-muted);font-size:var(--text-label);font-weight:400}
 .photo-shot{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;
        border-radius:var(--radius-md);background:var(--surface-sunken)}
 .read-line{display:flex;align-items:flex-start;gap:var(--space-2);
@@ -1376,8 +1375,7 @@ function renderLogSheet(){
     if (logStep === 'meal'){
       h += `<button class="photo-add" onclick="pickPhoto('meal')">
         <i class="ph ph-camera"></i>
-        <span><span class="strip-name">Take or choose a photo</span>
-          <span class="sub"> — it reads what is on the plate</span></span></button>`;
+        <span class="strip-name">Log from a photo</span></button>`;
     }
     h += searchRowsHTML(logStep, null,
                         t => `logNamed('${logStep}',${q(t)})`,
@@ -1581,12 +1579,17 @@ function dismissLooks(){ delete active.e.looks; renderDetail(); }
 
 function photoSectionHTML(e){
   if (e.type !== 'meal' && e.type !== 'note') return '';
-  let h = '<div class="sec"><div class="sec-h">Photo</div>';
+  /* On a meal the photo is depth: the entry is complete without it, and the
+     header has to say so in the same word Details uses. On a plain photo entry
+     it is the record itself, so no qualifier. */
+  const opt = (e.type === 'meal') ? ' <span class="sec-opt">· optional</span>' : '';
+  let h = `<div class="sec"><div class="sec-h">Photo${opt}</div>`;
   if (!e.photo){
+    /* One line. What the read does is explained by the read itself, a second
+       later — saying it in advance is the interface narrating its own feature. */
     h += `<button class="photo-add" onclick="pickPhoto(active.e)">
       <i class="ph ph-camera"></i>
-      <span><span class="strip-name">Take or choose a photo</span>
-        <span class="sub">${e.type === 'meal' ? ' — it reads what is on the plate' : ''}</span></span></button>`;
+      <span class="strip-name">Log from a photo</span></button>`;
   } else {
     h += `<img class="photo-shot" src="${e.photo}" alt="Photo of this meal">`;
     if (e.photoTime)
@@ -1608,8 +1611,7 @@ function photoSectionHTML(e){
     if (e.type !== 'meal' && !e.reading && e.read !== 'ok'){
       h += `<button class="photo-add" onclick="readPhoto(active.e)">
         <i class="ph ph-magic-wand"></i>
-        <span><span class="strip-name">${e.read === 'failed' ? 'Try reading it again' : 'Read this photo'}</span>
-          <span class="sub"> — suggest a caption, and where it belongs</span></span></button>`;
+        <span class="strip-name">${e.read === 'failed' ? 'Try reading it again' : 'Read this photo'}</span></button>`;
     }
     if (e.looks){
       h += `<div class="read-line"><i class="ph ph-question"></i><span>This looks like
