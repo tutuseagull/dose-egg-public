@@ -367,8 +367,8 @@
   <header>
     <div class="eyebrow">DoseEgg · Research</div>
     <h1>Supporting Studies</h1>
-    <p class="subtitle">Research that informs two core product questions: what the body tells us passively, and how people sustain the habit of daily self-tracking.</p>
-    <p class="meta">Compiled May 2026 · 24 sources · Four topic areas</p>
+    <p class="subtitle">Research that informs two core product questions: what the body tells us passively, and how people sustain the habit of daily self-tracking — plus what the population's own body does to the input methods we might reach for.</p>
+    <p class="meta">Compiled May 2026, extended August 2026 · 33 sources · Five topic areas</p>
   </header>
 
 
@@ -717,9 +717,132 @@
     </div>
   </div>
 
+
+  <!-- ══════════════════════════════════════════
+       SECTION 5 — VOICE & SPEECH INPUT
+  ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>Voice &amp; Speech Input</h2>
+    </div>
+    <p class="section-intro">Typing is hard with a tremor, so voice looks like the obvious accommodation. This section asks whether it actually is — for a population whose voice is itself affected by the disease.</p>
+
+    <div class="group-label">The Population's Voice — Prevalence and Character</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://www.dovepress.com/parkinsons-disease-associated-dysarthria-prevalence-impact-and-managem-peer-reviewed-fulltext-article-JPRLS" target="_blank">Parkinson's-Associated Dysarthria: Prevalence, Impact and Management</a></div>
+      <div class="study-meta">
+        <span>Moya-Galé &amp; Levy · Research and Reviews in Parkinsonism · 2019</span>
+      </div>
+      <p class="study-insight">Close to <strong>90% of people with PD</strong> develop hypokinetic dysarthria. Broken down: voice disorders ~90%, articulation ~45%, fluency ~20%. The profile is reduced loudness, monotone, narrowed pitch range, imprecise consonants, breathiness, irregular pauses. Voice quality changes appear <strong>before</strong> intelligibility is perceptibly affected.</p>
+      <p class="study-takeaway">There is no "not yet affected" cohort to design for. A newly diagnosed user is likely already quieter and flatter than the distribution any mainstream speech recogniser was trained on — without knowing it.</p>
+    </div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://www.nature.com/articles/s41531-021-00243-1" target="_blank">Distinct Patterns of Speech Disorder in Early-Onset and Late-Onset De-Novo PD</a></div>
+      <div class="study-meta">
+        <span>Rusz et al. · npj Parkinson's Disease 7:98 · 2021</span>
+        <span class="sep">·</span>
+        <span class="tag landmark">Young onset</span>
+      </div>
+      <p class="study-insight">24 early-onset (mean onset 42.6 y) vs 24 late-onset, all de novo and untreated. <strong>Monopitch, monoloudness and articulatory decay were present in both groups</strong>; weak inspiration was specific to early onset; degraded voice quality and imprecise consonants were specific to late onset. Overall dysarthria severity was similar across groups. A companion paper (Rusz et al., <em>Neurology</em> 2021, n=111) found the "prosodic" speech subtype was characterised by <strong>younger age and women</strong> — and is the subtype levodopa helps least.</p>
+      <p class="study-takeaway">Young onset is not protected. It has a different acoustic signature at equal severity, and the features it shares with late onset — quiet, flat — are precisely the ones that break microphone pickup and endpointing. The dimension our users are most likely to have is the one medication does not fix.</p>
+    </div>
+
+    <div class="group-label">Recognition Accuracy — What the Numbers Actually Say</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://arxiv.org/abs/2507.22047" target="_blank">The Interspeech 2025 Speech Accessibility Project Challenge</a></div>
+      <div class="study-meta">
+        <span>Zheng et al. · Interspeech · 2025</span>
+        <span class="sep">·</span>
+        <span class="tag landmark">Benchmark</span>
+      </div>
+      <p class="study-insight">The largest speaker-independent impaired-speech benchmark: 400+ hours, 500+ speakers, roughly three quarters PD by duration. Off-the-shelf <strong>Whisper-large-v2 scored 17.09% WER on the PD subset</strong>; the top five tuned systems averaged 10.06%, the winner 8.11%. Typical speech baselines sit under 5%.</p>
+      <p class="study-takeaway">Modern ASR on PD speech is roughly three to four times worse than on typical speech — usable, not transparent. And these are the good conditions: prompted, recorded for research.</p>
+    </div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://arxiv.org/html/2412.19315" target="_blank">Towards a Single ASR Model That Generalizes to Disordered Speech</a></div>
+      <div class="study-meta">
+        <span>Tobin, Tomanek &amp; Venugopalan (Google Research) · arXiv:2412.19315</span>
+      </div>
+      <p class="study-insight">Adding ~1000 hours of disordered speech to a 2B-parameter model moved WER by severity: mild <strong>10.7 → 7.3</strong>, moderate <strong>29.5 → 19.6</strong>, severe <strong>48.1 → 31.3</strong>. Two findings matter more than the headline: the generalist model reached 17.5 while a <strong>per-speaker personalised model reached 11.3</strong> — closing 64% of the gap, not all of it — and improvement on <strong>conversational</strong> speech (26%) lagged prompted speech (33%).</p>
+      <p class="study-takeaway">Severity is the dominant variable, and the harder the speech task, the smaller the gain. Free-form journaling is conversational, which is the condition that improved least.</p>
+    </div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://onlinelibrary.wiley.com/doi/10.1111/1460-6984.70140" target="_blank">Voice-Assisted Technology for People with Dysarthria — Scoping Review</a></div>
+      <div class="study-meta">
+        <span>Mills et al. · Int. J. Language &amp; Communication Disorders 60(6) · 2025</span>
+      </div>
+      <p class="study-insight">Of 840 articles screened, only <strong>five</strong> met inclusion (PD n=290) — the evidence base is thin. Among PD users, ~43% said voice technology "works most of the time" and 31% "some of the time". Named barriers: low volume, reduced intelligibility, accent, disease fluctuation, ethnocentric acoustic models, poor error recovery. A 2026 co-design study by the same group (JMIR Rehab. Assist. Technol., 20 participants) found the two dominant frustrations were <strong>having to repeat yourself</strong> and <strong>the device timing out before you finished speaking</strong>.</p>
+      <p class="study-takeaway">The most-cited failure is not mis-transcription — it is the interface deciding you were done. Silence-based endpointing reads a diagnostic feature (irregular pauses, weak breath support) as the end of a sentence.</p>
+    </div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://arxiv.org/pdf/2602.23436" target="_blank">Challenges in ASR for Adults with Cognitive Impairment</a></div>
+      <div class="study-meta">
+        <span>Cohn et al. · CHI · 2026</span>
+        <span class="sep">·</span>
+        <span class="tag">Adjacent population</span>
+      </div>
+      <p class="study-insight">83 older adults, two Whisper models. WER 0.32 for the dementia group vs 0.12 for cognitively normal. The three acoustic features that predicted recognition errors were <strong>reduced intensity, increased shimmer and lower pause ratios</strong> — reduced intensity being hypophonia by another name. Their design recommendations: personalised models, human-in-the-loop transcript correction, adaptive interaction timing, and engagement mechanisms other than a wake word.</p>
+      <p class="study-takeaway">Not a PD study, but the failing acoustic feature is the same one PD produces. The design fixes transfer directly.</p>
+    </div>
+
+    <div class="group-label">Fluctuation — Does OFF Make It Worse?</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://www.nature.com/articles/s41531-022-00286-y" target="_blank">Short-Term Effect of Dopaminergic Medication on Speech in Early-Stage PD</a></div>
+      <div class="study-meta">
+        <span>Tykalova et al. · npj Parkinson's Disease 8:22 · 2022</span>
+      </div>
+      <p class="study-insight">60 early-stage PD across a 12-hour OFF vs 60–90 min ON comparison: <strong>no speech change from OFF to ON</strong> across seven acoustic dimensions, despite clear motor improvement. A later study (<a href="https://www.nature.com/articles/s41531-025-00959-4" target="_blank">Thies et al., npj Parkinson's Disease 2025</a>, n=78) did classify medication state from speech at ROC-AUC 0.74, and found that <strong>phonatory-respiratory function improved ON while articulation did not</strong>.</p>
+      <p class="study-takeaway">Detectable, not dramatic. But the dimension that does respond to levodopa is loudness and breath support — the one ASR depends on most. Expect quieter, breathier input during OFF, which is exactly when logging matters most and typing is also hardest. Nobody has measured word error rate in OFF versus ON; this is the most decision-relevant gap we found.</p>
+    </div>
+
+    <div class="group-label">Inclusive-ASR Programmes — What a Third Party Can Actually Use</div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://speechaccessibilityproject.beckman.illinois.edu/" target="_blank">Speech Accessibility Project (UIUC)</a></div>
+      <div class="study-meta">
+        <span>Beckman Institute · ongoing</span>
+        <span class="sep">·</span>
+        <span class="tag active">Reachable</span>
+      </div>
+      <p class="study-insight">~2,000 participants as of late 2025; Phase 1 was <strong>Parkinson's-only</strong>. Backed by Amazon, Apple, Google, Meta and Microsoft. A 211-speaker PD release went public in 2024, and Microsoft reported 18–60% accuracy gains from it. Access requires a one-page proposal and a signed data use agreement; the project accepts proposals from companies as well as nonprofits. Fine-tuning on this kind of data roughly halves error — <a href="https://pubs.asha.org/doi/10.1044/2024_JSLHR-24-00122" target="_blank">36.3% → 23.7% WER</a> in the project's own work.</p>
+      <p class="study-takeaway">This is the only door that is actually open to us. It is an ML workstream, not a configuration change.</p>
+    </div>
+
+    <div class="study">
+      <div class="study-title"><a href="https://sites.research.google/euphonia/about/faq/" target="_blank">Project Euphonia · Project Relate · Apple "Listen for Atypical Speech"</a></div>
+      <div class="study-meta">
+        <span>Google &amp; Apple · status checked August 2026</span>
+        <span class="sep">·</span>
+        <span class="tag">Closed to us</span>
+      </div>
+      <p class="study-insight"><strong>Euphonia:</strong> 1.5M+ utterances from ~3,000 speakers, but the dataset is explicitly not available to outside companies and there is no API — only <a href="https://github.com/google/project-euphonia-app" target="_blank">open-source collection and training tooling</a>. <strong>Relate:</strong> an Android app that trains a personal model, and its keyboard exposes that model to any app — but it is <strong>not accepting new users</strong>. <strong>Apple:</strong> the atypical-speech model applies to Siri, on-device, system-wide; no developer API was found exposing it to third-party dictation. (Personal Voice <em>is</em> open to third parties, but that is speech output, not recognition — a different problem.)</p>
+      <p class="study-takeaway">There is no switch to flip. An existing Relate user would get better dictation into our app for free; we cannot provision it, recommend it, or depend on it.</p>
+    </div>
+
+    <div class="implication log">
+      <div class="implication-label">DoseEgg implication</div>
+      <p><strong>Voice is an alternative input, never the primary one, and never the only one.</strong> The population whose hands make typing hard is the same population whose voice makes recognition hard, and the two get worse together during OFF. Mild speech transcribes well; severe speech does not transcribe usably on any system tested, and we cannot know in advance which of our users is which.</p>
+      <p>What this buys us, concretely:</p>
+      <p>· <strong>Keyboard dictation is already free and already works</strong> — the note field is a real textarea, so the OS mic button dictates into it today, using whatever personalisation the user has already set up. That is the entire voice feature for MVP.</p>
+      <p>· <strong>Never endpoint on silence.</strong> If we ever build our own capture, the user says when they are done. Timing out mid-sentence was the single most-cited complaint, and irregular pausing is a symptom, not a signal.</p>
+      <p>· <strong>Show the transcript, always, as a draft.</strong> Speech output is a guess like any other guess and must be marked as one — the same rule the photo read follows.</p>
+      <p>· <strong>Separate "I didn't hear you" from "I couldn't understand you."</strong> Attributing failure to the person's voice is the psychologically damaging case, and this population is being told daily that their voice is failing.</p>
+      <p>· <strong>Tap input is the OFF-state fallback</strong>, not a text field. During OFF, tremor breaks typing and hypophonia breaks voice at the same time. Short structured taps beat both — which is an argument for the chip-and-tile design we already have, not against it.</p>
+      <p><strong>Still unknown:</strong> nobody has published word error rates for free-form journaling by people with PD on a phone at home; nobody has measured OFF vs ON word error rate; there is no YOPD-specific ASR data at all; and the platform recognisers we would actually call (Apple <code>SFSpeechRecognizer</code>, Android <code>SpeechRecognizer</code>) have never been benchmarked on parkinsonian speech. If voice becomes a priority, a five-to-ten-person in-house test is worth more than any paper here.</p>
+    </div>
+  </div>
+
   <footer>
-    <span>DoseEgg · Research reference · May 2026</span>
-    <span>24 sources · Compiled for internal use</span>
+    <span>DoseEgg · Research reference · May 2026, extended August 2026</span>
+    <span>33 sources · Compiled for internal use</span>
   </footer>
 
 </div>

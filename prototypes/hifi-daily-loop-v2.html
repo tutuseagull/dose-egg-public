@@ -381,6 +381,33 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .strip .sub{color:var(--text-muted);font-size:var(--text-label);font-weight:400}
 .strip:hover{background:var(--surface-raised)}
 
+/* ══ photo, and what the app read off it ══
+   Three looks, because the app's guess must never be able to pass for the
+   person's own answer — this record is going to a doctor.
+     dashed + plus     nobody has said anything yet
+     outlined + spark  we read it off the photo
+     solid             you said it
+   Touching a guess makes it yours; there is no separate "looks right" button,
+   because tapping the same value again is already the confirmation. */
+.photo-add{display:flex;align-items:center;gap:var(--space-3);width:100%;text-align:left;
+       min-height:var(--target-critical);padding:var(--space-3) var(--space-4);
+       background:var(--surface-page);border:1px dashed var(--border-interactive);
+       border-radius:var(--radius-md);font-size:var(--text-small)}
+.photo-add:hover{background:var(--surface-raised)}
+.photo-add > i{font-size:22px;color:var(--text-muted);flex:0 0 auto}
+.photo-add .sub{color:var(--text-muted);font-size:var(--text-label);font-weight:400}
+.photo-shot{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;
+       border-radius:var(--radius-md);background:var(--surface-sunken)}
+.read-line{display:flex;align-items:flex-start;gap:var(--space-2);
+       color:var(--text-muted);font-size:var(--text-label);line-height:var(--leading-body)}
+/* icon and copy are the only two flex children — the copy is wrapped so an
+   emphasis inside it cannot become a third box and break the sentence apart */
+.read-line > i{flex:0 0 auto;font-size:16px}
+.read-line > span{min-width:0}
+.read-line.busy i{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.note-in.guess{border-style:dashed;border-color:var(--border-interactive)}
+
 /* ═══════════════ DETAIL SHEET (new in v2) ═══════════════
    Two jobs, deliberately kept apart:
      CORRECT  — what actually happened. Changes the doctor export. High stakes.
@@ -554,6 +581,17 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .chip.set{border-color:var(--border-subtle);background:var(--surface-raised);
           color:var(--text-primary)}
 .chip.set i{color:var(--text-muted)}
+/* An estimate has to READ as an estimate at a glance. A guessed value keeps the
+   chip and loses the filled ground, and carries ≈ instead of the field's own
+   icon. Typed rather than drawn from the icon font on purpose: ≈ already means
+   "about this" to everyone, in every language on the roadmap, and it cannot
+   silently vanish the way a missing glyph does. */
+.chip.set.guess{background:var(--surface-page);border-color:var(--border-interactive)}
+.est{font-weight:600;color:var(--accent-quiet);font-style:normal}
+.chip .est{font-size:var(--text-small);flex:0 0 auto}
+/* ≈ carries the meaning visually; a screen reader gets the word instead, since
+   "approximately equal to" is not what the symbol is doing here. */
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .chip.pick{border-style:solid}
 /* "More…" is a door, not an unset value — dashed means "nothing here yet", and
    there is plenty here. Solid, with the same caret the rest of the app uses to
@@ -728,6 +766,14 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
   <div class="pull"></div>
   <div id="log-body"></div>
 </div>
+
+<!-- No `capture` attribute on purpose: with it, iOS goes straight to the
+     shutter and the photo library becomes unreachable, which loses the case
+     where you photographed lunch and log it an hour later. Without it you get
+     one extra tap and both doors. Revisit if testing says the tap costs more
+     than the library path is worth. -->
+<input type="file" id="photo-in" accept="image/*" hidden
+       aria-hidden="true" tabindex="-1" onchange="onPhotoPicked(this)">
 
 <!-- ══ Entry detail sheet (v2) — contents rendered from state ══ -->
 <div class="sheet tall" id="sheet-detail" role="dialog" aria-label="Entry detail" tabindex="-1">
@@ -937,6 +983,7 @@ function metaPairs(e){
       out.push([f.icon, f.bare ? txt : `${f.label}: ${txt}`]);
     }
   });
+  if (e.photo && e.type !== 'note') out.push(['ph-camera', 'Photo']);
   (e.meta || []).forEach(m => out.push(m));
   return out;
 }
@@ -1140,6 +1187,7 @@ function renderDetail(){
     h += '</div>';
   }
 
+  h += photoSectionHTML(e);
   h += timeSectionHTML(e);
   h += durationSectionHTML(e);
 
@@ -1159,9 +1207,12 @@ function renderDetail(){
                 : Array.isArray(raw) ? (raw.length === 1 ? raw[0] : `${raw[0]} +${raw.length - 1}`)
                 : raw;
     const v = shown == null ? shown : (f.bare ? shown : `${f.label}: ${shown}`);
+    /* a value the app guessed swaps its own icon for the spark and drops the
+       filled background — same chip, visibly not yet yours */
+    const guessed = !!(e.guess && (e.guess[f.key] || (f.grams && e.guess[f.grams])));
     h += v
-      ? `<button class="chip set" onclick="toggleField('${f.key}')">
-           <i class="ph ${f.icon}"></i>${esc(v)}<i class="ph ph-caret-down"></i></button>`
+      ? `<button class="chip set${guessed ? ' guess' : ''}" onclick="toggleField('${f.key}')">
+           ${guessed ? '<span class="est" aria-hidden="true">&#8776;</span><span class="vh">Estimated from the photo: </span>' : `<i class="ph ${f.icon}"></i>`}${esc(v)}<i class="ph ph-caret-down"></i></button>`
       : `<button class="chip" onclick="toggleField('${f.key}')">
            <i class="ph ph-plus"></i>${f.label}</button>`;
   });
@@ -1192,7 +1243,7 @@ function renderDetail(){
      as grading how much someone tracks [C-08, docs/patient-voice-quotes.md].
      Someone writing "everything is awful today" should not clear a relevance
      test first. "Anything" is the whole point. */
-  h += `<textarea class="note-in" id="note-in" rows="1" aria-label="Notes"
+  h += `<textarea class="note-in${e.guess && e.guess.note ? ' guess' : ''}" id="note-in" rows="1" aria-label="Notes"
           placeholder="Write anything here"
           oninput="setNote(this.value); autoGrow(this)">${esc(e.note || '')}</textarea>`;
   h += '</div>';
@@ -1302,10 +1353,11 @@ function renderLogSheet(){
   let h = '';
   if (!logStep){
     h += '<h2>Add to today</h2>';
-    /* Photo names itself, so it stays one tap. In a real build the shutter
-       comes first and this is what happens after it. */
-    h += `<button class="strip" onclick="logNamed('note','Photo')">
-      <span><span class="strip-name">Photo</span> <span class="sub">— snap now, caption optional</span></span>
+    /* Photo names itself, so it stays one tap to the shutter. Two doors to a
+       camera (here and inside Food) is a deliberate bet, not an oversight:
+       they lead to different records. Usage decides whether both survive. */
+    h += `<button class="strip" onclick="pickPhoto('note')">
+      <span><span class="strip-name">Photo</span> <span class="sub">— take one or pick from your album</span></span>
     </button>`;
     h += '<div class="grid">' + TILES.map(([t,ico,name]) =>
       `<button class="tile" onclick="openCategory('${t}')">
@@ -1317,6 +1369,16 @@ function renderLogSheet(){
           <i class="ph ph-caret-left"></i></button>
         <h2>${TYPE_NAME[logStep]}</h2>
       </div>`;
+    /* The camera leads the Food step — a photo is the fastest complete meal
+       entry there is. It only appears here on a cold start, because once you
+       have any food history the Food tile skips straight to the detail sheet,
+       where the same camera sits at the top. Two ways in, one function. */
+    if (logStep === 'meal'){
+      h += `<button class="photo-add" onclick="pickPhoto('meal')">
+        <i class="ph ph-camera"></i>
+        <span><span class="strip-name">Take or choose a photo</span>
+          <span class="sub"> — it reads what is on the plate</span></span></button>`;
+    }
     h += searchRowsHTML(logStep, null,
                         t => `logNamed('${logStep}',${q(t)})`,
                         `logNamed('${logStep}', searchQ.trim())`, 'search-log');
@@ -1360,6 +1422,213 @@ function logOther(type){
   addEntry(e, 0);
   openDetail(e, 0);
   startLabelEdit();
+}
+
+/* ═════════ photo ════════════════════════════════════════════════════════
+   A photo is IDENTITY, not depth. It says a meal happened and roughly when —
+   the part that must never be optional — and it says it faster than any list
+   of chips can. What is on the plate is depth, and depth is what the app is
+   allowed to guess at.
+
+   So the read fills the note and the protein level, and marks both as GUESSES.
+   A guess renders differently from an answer until you touch it, and it stays
+   a guess if you never do. That is the honest state: "the app estimated this
+   and the patient never disagreed" is not the same claim as "the patient said
+   this", and the export is the reason the difference matters.
+
+   Level, not grams, deliberately. A photo can support "looks like a lot of
+   protein"; it cannot support "31 g". Grams stay the thing you type when you
+   are actually counting [CONTEXT.meal].
+
+   The read is simulated here. A real build sends the frame to a vision model —
+   on-device first, since this is a photograph inside a health record. Every
+   fifth photo comes back unreadable ON PURPOSE: a demo where the AI is always
+   right is a demo of a product that does not exist, and the failure path is
+   the one that needs designing. */
+const READS = [
+  { items:'Salmon, rice, green salad',      protein:'High' },
+  { items:'Porridge with berries',          protein:'Low'  },
+  { items:'Chicken sandwich, crisps',       protein:'Some' },
+  { items:'Two eggs on toast',              protein:'Some' },
+  { items:null,                             protein:null   },
+];
+let readN = 0;
+
+/* The SAME shutter, a different question. Food has one obvious question — what
+   is on the plate — so it is worth asking without being asked. An arbitrary
+   photo does not: it might be a pill packet, a footpath, a rash, or nothing.
+   Reading it unprompted would spend a model call and a privacy decision on a
+   question nobody posed, so the generic photo waits for the button.
+   What it can offer, once asked, is where the photo seems to belong — as a
+   suggestion with a visible No, never as a silent re-filing. */
+const NOTE_READS = [
+  { caption:'A plate of pasta with tomato sauce', looks:'meal' },
+  { caption:'A blister pack of tablets',          looks:'dose' },
+  { caption:'A footpath through a park',          looks:'activity' },
+  { caption:'A handwritten note on lined paper',  looks:null },
+  { caption:null,                                 looks:null },
+];
+let noteReadN = 0;
+let photoFor = null;        /* 'meal' | 'note' | the entry the shutter was opened from */
+
+/* Clock-derived, because at 12:40 "Lunch" is a better first guess than "Food"
+   and the name sits under a pencil either way — it never claims to be settled. */
+function mealNameNow(){
+  const h = new Date().getHours();
+  return h < 11 ? 'Breakfast' : h < 15 ? 'Lunch'
+       : h < 17 ? 'Snack'     : h < 21 ? 'Dinner' : 'Snack';
+}
+
+function pickPhoto(target){
+  photoFor = target;
+  const inp = el('photo-in');
+  inp.value = '';           /* so re-picking the same file still fires change */
+  inp.click();
+}
+
+function onPhotoPicked(input){
+  const f = input.files && input.files[0];
+  if (!f) return;                    /* cancelled — nothing happened, so say nothing */
+  let e = photoFor;
+  if (photoFor === 'meal' || photoFor === 'note'){
+    closeSheets();
+    e = photoFor === 'meal'
+      ? { time:nowTime(), recorded:nowTime(), text:mealNameNow(), type:'meal', basis:'asserted' }
+      : { time:nowTime(), recorded:nowTime(), text:'Photo',       type:'note', basis:'asserted' };
+    addEntry(e, 0);
+    openDetail(e, 0);
+  }
+  e.photo = URL.createObjectURL(f);
+  applyPhotoTime(e, f);
+  if (e.type === 'meal') startRead(e);   /* food reads itself; everything else asks first */
+  renderDetail(); renderTimeline();
+}
+
+/* The photo carries its own timestamp, and it is a better answer than "now" for
+   anything logged after the fact. Three guards, all of them about not
+   overwriting something truer:
+     - only when the time is still the one the app filled in (time === recorded)
+     - only within today, because crossing midnight is the day picker's job
+     - only when the shot is more than five minutes old, since "just took it"
+       already means now and re-stating it would be noise. */
+function applyPhotoTime(e, f){
+  if (!f.lastModified || e.time !== e.recorded) return;
+  const d = new Date(f.lastModified);
+  if (d.toDateString() !== new Date().toDateString()) return;
+  const mins = d.getHours() * 60 + d.getMinutes();
+  if (toMin(nowTime()) - mins < 5) return;
+  e.time = fromMin(mins);
+  e.recorded = nowTime();
+  e.photoTime = true;
+  sortDay(DAYS[0]);
+}
+
+function startRead(e){
+  e.reading = true;
+  const r = READS[readN % READS.length]; readN++;
+  setTimeout(() => {
+    e.reading = false;
+    e.read = r.items ? 'ok' : 'failed';
+    if (r.items){
+      e.guess = e.guess || {};
+      /* never overwrite something already there — a guess may fill a blank, it
+         may not correct a person */
+      if (!e.note){ e.note = r.items; e.guess.note = true; }
+      e.fields = e.fields || {};
+      if (e.fields.protein == null && e.fields.proteinG == null){
+        e.fields.protein = r.protein; e.guess.protein = true;
+      }
+    }
+    if (active && active.e === e) renderDetail();
+    renderTimeline();
+  }, 1400);
+}
+
+/* The asked-for read. Returns a caption and, when it can, a guess at where the
+   photo belongs — offered as a question with a No next to it. Moving someone's
+   record into a different category on a model's say-so is not a suggestion, it
+   is a decision, and it is not ours to make. */
+function readPhoto(e){
+  e.reading = true; e.read = null;
+  renderDetail();
+  const r = NOTE_READS[noteReadN % NOTE_READS.length]; noteReadN++;
+  setTimeout(() => {
+    e.reading = false;
+    e.read = r.caption ? 'ok' : 'failed';
+    if (r.caption){
+      e.guess = e.guess || {};
+      if (!e.note){ e.note = r.caption; e.guess.note = true; }
+      if (r.looks && r.looks !== e.type) e.looks = r.looks;
+    }
+    if (active && active.e === e) renderDetail();
+    renderTimeline();
+  }, 1400);
+}
+
+function convertTo(t){
+  const e = active.e;
+  e.type = t;
+  delete e.looks;
+  /* "Photo" described the record, not the thing. Once it is a meal it needs a
+     meal's name — and the name sits under a pencil, so it stays arguable. */
+  if (e.text === 'Photo') e.text = (t === 'meal') ? mealNameNow() : NEW_LABEL[t];
+  if (hasInterval(t) && !e.anchor) e.anchor = 'end';
+  /* now that we know it is food, the plate is worth a second look */
+  if (t === 'meal' && !(e.fields && e.fields.protein != null)){ startRead(e); }
+  renderDetail(); renderTimeline();
+}
+function dismissLooks(){ delete active.e.looks; renderDetail(); }
+
+function photoSectionHTML(e){
+  if (e.type !== 'meal' && e.type !== 'note') return '';
+  let h = '<div class="sec"><div class="sec-h">Photo</div>';
+  if (!e.photo){
+    h += `<button class="photo-add" onclick="pickPhoto(active.e)">
+      <i class="ph ph-camera"></i>
+      <span><span class="strip-name">Take or choose a photo</span>
+        <span class="sub">${e.type === 'meal' ? ' — it reads what is on the plate' : ''}</span></span></button>`;
+  } else {
+    h += `<img class="photo-shot" src="${e.photo}" alt="Photo of this meal">`;
+    if (e.photoTime)
+      h += `<div class="read-line"><i class="ph ph-clock"></i><span>Time taken from the photo — ${e.time}</span></div>`;
+    if (e.reading)
+      h += `<div class="read-line busy"><i class="ph ph-circle-notch"></i><span>Reading the photo…</span></div>`;
+    else if (e.read === 'failed')
+      h += `<div class="read-line"><i class="ph ph-eye-slash"></i><span>Couldn’t read this one. The photo is saved — add the rest yourself if you want to.</span></div>`;
+    else if (e.read === 'ok')
+      /* the ≈ line only makes sense where there is an ≈ on screen — a plain
+         photo produces a caption and nothing else, so it gets its own sentence */
+      h += e.type === 'meal'
+        ? `<div class="read-line"><i class="ph ph-magic-wand"></i><span>Read from the photo. <b class="est">&#8776;</b> means we guessed — tap it to correct, or leave it.</span></div>`
+        : `<div class="read-line"><i class="ph ph-magic-wand"></i><span>Caption read from the photo — edit it below if it is off.</span></div>`;
+
+    /* On a plain photo the read is a button, not a reflex. Offered again after
+       a failure, because "try again" is a reasonable thing to want and a
+       dead end is not. */
+    if (e.type !== 'meal' && !e.reading && e.read !== 'ok'){
+      h += `<button class="photo-add" onclick="readPhoto(active.e)">
+        <i class="ph ph-magic-wand"></i>
+        <span><span class="strip-name">${e.read === 'failed' ? 'Try reading it again' : 'Read this photo'}</span>
+          <span class="sub"> — suggest a caption, and where it belongs</span></span></button>`;
+    }
+    if (e.looks){
+      h += `<div class="read-line"><i class="ph ph-question"></i><span>This looks like
+              <b>${TYPE_NAME[e.looks]}</b>. Move it there?</span></div>`;
+      h += `<div class="chips">
+        <button class="chip pick" onclick="convertTo('${e.looks}')">Make it ${TYPE_NAME[e.looks]}</button>
+        <button class="chip pick" onclick="dismissLooks()">No, leave it</button></div>`;
+    }
+  }
+  return h + '</div>';
+}
+
+/* Taking a value makes it yours. Grams and level are two precisions of one
+   fact, so answering either one clears the guess on both. */
+function ownIt(key){
+  const g = active && active.e.guess; if (!g) return;
+  delete g[key];
+  if (key === 'protein')  delete g.proteinG;
+  if (key === 'proteinG') delete g.protein;
 }
 
 /* ═════════ time entry ═══════════════════════════════════════════════════
@@ -1615,14 +1884,14 @@ function onGramField(key, node){
   const digits = node.value.replace(/\D/g,'').slice(0,3);
   if (digits !== node.value) node.value = digits;
   const e = active.e, f = (CONTEXT[e.type]||[]).find(x => x.key === key);
-  e.fields = e.fields || {};
+  e.fields = e.fields || {}; ownIt(f.grams);
   delete e.fields[key];
   if (digits === '') delete e.fields[f.grams]; else e.fields[f.grams] = parseInt(digits,10);
   renderTimeline();
 }
 function pickGrams(key, n){
   const e = active.e, f = (CONTEXT[e.type]||[]).find(x => x.key === key);
-  e.fields = e.fields || {};
+  e.fields = e.fields || {}; ownIt(f.grams);
   delete e.fields[key]; e.fields[f.grams] = n;
   pickerStep = null; openField = null;
   renderDetail(); renderTimeline();
@@ -1630,7 +1899,7 @@ function pickGrams(key, n){
 function onNumField(key, node){
   const digits = node.value.replace(/\D/g,'').slice(0,3);
   if (digits !== node.value) node.value = digits;
-  const e = active.e; e.fields = e.fields || {};
+  const e = active.e; e.fields = e.fields || {}; ownIt(key);
   if (digits === '') delete e.fields[key]; else e.fields[key] = parseInt(digits,10);
   sortDay(DAYS[active.day]); renderTimeline();
 }
@@ -1640,7 +1909,7 @@ function openPicker(kind, key){ pickerStep = { kind, key }; openMini = null; sea
    chooser for it at the same time. */
 function closePicker(){ pickerStep = null; searchQ = ''; openField = null; renderDetail(); }
 function pickField(key, val){
-  const e = active.e; e.fields = e.fields || {};
+  const e = active.e; e.fields = e.fields || {}; ownIt(key);
   const f = fieldsFor(e).find(x => x.key === key);
   if (f && f.grams) delete e.fields[f.grams];   /* a level supersedes grams */
   if (val === null) delete e.fields[key]; else e.fields[key] = val;
@@ -1739,7 +2008,7 @@ function toggleField(key){
    tap would make the second answer cost as much as the first. Single fields
    keep replacing and closing, which is right when there is only one answer. */
 function toggleMulti(key, val){
-  const e = active.e; e.fields = e.fields || {};
+  const e = active.e; e.fields = e.fields || {}; ownIt(key);
   const cur = Array.isArray(e.fields[key]) ? e.fields[key].slice() : [];
   const i = cur.indexOf(val);
   if (i > -1) cur.splice(i, 1); else cur.push(val);
@@ -1748,7 +2017,7 @@ function toggleMulti(key, val){
 }
 function setField(key, val){
   const e = active.e;
-  e.fields = e.fields || {};
+  e.fields = e.fields || {}; ownIt(key);
   /* Same guard as pickField — the inline picker and the step both write here,
      and grams/level must never coexist. Missing it left "26 g" AND "Some" on
      the same meal, which is two answers to one question. */
@@ -1764,6 +2033,12 @@ function autoGrow(n){ n.style.height = 'auto'; n.style.height = n.scrollHeight +
 function setNote(v){
   const e = active.e;
   if (v) e.note = v; else delete e.note;   /* empty means no note, not an empty one */
+  /* the moment they type into a read, it stops being a read. Class removed on
+     the live node rather than by re-rendering, for the same caret reason. */
+  if (e.guess && e.guess.note){
+    delete e.guess.note;
+    const n = el('note-in'); if (n) n.classList.remove('guess');
+  }
   renderTimeline();                        /* no re-render: don't steal the caret */
 }
 /* The entry is not spliced out — it is flagged and kept in place, so the rail

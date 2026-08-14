@@ -252,7 +252,7 @@
     <div class="eyebrow">DoseEgg · Learning</div>
     <h1>Glossary</h1>
     <p class="subtitle">Key terms in English and Chinese — clinical, UX, and conceptual. Added as they come up in the project.</p>
-    <p class="meta">16 entries · Last updated August 2026</p>
+    <p class="meta">17 entries · Last updated August 2026</p>
   </header>
 
 
@@ -508,6 +508,22 @@
     </div>
   </div>
 
+
+  <div class="entry">
+    <div class="entry-terms">
+      <div class="entry-en">Schedule vs. Record (plan vs. observation)</div>
+      <div class="entry-zh">计划 vs. 记录</div>
+      <div class="entry-pinyin">jìhuà vs. jìlù</div>
+    </div>
+    <div class="entry-body">
+      <p class="entry-def">Two different things the product must never merge. The <b>schedule</b> is the intention: which medications someone takes and roughly when each is <em>meant</em> to happen. The <b>record</b> is what actually happened: the entries, each with a time and a <code>basis</code>. "Plan" is used interchangeably with schedule in the rules — as in "a schedule is a plan, not an observation."</p>
+      <p class="entry-context">Almost every honesty rule in the product turns on this line. An <code>assumed</code> entry is generated from the schedule and may never render as a taken dose, because nobody observed it. Look Back's dashed rails are the schedule; the dots are the record, and the distance between them is the only thing worth reading. A statement that says "as planned" cannot fire for someone who never entered a schedule, while a statement about spread still can. Practical consequence for setup: the smallest useful schedule is <b>names and times, not doses</b> — times drive the confirmation card, the rails and every Look Back statement, while milligrams drive only the doctor export.</p>
+      <div class="entry-tags">
+        <span class="etag ux">Data model</span>
+        <span class="etag concept">Core distinction</span>
+      </div>
+    </div>
+  </div>
 
   <div class="entry">
     <div class="entry-terms">
