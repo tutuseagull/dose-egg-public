@@ -370,7 +370,9 @@
   </div>
 
   <div class="rule">
-    <strong>When two views show the same marks, the legend must not change.</strong> In the alignment pair, both tabs plot the <em>same eight notes</em> — only the ruler underneath changes. So the legend stays identical, and the difference is carried by an <b>axis title</b>: "time of day" versus "hours since that day's midday dose". Its absence was the actual bug: without it a reader cannot tell whether the axis is showing when the dose was taken or when the effect faded. Changing the legend between the tabs would have been worse than saying nothing — it would imply the data itself changed.
+    <strong>Whatever differs between two views is what the encoding must announce.</strong> Two cases, and getting them the wrong way round is a real error rather than a style choice.<br><br>
+    <b>Only the ruler differs</b> — same events, measured against a different axis. Then the mark and the legend must be <em>identical</em>, and the difference is carried by an <b>axis title</b>. That is the alignment pair: both tabs plot the same eight notes, and the titles read "time of day" versus "hours since that day's midday dose". The missing title was the actual bug — without it a reader cannot tell whether the axis shows when the dose was taken or when the effect faded. Changing the legend here would have been worse than saying nothing: it would imply the data itself changed.<br><br>
+    <b>The events differ</b> — say one view marks kick-in and another marks wearing-off. Then the mark <em>must</em> change shape or colour and the legend must change with it. Reusing one mark across two different kinds of moment is actively misleading: the reader will assume they are looking at one thing measured two ways, which is precisely what they are not. Worth writing down now, because a kick-in view is a plausible next chart and the same-mark habit would carry into it by inertia.
   </div>
 
   <div class="rule">

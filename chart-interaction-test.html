@@ -120,6 +120,7 @@ svg:focus-visible{outline:2px solid var(--ink-500);outline-offset:3px;border-rad
 .sw.rail{background:none;border:0;border-top:2px dashed var(--paper-300);border-radius:0;
          height:2px;width:16px}
 .sw.evt{background:var(--mark-note);border-radius:3px}
+.sw.cur{background:var(--ink-500);border-radius:3px}
 
 /* marks in the alignment demo move between two x positions */
 .dipmark{transition:transform .45s cubic-bezier(.22,.61,.36,1)}
@@ -448,6 +449,16 @@ charts above jump to that week.</p>
     <g id="eLabels" font-size="11" fill="#8D8A7D" font-family="Inter, sans-serif" text-anchor="middle"></g>
     <g id="eHits"></g>
   </svg>
+  <!-- The darker bar is an encoded distinction, so it needs a key like any other. -->
+  <div class="legend" data-note="eNote">
+    <button type="button" class="key explains"
+      data-explain="A walk, a PT appointment, a boxing or tai chi class — whatever you logged as movement. This counts a therapy delivered, not app usage.">
+      <i class="sw sq"></i> <span class="txt">movement sessions</span></button>
+    <button type="button" class="key explains"
+      data-explain="The week the two charts above are showing. Tap any bar to open that week there.">
+      <i class="sw cur"></i> <span class="txt">the week you're viewing</span></button>
+  </div>
+  <p class="keynote" id="eNote" hidden></p>
 </div>
 
 <div class="note">
