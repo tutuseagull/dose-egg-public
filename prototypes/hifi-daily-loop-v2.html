@@ -1042,7 +1042,7 @@ function tombHTML(e, di, i){
     <span class="emark"><i class="ph ph-minus"></i></span>
     <span class="etime">${e.time}</span>
     <span class="tomb-card">
-      <span class="tomb-text">Removed — <b>${esc(e.text)}</b></span>
+      <span class="tomb-text">Removed: <b>${esc(e.text)}</b></span>
       <button class="tomb-undo" onclick="undoRemove(${di},${i})">
         <i class="ph ph-arrow-counter-clockwise"></i>Undo</button>
     </span>
@@ -1088,8 +1088,8 @@ function renderTimeline(){
     tl.innerHTML = `<div class="empty">
       <div class="mark"><i class="ph ph-egg"></i></div>
       <h2>Your day, as it happens</h2>
-      <p>Doses, movement, meals, how you feel — whatever you want to remember lands here,
-      in the order it happened.</p></div>`;
+      <p>Doses, movement, meals, how you feel. Whatever you want to remember lands
+      here, in the order it happened.</p></div>`;
     return;
   }
   let h = '';
@@ -1097,7 +1097,7 @@ function renderTimeline(){
     if (!day.live && !day.list.length) return;          /* hide empty past days */
     h += `<div class="day-label">${esc(dayLabelText(di, day.label))}</div>`;
     if (!day.list.length){
-      h += '<div class="empty-day">Nothing logged yet today — the + button is ready when you are.</div>';
+      h += '<div class="empty-day">Nothing logged yet today. The + button is ready when you are.</div>';
       return;
     }
     h += '<div class="rail">'
@@ -1356,7 +1356,7 @@ function renderLogSheet(){
        camera (here and inside Food) is a deliberate bet, not an oversight:
        they lead to different records. Usage decides whether both survive. */
     h += `<button class="strip" onclick="pickPhoto('note')">
-      <span><span class="strip-name">Photo</span> <span class="sub">— take one or pick from your album</span></span>
+      <span><span class="strip-name">Photo</span> <span class="sub">· take one or pick from your album</span></span>
     </button>`;
     h += '<div class="grid">' + TILES.map(([t,ico,name]) =>
       `<button class="tile" onclick="openCategory('${t}')">
@@ -1593,17 +1593,17 @@ function photoSectionHTML(e){
   } else {
     h += `<img class="photo-shot" src="${e.photo}" alt="Photo of this meal">`;
     if (e.photoTime)
-      h += `<div class="read-line"><i class="ph ph-clock"></i><span>Time taken from the photo — ${e.time}</span></div>`;
+      h += `<div class="read-line"><i class="ph ph-clock"></i><span>Time taken from the photo: ${e.time}</span></div>`;
     if (e.reading)
       h += `<div class="read-line busy"><i class="ph ph-circle-notch"></i><span>Reading the photo…</span></div>`;
     else if (e.read === 'failed')
-      h += `<div class="read-line"><i class="ph ph-eye-slash"></i><span>Couldn’t read this one. The photo is saved — add the rest yourself if you want to.</span></div>`;
+      h += `<div class="read-line"><i class="ph ph-eye-slash"></i><span>Couldn’t read this one. The photo is saved. Add the rest yourself if you want to.</span></div>`;
     else if (e.read === 'ok')
       /* the ≈ line only makes sense where there is an ≈ on screen — a plain
          photo produces a caption and nothing else, so it gets its own sentence */
       h += e.type === 'meal'
-        ? `<div class="read-line"><i class="ph ph-magic-wand"></i><span>Read from the photo. <b class="est">&#8776;</b> means we guessed — tap it to correct, or leave it.</span></div>`
-        : `<div class="read-line"><i class="ph ph-magic-wand"></i><span>Caption read from the photo — edit it below if it is off.</span></div>`;
+        ? `<div class="read-line"><i class="ph ph-magic-wand"></i><span>Read from the photo. <b class="est">&#8776;</b> means we guessed. Tap it to correct, or leave it.</span></div>`
+        : `<div class="read-line"><i class="ph ph-magic-wand"></i><span>Caption read from the photo. Edit it below if it is off.</span></div>`;
 
     /* On a plain photo the read is a button, not a reflex. Offered again after
        a failure, because "try again" is a reasonable thing to want and a
