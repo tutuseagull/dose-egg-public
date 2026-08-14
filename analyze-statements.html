@@ -365,6 +365,15 @@
   </div>
 
   <div class="rule">
+    <strong>Legend entries can be tapped — but not all for the same reason.</strong> Two behaviours, deliberately given different affordances so they are learnable. A key for a <b>data</b> mark (confirmed, assumed, a note, a covered day) <em>explains itself</em>: tapping reveals one line under the legend, tapping again closes it, and a dotted underline marks it as having a definition. A key for an <b>annotation</b> (the planned rails) <em>switches itself off</em>: tapping hides the series and the entry dims. This replaced a full-width "Hide the times you planned" button — the legend already names the thing, so it should be the control for it.<br><br>
+    <b>The line between the two is not stylistic: you may hide an annotation, you may never hide data.</b> A legend that lets someone hide <em>assumed</em> marks would produce a chart that looks cleaner and more certain than the record is — the same failure as rendering unknown as zero. Labels stay short, and the sentence that used to sit in the label ("from the schedule, not confirmed") lives in the explanation, since it is read once or twice and never again.
+  </div>
+
+  <div class="rule">
+    <strong>When two views show the same marks, the legend must not change.</strong> In the alignment pair, both tabs plot the <em>same eight notes</em> — only the ruler underneath changes. So the legend stays identical, and the difference is carried by an <b>axis title</b>: "time of day" versus "hours since that day's midday dose". Its absence was the actual bug: without it a reader cannot tell whether the axis is showing when the dose was taken or when the effect faded. Changing the legend between the tabs would have been worse than saying nothing — it would imply the data itself changed.
+  </div>
+
+  <div class="rule">
     <strong>A gridline is never neutral.</strong> Drawing the planned rails <em>and</em> plain clock gridlines put a dashed line five pixels from a solid one — visually noisy, and it obscured the real point. So in the live version the horizontal reference <em>swaps</em>: either the times you planned, or plain clock hours, never both. Toggling between them is the clearest demonstration on the whole page that a chart's background is a claim about what to measure against.
   </div>
 
@@ -487,6 +496,11 @@
     <div class="rule">
       <strong>The two words underneath this.</strong> <b>Circadian</b> means the body's own ~24-hour clock — the things that happen at the same time of day whatever you did, like the mid-afternoon alertness trough. <b>Pharmacokinetic</b> means what the body does to a drug over time: absorb, peak, decline, clear. A pharmacokinetic dip arrives a fixed <em>interval after a dose</em> — four hours later, wherever that lands on the clock. Patients call it wearing-off. The two produce an identical felt experience and take opposite responses: wearing-off is a dose-spacing or formulation conversation, a circadian trough is a sleep and light conversation, and a medication change aimed at the wrong one adds side effects without fixing anything.
     </div>
+    <div class="rule">
+      <strong>What else this form can answer — and what it can't.</strong> The technique is attribution: take one kind of recurring moment and measure it against two different rulers to see which one it follows. That works for anything whose cause is genuinely ambiguous — afternoon dips, fatigue, low mood, foggy stretches.<br><br>
+      <b>Wearing-off</b> is the case it was built for: does this dip follow the clock or the dose? <b>Kick-in is different, and worth not confusing.</b> Nobody wonders whether kick-in follows the dose — of course it does, you just took the pill. The useful question there is <em>how long it takes, and how much that varies</em>, which is a distribution of intervals, not an attribution: the same beeswarm form as the six-week slot clouds, with "minutes from dose to kick-in" on the axis instead of "minutes around your planned time". Same visual family, different question. Worth building later, because the thing that moves that interval most is food [levodopa-thresholds.html].
+    </div>
+
     <div class="rule warn">
       <strong>The irony in this test — and a rule that came out of it.</strong> It only computes if the person's dose times actually vary; with a perfectly consistent schedule the two alignments are the same picture and the question is unanswerable. So the most disciplined logger is the one this statement can never serve. E-03 therefore carries a ≥90-minute-spread requirement — and the tempting fix, nudging someone to vary a dose so the contrast appears, is now banned outright: <b>never ask the user to change anything about their medication, least of all for the app's own benefit.</b> That is prescribing, and prescribing to improve our own data is worse than prescribing. If a statement needs variation the schedule doesn't have, the statement does not get made. [AGENTS.md · AI features]
     </div>

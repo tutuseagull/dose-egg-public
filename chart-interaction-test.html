@@ -97,10 +97,29 @@ svg:focus-visible{outline:2px solid var(--ink-500);outline-offset:3px;border-rad
   border:1px solid var(--paper-300);background:var(--paper-0);color:var(--ink-500);
   font-family:inherit;font-size:15px;font-weight:500;cursor:pointer}
 .softbtn:active{transform:scale(.99)}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--paper-600);margin-top:12px}
-.legend span{display:flex;align-items:center;gap:6px}
-.sw{width:11px;height:11px;border-radius:50%;background:var(--mark);display:inline-block}
+/* ── Legend. Entries stay on one row. Two behaviours, and they look different
+      on purpose: a DATA key explains itself (dotted underline = there's a
+      definition here); an ANNOTATION key switches itself off (dims). You may
+      hide an annotation. You may never hide data. ── */
+.legend{display:flex;gap:8px 16px;flex-wrap:wrap;font-size:13px;color:var(--paper-600);
+        margin-top:12px}
+.legend .key{display:flex;align-items:center;gap:6px;min-height:32px;padding:4px 2px;
+  border:0;background:none;font-family:inherit;font-size:13px;color:var(--paper-600);
+  cursor:pointer;text-align:left}
+.legend .key.explains .txt{border-bottom:1px dotted var(--paper-500)}
+.legend .key[aria-pressed="false"]{opacity:.42}
+.legend .key:focus-visible{outline:2px solid var(--ink-500);outline-offset:2px;border-radius:6px}
+.legend .static{display:flex;align-items:center;min-height:32px}
+.keynote{margin:2px 0 0;font-size:13.5px;line-height:1.5;color:var(--paper-700);
+  background:var(--paper-100);border-radius:8px;padding:9px 12px}
+.sw{width:11px;height:11px;border-radius:50%;background:var(--mark);display:inline-block;
+    flex:0 0 auto}
 .sw.sq{border-radius:3px}
+.sw.dashed{background:#fff;border:1.5px dashed var(--mark)}
+.sw.hollow{background:#fff;border:1.5px dashed var(--paper-300);border-radius:3px}
+.sw.rail{background:none;border:0;border-top:2px dashed var(--paper-300);border-radius:0;
+         height:2px;width:16px}
+.sw.evt{background:var(--mark-note);border-radius:3px}
 
 /* marks in the alignment demo move between two x positions */
 .dipmark{transition:transform .45s cubic-bezier(.22,.61,.36,1)}
@@ -172,10 +191,15 @@ so there is nothing small to hit. Tap any row — including an empty one.</p>
       <text x="255" y="240">6pm</text><text x="326" y="240">10pm</text>
     </g>
   </svg>
-  <div class="legend">
-    <span><i class="sw"></i> dose you confirmed</span>
-    <span><i class="sw" style="background:#fff;border:1.5px dashed var(--mark)"></i> assumed — from the schedule, not confirmed</span>
+  <div class="legend" data-note="aNote">
+    <button type="button" class="key explains"
+      data-explain="You told the app you took this one — a fact, with a time attached.">
+      <i class="sw"></i> <span class="txt">confirmed</span></button>
+    <button type="button" class="key explains"
+      data-explain="Filled in from your schedule. You haven't confirmed it, so it is drawn hollow and never counted in a claim about timing — a plan is not an observation.">
+      <i class="sw dashed"></i> <span class="txt">assumed</span></button>
   </div>
+  <p class="keynote" id="aNote" hidden></p>
 </div>
 
 <div class="note">
@@ -237,19 +261,26 @@ same question, one zoom level out.</p>
     <g id="b6Labels" font-size="12" fill="#6E6B5F" font-family="Inter, sans-serif" text-anchor="middle"></g>
   </svg>
 
-  <div class="legend" id="bLegend">
-    <span><i class="sw"></i> dose you confirmed</span>
-    <span><i class="sw" style="background:#fff;border:1.5px dashed var(--mark)"></i> assumed — from the schedule, not confirmed</span>
-    <span id="bPlanKey"><i class="sw" style="background:none;border:0;border-top:2px dashed var(--paper-300);border-radius:0;height:2px;width:16px"></i> the time you planned</span>
+  <div class="legend" id="bLegend" data-note="bNote">
+    <button type="button" class="key explains"
+      data-explain="You told the app you took this one — a fact, with a time attached.">
+      <i class="sw"></i> <span class="txt">confirmed</span></button>
+    <button type="button" class="key explains"
+      data-explain="Filled in from your schedule. You haven't confirmed it, so it is drawn hollow and never counted in a claim about timing — a plan is not an observation.">
+      <i class="sw dashed"></i> <span class="txt">assumed</span></button>
+    <button type="button" class="key toggles" id="keyPlan" aria-pressed="true"
+      onclick="togglePlan()">
+      <i class="sw rail"></i> <span class="txt">the time you planned</span></button>
   </div>
-  <!-- No `assumed` swatch here on purpose: assumed doses are excluded from this
+  <!-- No `assumed` key here on purpose: assumed doses are excluded from this
        view, and the readout says how many. A legend lists what IS drawn. -->
-  <div class="legend" id="b6Legend" hidden>
-    <span><i class="sw"></i> one confirmed dose</span>
-    <span>− earlier than planned · + later</span>
+  <div class="legend" id="b6Legend" hidden data-note="bNote">
+    <button type="button" class="key explains"
+      data-explain="One confirmed dose. Height is how far it landed from your planned time — above the line is earlier, below is later.">
+      <i class="sw"></i> <span class="txt">one confirmed dose</span></button>
+    <span class="static">− earlier · + later</span>
   </div>
-  <button type="button" class="softbtn" id="bPlanToggle" aria-pressed="true"
-          onclick="togglePlan()">Hide the times you planned</button>
+  <p class="keynote" id="bNote" hidden></p>
 </div>
 
 <div class="note">
@@ -317,12 +348,21 @@ same question, one zoom level out.</p>
   <div class="readout">
     <div class="ro-text" id="rdText"></div>
   </div>
-  <svg id="chartD" viewBox="0 0 340 160" role="img"
+  <svg id="chartD" viewBox="0 0 340 178" role="img"
        aria-label="Eight notes plotted either by clock time or by hours since the last dose.">
     <line x1="40" y1="122" x2="326" y2="122" stroke="#E8E6DF" stroke-width="1"/>
     <g id="dMarks"></g>
     <g id="dAxis" font-size="11" fill="#8D8A7D" font-family="Inter, sans-serif" text-anchor="middle"></g>
+    <!-- the axis title is what changes between the two views, not the marks -->
+    <text id="dAxisTitle" x="183" y="166" font-size="12.5" font-weight="600" fill="#46443C"
+          font-family="Inter, sans-serif" text-anchor="middle"></text>
   </svg>
+  <div class="legend" data-note="dNote">
+    <button type="button" class="key explains"
+      data-explain="A moment you wrote down feeling off. The same eight notes are shown in both views — only the ruler underneath them changes.">
+      <i class="sw evt"></i> <span class="txt">a note you left</span></button>
+  </div>
+  <p class="keynote" id="dNote" hidden></p>
 </div>
 
 <div class="note">
@@ -361,10 +401,15 @@ Tap any square.</p>
     <g id="cCells"></g>
     <g id="cHits"></g>
   </svg>
-  <div class="legend">
-    <span><i class="sw sq"></i> days with entries</span>
-    <span><i class="sw sq" style="background:#fff;border:1.5px dashed var(--paper-300)"></i> nothing recorded</span>
+  <div class="legend" data-note="cNote">
+    <button type="button" class="key explains"
+      data-explain="At least one entry on that day, so this stretch of the record can speak for it.">
+      <i class="sw sq"></i> <span class="txt">has entries</span></button>
+    <button type="button" class="key explains"
+      data-explain="Nothing was recorded. Drawn as an outline rather than an empty box, because a day with no entry is unknown — not a day with nothing in it.">
+      <i class="sw hollow"></i> <span class="txt">unknown</span></button>
   </div>
+  <p class="keynote" id="cNote" hidden></p>
 </div>
 
 <div class="note">
@@ -662,9 +707,9 @@ function setScale(s){
   setHidden('bNav', six);        /* six weeks is not a week view */
   /* in the six-week view the planned time is the axis itself, so there is
      nothing to hide — and the day legend doesn't apply either */
-  setHidden('bPlanToggle', six);
   setHidden('bLegend', six);
   setHidden('b6Legend', !six);
+  setHidden('bNote', true);      /* an open explanation belongs to the view that opened it */
   document.getElementById('segWeek').setAttribute('aria-pressed', !six);
   document.getElementById('segSix').setAttribute('aria-pressed', six);
   if (six) bSel = null;
@@ -674,12 +719,26 @@ function selectB(i){ bSel = i; paintB(); }
 
 function togglePlan(){
   showPlan = !showPlan;
-  const btn = document.getElementById('bPlanToggle');
-  btn.textContent = showPlan ? 'Hide the times you planned' : 'Show the times you planned';
-  btn.setAttribute('aria-pressed', showPlan);
-  document.getElementById('bPlanKey').style.display = showPlan ? '' : 'none';
-  drawB(); drawB6();
+  document.getElementById('keyPlan').setAttribute('aria-pressed', showPlan);
+  drawB();
 }
+
+/* ── Legend behaviour, wired once for every legend on the page ──
+   A key that EXPLAINS reveals a line under the legend; tapping it again, or
+   tapping another key, swaps or closes it. A key that TOGGLES switches its
+   series and dims itself. The two never share an affordance. */
+document.querySelectorAll('.legend').forEach(legend => {
+  const note = document.getElementById(legend.dataset.note);
+  legend.addEventListener('click', e => {
+    const key = e.target.closest('.key.explains');
+    if (!key || !note) return;
+    const same = note.textContent === key.dataset.explain && !note.hidden;
+    note.textContent = key.dataset.explain;
+    note.hidden = same;                       /* tap the open one to close it */
+    legend.querySelectorAll('.key.explains')
+      .forEach(k => k.setAttribute('aria-expanded', k === key && !same));
+  });
+});
 
 /* ═══════════ B at six-week scale — slot clouds ═══════════
    The same question one zoom level out: not "how steady was this week"
@@ -843,6 +902,12 @@ function paintAlign(){
     const t = svgEl('text', {x:D.x0 + u * dSpan, y:142}); t.textContent = label;
     axis.appendChild(t);
   });
+  /* The marks are identical in both views — the same eight notes — so the
+     legend must NOT change between them, or it implies the data changed.
+     What changes is the ruler, and the axis title is where that is said. */
+  document.getElementById('dAxisTitle').textContent = align === 'clock'
+    ? 'time of day'
+    : 'hours since that day’s midday dose';
   document.getElementById('segClock').setAttribute('aria-pressed', align === 'clock');
   document.getElementById('segDose').setAttribute('aria-pressed', align === 'dose');
   writeReadout(document.getElementById('rdText'), null, align === 'clock'
