@@ -174,7 +174,7 @@ so there is nothing small to hit. Tap any row — including an empty one.</p>
   </svg>
   <div class="legend">
     <span><i class="sw"></i> dose you confirmed</span>
-    <span><i class="sw" style="background:#fff;border:1.5px dashed var(--mark)"></i> assumed</span>
+    <span><i class="sw" style="background:#fff;border:1.5px dashed var(--mark)"></i> assumed — from the schedule, not confirmed</span>
   </div>
 </div>
 
@@ -239,8 +239,11 @@ same question, one zoom level out.</p>
 
   <div class="legend" id="bLegend">
     <span><i class="sw"></i> dose you confirmed</span>
+    <span><i class="sw" style="background:#fff;border:1.5px dashed var(--mark)"></i> assumed — from the schedule, not confirmed</span>
     <span id="bPlanKey"><i class="sw" style="background:none;border:0;border-top:2px dashed var(--paper-300);border-radius:0;height:2px;width:16px"></i> the time you planned</span>
   </div>
+  <!-- No `assumed` swatch here on purpose: assumed doses are excluded from this
+       view, and the readout says how many. A legend lists what IS drawn. -->
   <div class="legend" id="b6Legend" hidden>
     <span><i class="sw"></i> one confirmed dose</span>
     <span>− earlier than planned · + later</span>
