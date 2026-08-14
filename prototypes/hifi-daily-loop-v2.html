@@ -494,6 +494,13 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
          border-radius:var(--radius-sm);padding:0 var(--space-1)}
 .minibtn span{border-bottom:2px dotted var(--border-interactive);padding-bottom:1px}
 .minibtn i{font-size:15px;color:var(--text-muted)}
+/* THE RULE, fixed 2026-08-14: dotted underline + PENCIL opens its own step ·
+   dotted underline + CARET expands in place. Before this, the name opened a
+   step, the time swapped itself for fields, and the day dropped a chip row —
+   three behaviours behind one affordance, so the affordance predicted nothing.
+   Tutu: "the UI indicator is the same, so I would expect the behavior be the
+   same." */
+.minibtn.step i{font-size:17px}
 .minibtn:hover{background:var(--surface-raised)}
 .minisep{color:var(--paper-400);font-size:var(--text-small)}
 /* The time is a button — tapping it swaps in numeric fields. Signalled with a
@@ -517,9 +524,6 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
           box-shadow:0 0 0 var(--focus-ring-width) rgba(43,91,169,.18)}
 .tf-sep{font-family:var(--font-serif);font-size:var(--text-display);
         color:var(--text-muted)}
-.tf-set{margin-left:auto;min-height:var(--target-routine);padding:0 var(--space-4);
-        border-radius:var(--radius-md);background:var(--accent);color:var(--on-accent);
-        font-size:var(--text-small);font-weight:500}
 .nudges{display:flex;gap:var(--target-gap);flex-wrap:wrap}
 .nudge{flex:1 1 4.5rem;min-height:var(--target-routine);border-radius:var(--radius-md);
        background:var(--surface-page);border:1px solid var(--border-interactive);
@@ -642,6 +646,17 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .numin:focus{outline:none;border-color:var(--accent);
              box-shadow:0 0 0 var(--focus-ring-width) rgba(43,91,169,.18)}
 .numunit{font-size:var(--text-small);color:var(--text-muted)}
+/* The platform's own date control. This is the one place a wheel is right, and
+   the reason is that we do not build it: iOS renders its wheel, Android its
+   calendar, a desktop browser its own — each already keyboard-reachable,
+   screen-reader-labelled and localised. A wheel we drew ourselves would be a
+   drag target we own, which is the thing Nunes et al. warn against (DG5). */
+.date-in{width:100%;min-height:var(--target-critical);padding:0 var(--space-4);
+      font-family:var(--font-sans);font-size:var(--text-body);color:var(--text-primary);
+      background:var(--surface-page);border:1px solid var(--border-interactive);
+      border-radius:var(--radius-md)}
+.date-in:focus{outline:none;border-color:var(--accent);
+      box-shadow:0 0 0 var(--focus-ring-width) color-mix(in srgb,var(--focus-ring) 22%,transparent)}
 /* SHAPE FOLLOWS BEHAVIOUR — the rule the chips and nudges were only half
    obeying, written down so it stops being an accident:
      .chip  = SELECTOR. Sets a value, can be `.on`, pill (--radius-full).
@@ -797,8 +812,11 @@ const MARK = 'var(--mark)';   /* one colour for every type — the icon does the
 
 /* v2: days are data, not two hand-wired arrays. Past days are editable — people
    remember things late, and a record you cannot correct is a record you stop trusting. */
+/* `ago` = days before today. It used to be the array index, which was fine
+   while there were exactly two days and wrong the moment you could pick a
+   date. Position in a list is not a fact about a day. */
 let DAYS = [
-  { label:'Today', live:true, list:[
+  { ago:0, live:true, list:[
     { time:'10:00', text:'Walk', type:'activity', basis:'asserted', anchor:'end',
       fields:{ dur:20 }, meta:[['ph-map-pin','Around the block']] },
     { time:'09:40', text:'Meds kicked in', type:'symptom', basis:'asserted',
@@ -806,7 +824,7 @@ let DAYS = [
     { time:'08:15', text:'Levodopa 100mg', type:'dose', basis:'asserted',
       fields:{ meal:'With food' } }
   ]},
-  { label:'Yesterday', live:false, list:[
+  { ago:1, live:false, list:[
     { time:'14:10', text:'Levodopa 100mg', type:'dose', basis:'asserted',
       meta:[['ph-clock','40 min late']] },
     { time:'12:00', text:'Lunch', type:'meal', basis:'asserted', fields:{ protein:'High' } },
@@ -934,7 +952,6 @@ let currentDose = { name:'Levodopa 100mg', sched:'10:30' };  // one card max, ne
 let active = null;          // {e, day} — the entry open in the detail sheet
 let basisOpen = false;      // is the basis chooser expanded
 let openField = null;       // which context field is showing its choices
-let editingTime = false;    // is the big time swapped for numeric fields
 let editingLabel = false;   // is the entry name swapped for a text field
 /* Option 2, routed by list length. A secondary choice with 4+ options takes
    over the sheet as its own step with a back button (the Oura pattern); 2-3
@@ -1095,7 +1112,7 @@ function renderTimeline(){
   let h = '';
   DAYS.forEach((day, di) => {
     if (!day.live && !day.list.length) return;          /* hide empty past days */
-    h += `<div class="day-label">${esc(dayLabelText(di, day.label))}</div>`;
+    h += `<div class="day-label">${esc(dayLabelText(di))}</div>`;
     if (!day.list.length){
       h += '<div class="empty-day">Nothing logged yet today. The + button is ready when you are.</div>';
       return;
@@ -1152,7 +1169,7 @@ function renderDetail(){
         <button class="d-title-btn" onclick="startLabelEdit()" aria-label="Edit the name">
           <strong>${esc(e.text)}</strong><i class="ph ph-pencil-simple"></i>
         </button>
-        <span>${TYPE_NAME[e.type]} · ${esc(DAYS[active.day].label)}</span>
+        <span>${TYPE_NAME[e.type]} · ${esc(dayName(active.day))}</span>
       </span></div>`;
   }
 
@@ -1275,9 +1292,22 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 const DAYS_LONG = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
 /* Day 0 is today, 1 is yesterday, and so on down the rail. */
-function dayLabelText(i, label){
-  const d = new Date(); d.setDate(d.getDate() - i);
-  return `${label} · ${DAYS_LONG[d.getDay()].slice(0,3)} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
+function dateFor(ago){
+  const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - ago); return d;
+}
+const shortDate = d => `${DAYS_LONG[d.getDay()].slice(0,3)} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
+const isoDate = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+/* Today and Yesterday earn a word; every other day is just its date. Naming a
+   Tuesday "3 days ago" makes the reader do arithmetic to place it. */
+function dayName(i){
+  const d = DAYS[i];
+  if (!d) return '';
+  return d.ago === 0 ? 'Today' : d.ago === 1 ? 'Yesterday' : shortDate(dateFor(d.ago));
+}
+function dayLabelText(i){
+  const d = DAYS[i];
+  const date = shortDate(dateFor(d.ago));
+  return d.ago <= 1 ? `${dayName(i)} · ${date}` : date;
 }
 
 /* ═════════ log sheet — two steps, both of them meaningful ═══════════════
@@ -1647,7 +1677,6 @@ function ownIt(key){
    Nothing is hidden behind the escalation: all three are on screen at once.
    The date-entry accessibility literature is consistent that a picker widget
    must always be optional and typing must always be possible. */
-const DAY_NAMES = ['Today','Yesterday'];
 
 /* You cannot already have done something you have not done yet. Today is
    clamped to the current time; yesterday needs no clamp because every time
@@ -1674,29 +1703,21 @@ function timeSectionHTML(e){
       <span>${e.anchor === 'start' ? 'Started' : 'Ended'}</span>
       <i class="ph ph-caret-down"></i></button><span class="minisep">·</span>`;
   }
-  mini += `<button class="minibtn" onclick="toggleMini('day')">
-      <span>${DAY_NAMES[active.day]}</span><i class="ph ph-caret-down"></i></button>`;
+  /* Pencil, not caret: this one opens a step now. */
+  mini += `<button class="minibtn step" onclick="openPicker('day')" aria-label="Change the day">
+      <span>${esc(dayName(active.day))}</span><i class="ph ph-pencil-simple"></i></button>`;
   mini += '</div>';
 
   if (openMini === 'anchor')
     mini += '<div class="chips">' + [['start','Started at'],['end','Ended at']].map(([v,l]) =>
       `<button class="chip pick${(e.anchor||'end')===v?' on':''}" onclick="setAnchor('${v}')">${l}</button>`
     ).join('') + '</div>';
-  if (openMini === 'day')
-    mini += '<div class="chips">' + DAY_NAMES.map((d,i) =>
-      `<button class="chip pick${i===active.day?' on':''}" onclick="setDay(${i})">${d}</button>`
-    ).join('') + '</div>';
 
-  const face = editingTime
-    ? `<div class="timefields">
-         <input class="tf" id="tf-h" inputmode="numeric" maxlength="2" value="${e.time.slice(0,2)}"
-                aria-label="Hour" oninput="onTimeField('h',this)">
-         <span class="tf-sep">:</span>
-         <input class="tf" id="tf-m" inputmode="numeric" maxlength="2" value="${e.time.slice(3)}"
-                aria-label="Minute" oninput="onTimeField('m',this)">
-         <button class="tf-set" onclick="endTimeEdit()">Set</button>
-       </div>`
-    : `<button class="timeval-btn" onclick="startTimeEdit()" aria-label="Edit the time">
+  /* The time no longer swaps itself for fields in place. Same affordance as the
+     name, so: same behaviour. The nudges stay out here rather than moving into
+     the step, because they are not editing — they are one-tap corrections, and
+     burying the most common one behind a screen would cost a tap to save a tap. */
+  const face = `<button class="timeval-btn" onclick="openPicker('time')" aria-label="Edit the time">
          <span class="timeval">${e.time}</span><i class="ph ph-pencil-simple"></i>
        </button>`;
 
@@ -1721,7 +1742,7 @@ function timeSectionHTML(e){
     ${mini}
     ${face}
     ${lag ? `<div class="timesub">Logged at ${lag}</div>` : ''}
-    ${editingTime ? '' : `<div class="nudges">${nudges}</div>`}
+    <div class="nudges">${nudges}</div>
   </div>`;
 }
 
@@ -1816,9 +1837,14 @@ function searchRowsHTML(type, current, pickExpr, addExpr, inputId){
 
 function renderPickerStep(){
   const e = active.e;
-  const isLabel = pickerStep.kind === 'label';
-  const field = isLabel ? null : fieldsFor(e).find(f => f.key === pickerStep.key);
-  const title = isLabel ? `${TYPE_NAME[e.type]} type` : field.label;
+  const kind = pickerStep.kind;
+  const isLabel = kind === 'label';
+  const field = (isLabel || kind === 'time' || kind === 'day')
+    ? null : fieldsFor(e).find(f => f.key === pickerStep.key);
+  const title = isLabel ? `${TYPE_NAME[e.type]} type`
+              : kind === 'time' ? 'Time'
+              : kind === 'day'  ? 'Day'
+              : field.label;
 
   let h = `<div class="log-head">
       <button class="backbtn" onclick="closePicker()" aria-label="Back">
@@ -1826,7 +1852,31 @@ function renderPickerStep(){
       <h2>${esc(title)}</h2>
     </div>`;
 
-  if (isLabel){
+  if (kind === 'time'){
+    /* No Set button. The fields write straight to the record as you type, so
+       Back is the only exit and it cannot lose anything — the same contract
+       every other step here already has. A Set button on a live field is a
+       button that promises a save which already happened. */
+    h += `<div class="timefields">
+        <input class="tf" id="tf-h" inputmode="numeric" maxlength="2" value="${e.time.slice(0,2)}"
+               aria-label="Hour" oninput="onTimeField('h',this)">
+        <span class="tf-sep">:</span>
+        <input class="tf" id="tf-m" inputmode="numeric" maxlength="2" value="${e.time.slice(3)}"
+               aria-label="Minute" oninput="onTimeField('m',this)">
+      </div>`;
+  } else if (kind === 'day'){
+    /* Today and Yesterday cover almost everything, so they stay one tap. The
+       date control sits at the same level rather than behind a "more" — it is
+       the answer for anything older, not an advanced option. */
+    const shortcuts = DAYS.map((d, i) => i).filter(i => DAYS[i].ago <= 1 || i === active.day);
+    h += '<div class="chips">' + shortcuts.map(i =>
+        `<button class="chip pick${i===active.day?' on':''}" onclick="setDay(${i})">${esc(dayName(i))}</button>`
+      ).join('') + '</div>';
+    h += `<div class="picker"><span class="pl">Or pick a date</span>
+        <input class="date-in" type="date" value="${isoDate(dateFor(DAYS[active.day].ago))}"
+               max="${isoDate(dateFor(0))}" aria-label="Pick a date"
+               onchange="setDate(this.value)"></div>`;
+  } else if (isLabel){
     h += searchRowsHTML(e.type, e.text,
                         t => `pickLabel(${q(t)})`, 'pickLabel(searchQ.trim())',
                         'search-detail');
@@ -1864,6 +1914,9 @@ function renderPickerStep(){
        right next to "minutes", where the value lives. */
   }
   el('detail-body').innerHTML = h;
+  /* Land on the hour with the keypad already up. Opening a step to type and
+     then having to tap the field is the step charging for itself. */
+  if (kind === 'time'){ const hh = el('tf-h'); if (hh){ hh.focus(); hh.select(); } }
 }
 /* The same box appears on two surfaces. Both stay in the DOM once rendered, so
    they need DISTINCT ids — sharing one is invalid HTML and el() would silently
@@ -1934,15 +1987,9 @@ function setLabel(v){ active.e.text = v; renderTimeline(); }
 function pickLabel(t){ active.e.text = t; editingLabel = false; pickerStep = null; searchQ = '';
                        renderDetail(); renderTimeline(); }
 
-function startTimeEdit(){
-  editingTime = true; renderDetail();
-  const h = el('tf-h'); if (h){ h.focus(); h.select(); }
-}
-function endTimeEdit(){ editingTime = false; renderDetail(); }
 /* Writes live so the rail behind the sheet stays truthful, but never calls
-   renderDetail — re-rendering mid-keystroke would destroy the field and the
-   caret with it. The nudge row is hidden while editing precisely so its
-   disabled states cannot drift out of sync with what is being typed. */
+   renderDetail: re-rendering mid-keystroke would destroy the field and take the
+   caret with it. This is also why the step needs no Set button. */
 function onTimeField(which, node){
   const digits = node.value.replace(/\D/g,'').slice(0,2);
   if (digits !== node.value) node.value = digits;
@@ -1964,20 +2011,49 @@ function setNow(){
 /* Moving days moves the entry between lists — the day IS the list it lives in. */
 function setDay(target){
   openMini = null;
-  if (target === active.day){ renderDetail(); return; }
   const e = active.e;
-  DAYS[active.day].list = DAYS[active.day].list.filter(x => x !== e);
-  DAYS[target].list.push(e);
-  sortDay(DAYS[target]);
-  active.day = target;
+  if (target !== active.day){
+    DAYS[active.day].list = DAYS[active.day].list.filter(x => x !== e);
+    DAYS[target].list.push(e);
+    sortDay(DAYS[target]);
+    active.day = target;
+  }
+  /* Picking the day you are already on is not a mistake to punish — it is how
+     someone confirms. Close the step either way. */
+  pickerStep = null;
+  pruneDays();
   renderDetail(); renderTimeline();
+}
+
+/* A day older than yesterday has no bucket until someone puts something in it.
+   Created on demand, removed again when it empties, so the rail never shows a
+   date with nothing under it. */
+function setDate(iso){
+  if (!iso) return;
+  const [y, m, d] = iso.split('-').map(Number);
+  const ago = Math.round((dateFor(0) - new Date(y, m - 1, d)) / 86400000);
+  if (ago < 0) return;                 /* you cannot have logged the future */
+  let i = DAYS.findIndex(x => x.ago === ago);
+  if (i < 0){
+    DAYS.push({ ago, live:false, list:[] });
+    DAYS.sort((a, b) => a.ago - b.ago);
+    active.day = DAYS.findIndex(x => x.list.includes(active.e));
+    i = DAYS.findIndex(x => x.ago === ago);
+  }
+  setDay(i);
+}
+/* Indices shift when a day is added or dropped, and active.day is an index, so
+   it gets re-derived from the entry itself rather than adjusted by hand. */
+function pruneDays(){
+  DAYS = DAYS.filter(d => d.ago <= 1 || d.list.length);
+  if (active) active.day = DAYS.findIndex(x => x.list.includes(active.e));
 }
 
 /* ═════════ detail actions — every one writes straight to the record ═════════ */
 function openDetail(e, day){
   active = { e, day };
   basisOpen = (e.type === 'dose' && e.basis === 'assumed');  /* lead with what's unresolved */
-  openField = null; editingTime = false; editingLabel = false;
+  openField = null; editingLabel = false;
   pickerStep = null; openMini = null;
   renderDetail();
   openSheet('sheet-detail');
@@ -2159,7 +2235,7 @@ function closeSheets(){
   el('scrim').classList.remove('open');
   SHEETS.forEach(s => el(s).classList.remove('open'));
   setSheetInert(null);
-  active = null; openField = null; editingTime = false; editingLabel = false; pickerStep = null; openMini = null;
+  active = null; openField = null; editingLabel = false; pickerStep = null; openMini = null;
   if (lastFocus && lastFocus.focus) lastFocus.focus();
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(); });
