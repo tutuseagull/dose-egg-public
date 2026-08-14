@@ -934,8 +934,14 @@ function paintAlign(){
 }
 function setAlign(mode){ align = mode; paintAlign(); }
 
-/* ═══════════ C — coverage grid, six weeks × seven days ═══════════ */
+/* ═══════════ C — coverage grid, six weeks × seven days ═══════════
+   This one follows the SELECTION model, like the day rows and day columns:
+   choosing a cell is optional, it highlights the mark, and tapping it again
+   returns to the six-week summary. It is not navigation — nothing else on the
+   page moves — so it is not the bar-chart behaviour.                        */
 const C = {x0:44, y0:32, cw:38, ch:24, gapX:4, gapY:5};
+let cSel = null;                     /* "wi:di", or null for the whole span */
+
 function drawCoverage(){
   const g = ['cHead','cSide','cCells','cHits'].map(id => document.getElementById(id));
   g.forEach(wipe);
@@ -952,28 +958,50 @@ function drawCoverage(){
 
     daysOf(wi).forEach((d, di) => {
       const x = C.x0 + di * (C.cw + C.gapX);
+      const key = wi + ':' + di;
+      const on = cSel === key;
       /* filled = we have entries · dashed outline = unknown, NOT a zero */
       cells.appendChild(d.doses
         ? svgEl('rect', {x, y, width:C.cw, height:C.ch, rx:5, fill:'#4E6B84'})
         : svgEl('rect', {x, y, width:C.cw, height:C.ch, rx:5, fill:'none',
             stroke:'#D9D6CC', 'stroke-width':1.5, 'stroke-dasharray':'3 3'}));
+      /* the chosen cell gets a ring, not a colour: a second hue would imply a
+         third category of day alongside "has entries" and "unknown" */
+      if (on) cells.appendChild(svgEl('rect', {x:x-3, y:y-3, width:C.cw+6, height:C.ch+6,
+        rx:7, fill:'none', stroke:'#1F4A52', 'stroke-width':2}));
+
       const hit = svgEl('rect', {x:x-2, y:y-2, width:C.cw+4, height:C.ch+4,
-        class:'cellhit', tabindex:0, role:'button',
+        class:'cellhit', tabindex:0, role:'button', 'aria-pressed':String(on),
         'aria-label': WEEKS[wi].range + ', ' + d.day + ', ' +
                       (d.doses ? d.doses.length + ' doses' : 'no entries')});
-      const say = () => writeReadout(document.getElementById('rcText'), d.doses
-        ? { title: d.day + ' · ' + WEEKS[wi].range, line: timeLine(d), muted:false }
-        : { title: d.day + ' · ' + WEEKS[wi].range,
-            line: "No entries. This picture doesn't cover it.", muted:true });
-      hit.addEventListener('click', say);
+      const pick = () => selectCell(key);
+      hit.addEventListener('click', pick);
       hit.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); say(); }
+        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); pick(); }
       });
       hits.appendChild(hit);
     });
   });
-  coverageSummary();
+  paintCoverage();
 }
+
+/* same toggle as the other two selectable charts: tap the cell you are on to
+   go back to the whole span */
+function selectCell(key){
+  cSel = (cSel === key) ? null : key;
+  drawCoverage();
+}
+
+function paintCoverage(){
+  if (cSel === null){ coverageSummary(); return; }
+  const [wi, di] = cSel.split(':').map(Number);
+  const d = daysOf(wi)[di];
+  writeReadout(document.getElementById('rcText'), d.doses
+    ? { title: d.day + ' · ' + WEEKS[wi].range, line: timeLine(d), muted:false }
+    : { title: d.day + ' · ' + WEEKS[wi].range,
+        line: "No entries. This picture doesn't cover it.", muted:true });
+}
+
 function coverageSummary(){
   let known = 0, total = 0;
   WEEKS.forEach((w, wi) => daysOf(wi).forEach(d => { total++; if (d.doses) known++; }));

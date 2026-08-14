@@ -544,6 +544,13 @@
     <b>The consistency lives in the model, not in the control.</b> A chart either has a selectable dimension or it does not. Day rows and day columns do, so a second tap turns the choice off. The movement bars do not, because their highlight is the week open above rather than something the user picked, so there is nothing to turn off and no missing button. That difference is already visible without reading anything: selection highlights a <em>mark</em>, position marks the <em>axis</em>.
   </div>
 
+  <div class="rule">
+    <strong>The test that sorts every chart: does tapping a mark change the mark, or change the page?</strong> Three charts, two behaviours, one question.<br><br>
+    <b>Selection</b> — day rows, day columns, and the coverage grid. Choosing is optional, the choice lives inside that chart, and there is a meaningful state with nothing chosen (the week summary, the six-week coverage figure). So the mark highlights, and a second tap returns to that state.<br><br>
+    <b>Navigation</b> — the movement bars. A tap moves the whole page to another week. Something is always open, so there is no nothing-chosen state and nothing to undo. Navigation is idempotent: tapping the week you are already on keeps you there, exactly as tapping the current tab does not close it. The axis carries the marker, not the mark.<br><br>
+    The coverage grid was the one that had drifted. It was writing a day into the readout with no highlight and no way back, so it behaved like neither. Now it selects: a ring on the chosen cell, a second tap for the whole span. <b>The ring is deliberately not a fill colour</b> — a third colour in that grid would read as a third kind of day, alongside "has entries" and "unknown".
+  </div>
+
   <div class="rule warn">
     <strong>Building the toggle found a layout bug I had claimed was fixed.</strong> Tapping the same row twice selected a different day the second time. The readout is taller with nothing chosen, because the week summary wraps to three lines while a day's times fit two, so choosing a day shortened the block and slid the chart upward under the finger. A reserved <code>min-height</code> was not enough on its own; the copy had to shrink to fit it. <b>Reserving space only works if you have measured the longest string that can land in it</b> — and on touch, a block that changes height above a chart moves the target mid-gesture.
   </div>
