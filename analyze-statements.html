@@ -364,9 +364,16 @@
     <strong>A legend lists exactly what is drawn — and explains, rather than names.</strong> Caught in review: the week view rendered hollow <em>assumed</em> marks but the legend only listed confirmed doses and the planned rails, so the one mark a reader could not guess was the one left unexplained. Two halves to the rule. <b>Completeness:</b> if a mark can appear in the chart it must appear in the legend, and if it cannot appear it must not — the six-week view has no <em>assumed</em> swatch precisely because assumed doses are excluded there. <b>Explanation:</b> "assumed" is a label a reader has to decode; "assumed — from the schedule, not confirmed" is the fact itself. In a product where the difference between an observation and an assumption carries the whole honesty argument, that phrase is not legend chrome, it is the argument in miniature.
   </div>
 
+  <div class="rule warn">
+    <strong>Punctuation rule: no em dashes in product copy.</strong> Every statement in this bank, and every label, readout and explanation in the live charts, is now written without them. The reasoning is practical rather than aesthetic. Microcopy is short, and an em dash signals a subordinate clause, which usually means the sentence is too long for the slot it has to live in. Screen readers treat the character inconsistently. It does not localise cleanly, since Chinese uses a double-width dash under different conventions and several European languages have their own spacing rules. In a truncating or narrow layout it can read as a stray hyphen. A full stop, a comma or a colon does the same work and survives all four problems. There is also a perception cost worth naming plainly: heavy em-dash use now reads to many people as machine-written, which is not a reputation medical copy can afford.<br><br>
+    This applies to <em>product copy</em>. The rationale prose on this page is editorial writing and keeps editorial punctuation. The rule governs anything the app itself will say.
+  </div>
+
   <div class="rule">
     <strong>Legend entries can be tapped — but not all for the same reason.</strong> Two behaviours, deliberately given different affordances so they are learnable. A key for a <b>data</b> mark (confirmed, assumed, a note, a covered day) <em>explains itself</em>: tapping reveals one line under the legend, tapping again closes it, and a dotted underline marks it as having a definition. A key for an <b>annotation</b> (the planned rails) <em>switches itself off</em>: tapping hides the series and the entry dims. This replaced a full-width "Hide the times you planned" button — the legend already names the thing, so it should be the control for it.<br><br>
-    <b>The line between the two is not stylistic: you may hide an annotation, you may never hide data.</b> A legend that lets someone hide <em>assumed</em> marks would produce a chart that looks cleaner and more certain than the record is — the same failure as rendering unknown as zero. Labels stay short, and the sentence that used to sit in the label ("from the schedule, not confirmed") lives in the explanation, since it is read once or twice and never again.
+    <b>A legend describes the data encoding, not the interaction.</b> An early version of the count-bar legend carried an entry reading "the week you're viewing — tap any bar to open that week." Two mistakes in one line. Being the week you're viewing is a <em>state</em> of those bars, not a second category of thing, so it does not belong in a legend at all; and how to operate a chart is help text, which belongs beside the control or in the surrounding copy, never in a key. The corrected legend has one entry, because the chart has one kind of data.<br><br>
+    <b>Which leads to the encoding rule: colour carries meaning, emphasis carries state, and a position is not a selection.</b> This one took two passes. Selection was first drawn as a second hue, which in a palette deliberately held to one hue plus a neutral spends a colour on a category that does not exist. The next attempt faded the other five bars, which was better but still wrong for two reasons. All six bars are the same data and all six matter to the six-week reading, so dimming five of them fights the chart’s own purpose. And fading reads as <em>selection</em>, which invites the question "how do I deselect?" — a question with no answer here, because the highlighted bar is not something the user picked. It is a <b>position indicator</b>: the week currently open in the charts above. Something is always open, so there is no empty state and nothing to clear. The final form leaves every bar at full strength and marks the current week on the axis instead, with a heavier label and a short tick beneath it. A rule falls out of it: <b>if a highlight cannot be turned off, it must not look like a selection.</b><br><br>
+    <b>The line between explain and hide is not stylistic: you may hide an annotation, you may never hide data.</b> A legend that lets someone hide <em>assumed</em> marks would produce a chart that looks cleaner and more certain than the record is — the same failure as rendering unknown as zero. Labels stay short, and the sentence that used to sit in the label ("from the schedule, not confirmed") lives in the explanation, since it is read once or twice and never again.
   </div>
 
   <div class="rule">
@@ -600,7 +607,7 @@
 
   <div class="stmt">
     <div class="stmt-id">R-01</div>
-    <p class="stmt-text">"Last week you confirmed 19 doses. Two are still unconfirmed — Thursday midday and Saturday evening."</p>
+    <p class="stmt-text">"Last week you confirmed 19 doses. Two are still unconfirmed: Thursday midday and Saturday evening."</p>
     <div class="stmt-grid">
       <div class="field"><div class="field-label">Needs</div><div class="field-value">6 days with at least one dose entry each</div></div>
       <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Count, from <code>basis</code></div></div>
@@ -611,7 +618,7 @@
 
   <div class="stmt">
     <div class="stmt-id">R-02</div>
-    <p class="stmt-text">"Your evening dose lands close to when you planned it. Your midday dose moves around more — anywhere from 12:15 to 2:00 this week."</p>
+    <p class="stmt-text">"Your evening dose lands close to when you planned it. Your midday dose moves around more, anywhere from 12:15 to 2:00 this week."</p>
     <div class="stmt-grid">
       <div class="field"><div class="field-label">Needs</div><div class="field-value">≥4 <code>asserted</code> times in each slot compared</div></div>
       <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Spread (range, not variance)</div></div>
@@ -622,7 +629,7 @@
 
   <div class="stmt">
     <div class="stmt-id">R-03</div>
-    <p class="stmt-text">"Three movement sessions this week — two walks and a PT appointment."</p>
+    <p class="stmt-text">"Three movement sessions this week: two walks and a PT appointment."</p>
     <div class="stmt-grid">
       <div class="field"><div class="field-label">Needs</div><div class="field-value">≥1 activity entry in the period</div></div>
       <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Count, named not just totalled</div></div>
@@ -708,7 +715,7 @@
 
   <div class="stmt">
     <div class="stmt-id">C-04</div>
-    <p class="stmt-text">"Your notes about stiffness came earlier in the day this month than last — mostly before noon, where last month they were mostly after 3."</p>
+    <p class="stmt-text">"Your notes about stiffness came earlier in the day this month than last. Mostly before noon, where last month they were mostly after 3."</p>
     <div class="stmt-grid">
       <div class="field"><div class="field-label">Needs</div><div class="field-value">2 months; ≥8 timestamped notes of one kind in each</div></div>
       <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Shift in time-of-day distribution</div></div>
@@ -719,7 +726,7 @@
 
   <div class="stmt">
     <div class="stmt-id">C-05</div>
-    <p class="stmt-text">"This month looks much like last month — timing, notes, and sessions are all in the same range."</p>
+    <p class="stmt-text">"This month looks much like last month. Timing, notes, and sessions are all in the same range."</p>
     <div class="stmt-grid">
       <div class="field"><div class="field-label">Needs</div><div class="field-value">2 comparable months, ≥60% coverage in each</div></div>
       <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Null result, stated as a finding</div></div>
@@ -750,7 +757,7 @@
 
   <div class="stmt">
     <div class="stmt-id">E-02</div>
-    <p class="stmt-text">"The afternoons you noted as rough tended to follow a midday dose taken later than planned — 5 of the 7."</p>
+    <p class="stmt-text">"The afternoons you noted as rough tended to follow a midday dose taken later than planned. 5 of the 7."</p>
     <div class="stmt-grid">
       <div class="field"><div class="field-label">Needs</div><div class="field-value">≥7 noted afternoons; all doses <code>asserted</code></div></div>
       <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Co-occurrence with timing</div></div>
@@ -820,7 +827,7 @@
 
   <div class="stmt">
     <div class="stmt-id">T-03 · depth invitation</div>
-    <p class="stmt-text">"You've been logging doses. If you ever want to see what your afternoons have to do with the rest of your day, adding what you were up to is what makes that visible — a walk, PT, gardening, table tennis, choir, drums, a nap in the sun."</p>
+    <p class="stmt-text">"You've been logging doses. If you ever want to see what your afternoons have to do with the rest of your day, adding what you were up to is what makes that visible: a walk, PT, gardening, table tennis, choir, drums, a nap in the sun."</p>
     <div class="stmt-grid">
       <div class="field"><div class="field-label">Fires when</div><div class="field-value">≥2 weeks of dose entries with &lt;20% carrying any activity or context</div></div>
       <div class="field"><div class="field-label">Frequency cap</div><div class="field-value">Once. Not once a week — once. Then never again unless the user asks.</div></div>

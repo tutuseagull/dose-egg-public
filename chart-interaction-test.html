@@ -120,7 +120,6 @@ svg:focus-visible{outline:2px solid var(--ink-500);outline-offset:3px;border-rad
 .sw.rail{background:none;border:0;border-top:2px dashed var(--paper-300);border-radius:0;
          height:2px;width:16px}
 .sw.evt{background:var(--mark-note);border-radius:3px}
-.sw.cur{background:var(--ink-500);border-radius:3px}
 
 /* marks in the alignment demo move between two x positions */
 .dipmark{transition:transform .45s cubic-bezier(.22,.61,.36,1)}
@@ -194,10 +193,10 @@ so there is nothing small to hit. Tap any row — including an empty one.</p>
   </svg>
   <div class="legend" data-note="aNote">
     <button type="button" class="key explains"
-      data-explain="You told the app you took this one — a fact, with a time attached.">
+      data-explain="You told the app you took this one. A fact, with a time attached.">
       <i class="sw"></i> <span class="txt">confirmed</span></button>
     <button type="button" class="key explains"
-      data-explain="Filled in from your schedule. You haven't confirmed it, so it is drawn hollow and never counted in a claim about timing — a plan is not an observation.">
+      data-explain="Filled in from your schedule. You haven't confirmed it, so it is drawn hollow and never counted in a claim about timing. A plan is not an observation.">
       <i class="sw dashed"></i> <span class="txt">assumed</span></button>
   </div>
   <p class="keynote" id="aNote" hidden></p>
@@ -264,10 +263,10 @@ same question, one zoom level out.</p>
 
   <div class="legend" id="bLegend" data-note="bNote">
     <button type="button" class="key explains"
-      data-explain="You told the app you took this one — a fact, with a time attached.">
+      data-explain="You told the app you took this one. A fact, with a time attached.">
       <i class="sw"></i> <span class="txt">confirmed</span></button>
     <button type="button" class="key explains"
-      data-explain="Filled in from your schedule. You haven't confirmed it, so it is drawn hollow and never counted in a claim about timing — a plan is not an observation.">
+      data-explain="Filled in from your schedule. You haven't confirmed it, so it is drawn hollow and never counted in a claim about timing. A plan is not an observation.">
       <i class="sw dashed"></i> <span class="txt">assumed</span></button>
     <button type="button" class="key toggles" id="keyPlan" aria-pressed="true"
       onclick="togglePlan()">
@@ -277,7 +276,7 @@ same question, one zoom level out.</p>
        view, and the readout says how many. A legend lists what IS drawn. -->
   <div class="legend" id="b6Legend" hidden data-note="bNote">
     <button type="button" class="key explains"
-      data-explain="One confirmed dose. Height is how far it landed from your planned time — above the line is earlier, below is later.">
+      data-explain="One confirmed dose. Height is how far it landed from your planned time. Above the line is earlier, below is later.">
       <i class="sw"></i> <span class="txt">one confirmed dose</span></button>
     <span class="static">− earlier · + later</span>
   </div>
@@ -360,7 +359,7 @@ same question, one zoom level out.</p>
   </svg>
   <div class="legend" data-note="dNote">
     <button type="button" class="key explains"
-      data-explain="A moment you wrote down feeling off. The same eight notes are shown in both views — only the ruler underneath them changes.">
+      data-explain="A moment you wrote down feeling off. The same eight notes are shown in both views. Only the ruler underneath them changes.">
       <i class="sw evt"></i> <span class="txt">a note you left</span></button>
   </div>
   <p class="keynote" id="dNote" hidden></p>
@@ -407,7 +406,7 @@ Tap any square.</p>
       data-explain="At least one entry on that day, so this stretch of the record can speak for it.">
       <i class="sw sq"></i> <span class="txt">has entries</span></button>
     <button type="button" class="key explains"
-      data-explain="Nothing was recorded. Drawn as an outline rather than an empty box, because a day with no entry is unknown — not a day with nothing in it.">
+      data-explain="Nothing was recorded. Drawn as an outline rather than an empty box, because a day with no entry is unknown, not a day with nothing in it.">
       <i class="sw hollow"></i> <span class="txt">unknown</span></button>
   </div>
   <p class="keynote" id="cNote" hidden></p>
@@ -449,14 +448,13 @@ charts above jump to that week.</p>
     <g id="eLabels" font-size="11" fill="#8D8A7D" font-family="Inter, sans-serif" text-anchor="middle"></g>
     <g id="eHits"></g>
   </svg>
-  <!-- The darker bar is an encoded distinction, so it needs a key like any other. -->
+  <!-- One key, because there is one kind of data here. The week being viewed is
+       a STATE of these bars, not a second category — so it is shown by fading
+       the others, never by a second colour, and it gets no legend entry. -->
   <div class="legend" data-note="eNote">
     <button type="button" class="key explains"
-      data-explain="A walk, a PT appointment, a boxing or tai chi class — whatever you logged as movement. This counts a therapy delivered, not app usage.">
+      data-explain="A walk, a PT appointment, a boxing or tai chi class. Anything you logged as movement. This is a count of therapy delivered, not of app usage.">
       <i class="sw sq"></i> <span class="txt">movement sessions</span></button>
-    <button type="button" class="key explains"
-      data-explain="The week the two charts above are showing. Tap any bar to open that week there.">
-      <i class="sw cur"></i> <span class="txt">the week you're viewing</span></button>
   </div>
   <p class="keynote" id="eNote" hidden></p>
 </div>
@@ -986,12 +984,24 @@ function drawSessions(){
     const h = w.sessions * unit;
     const x = E.x0 + wi * E.slot + 8;
     const bw = E.slot - 16;
+    const on = wi === week;
+    /* Every bar is the same data, and every bar matters to the six-week
+       reading, so none of them is dimmed. The darker label and the tick
+       underneath say "the week open above": a position indicator, not a
+       selection. There is nothing to deselect, so nothing should look
+       selected-off. One colour, one meaning. */
     bars.appendChild(svgEl('rect', {x, y:E.zeroY - h, width:bw, height:h, rx:3,
-      fill: wi === week ? '#1F4A52' : '#4E6B84'}));
+      fill:'#4E6B84'}));
     const t = svgEl('text', {x:x + bw/2, y:E.zeroY + 18});
-    /* label with the week's start date, not an offset — "−3" makes the reader
+    /* label with the week's start date, not an offset: "-3" makes the reader
        do arithmetic to find out which week they are looking at */
-    t.textContent = WEEKS[wi].range.split(' – ')[0];
+    t.textContent = WEEKS[wi].range.split(' \u2013 ')[0];
+    if (on){
+      t.setAttribute('fill', '#1A1916');
+      t.setAttribute('font-weight', '600');
+      labs.appendChild(svgEl('rect', {x:x + bw/2 - 9, y:E.zeroY + 25,
+        width:18, height:2.5, rx:1.25, fill:'#1F4A52'}));
+    }
     labs.appendChild(t);
 
     const hit = svgEl('rect', {x:E.x0 + wi*E.slot, y:E.y0 - 6, width:E.slot,
