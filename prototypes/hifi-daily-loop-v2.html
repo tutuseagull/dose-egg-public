@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>DoseEgg — Timeline (hi-fi v2 · depth layer)</title>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
@@ -312,13 +312,17 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .scrim{position:fixed;inset:0;background:rgba(26,25,22,.34);opacity:0;pointer-events:none;
        transition:opacity var(--motion-base) var(--ease-out);z-index:50}
 .scrim.open{opacity:1;pointer-events:auto}
-.sheet{position:fixed;left:50%;transform:translate(-50%,102%);bottom:0;width:100%;
+.sheet{position:fixed;left:50%;transform:translate(-50%,102%);bottom:var(--kb,0px);width:100%;
        display:flex;flex-direction:column;gap:var(--space-6);
        max-width:var(--shell-w);background:var(--surface-card);
        border-radius:var(--radius-lg) var(--radius-lg) 0 0;z-index:60;
        padding:var(--space-2) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
        transition:transform var(--motion-slow) var(--ease-out);
        box-shadow:0 -3px 24px rgba(26,25,22,.10)}
+/* A step asks one question, so its sheet is short and the field lands close to
+   the bottom edge — which is where the thumb rests and, on a phone, exactly
+   where the keyboard arrives. Steps get a deeper floor. */
+.sheet.instep{padding-bottom:calc(var(--space-12) + env(safe-area-inset-bottom))}
 .sheet.open{transform:translate(-50%,0)}
 /* The detail sheet can outgrow the screen at large text scales — it scrolls
    rather than clipping. AGENTS.md: no fixed-height text containers. */
@@ -1144,6 +1148,7 @@ function renderCard(){
 /* ═════════ rendering — detail sheet ═════════ */
 function renderDetail(){
   if (!active) return;
+  el('sheet-detail').classList.toggle('instep', !!pickerStep);
   if (pickerStep){ renderPickerStep(); return; }
   const e = active.e;
   const fields = fieldsFor(e);
@@ -2247,6 +2252,23 @@ function setScale(v){
   else delete document.documentElement.dataset.textScale;
 }
 function setVar(name, value){ document.documentElement.style.setProperty(name, value); }
+
+/* iOS does not shrink the layout viewport when the keyboard opens, so anything
+   pinned to bottom:0 ends up behind it — and the time step is nothing but a
+   field you are meant to type into. visualViewport reports what is actually
+   visible, so the sheet sits on top of the keyboard instead of under it.
+   `interactive-widget=resizes-content` covers Chrome and Android, where the
+   layout viewport does shrink and this measures zero. Both paths, one rule. */
+const vv = window.visualViewport;
+if (vv){
+  const trackKeyboard = () => {
+    const hidden = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    document.documentElement.style.setProperty('--kb', Math.round(hidden) + 'px');
+  };
+  vv.addEventListener('resize', trackKeyboard);
+  vv.addEventListener('scroll', trackKeyboard);
+  trackKeyboard();
+}
 
 renderCard(); renderTimeline(); renderLogSheet(); setSheetInert(null);
 </script>
