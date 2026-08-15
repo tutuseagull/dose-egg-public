@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoseEgg — Information architecture</title>
+<style>
+  :root{
+    --bg:#FAF7F0; --card:#FFFFFF; --text:#2A2823; --text-muted:#6B665C; --text-soft:#8E8779;
+    --divider:#E8E1D2; --accent:#7A6080; --accent-soft:rgba(122,96,128,.07);
+    --accent-border:rgba(122,96,128,.18); --zh:#5F7E6E; --zh-soft:rgba(95,126,110,.07);
+    --warm:#8C7B6A; --warm-soft:rgba(140,123,106,.07);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;
+    font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  .page{max-width:880px;margin:0 auto;padding:64px 40px 96px}
+  .back{position:fixed;top:14px;left:14px;z-index:999;background:rgba(250,247,240,.92);
+    border:1px solid var(--divider);border-radius:20px;padding:5px 14px;font-size:11px;
+    font-weight:600;color:#666;text-decoration:none;backdrop-filter:blur(4px)}
+  .back:hover{color:var(--text)}
+  header{margin-bottom:44px;padding-bottom:28px;border-bottom:1px solid var(--divider)}
+  .eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--text-soft);
+    font-weight:600;margin-bottom:10px}
+  h1{font-size:34px;font-weight:600;margin:0 0 10px;letter-spacing:-.02em;line-height:1.2}
+  .subtitle{font-size:15px;color:var(--text-muted);margin:0;max-width:620px}
+  .meta{font-size:12px;color:var(--text-soft);margin-top:14px;font-style:italic}
+  h2{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;
+    color:var(--text-soft);margin:56px 0 18px;padding-bottom:8px;border-bottom:1px solid var(--divider)}
+  h3{font-size:17px;font-weight:600;margin:32px 0 8px;letter-spacing:-.01em}
+  p{margin:0 0 14px}
+  .lede{color:var(--text-muted);max-width:660px}
+  ul{margin:0 0 16px;padding-left:20px} li{margin-bottom:7px;line-height:1.6}
+  code{font-family:ui-monospace,Menlo,monospace;font-size:.85em;background:var(--divider);
+    padding:2px 5px;border-radius:5px}
+
+  .rule{background:var(--accent-soft);border:1px solid var(--accent-border);border-radius:10px;
+    padding:16px 20px;margin:20px 0;font-size:14px;line-height:1.6}
+  .rule strong{color:var(--accent)}
+  .rule.warn{background:var(--warm-soft);border-color:rgba(140,123,106,.22)}
+  .rule.warn strong{color:#6E5C48}
+
+  /* ── the map ── */
+  .map{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0 8px}
+  .node{background:var(--card);border:1px solid var(--divider);border-radius:12px;padding:16px 18px}
+  .node.home{grid-column:1 / -1;border-color:var(--accent-border);background:var(--accent-soft)}
+  .node h4{margin:0 0 4px;font-size:16px;font-weight:600}
+  .node .role{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-soft);
+    font-weight:600;margin-bottom:8px}
+  .node p{font-size:13.5px;color:var(--text-muted);margin:0 0 8px;line-height:1.55}
+  .node ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--text-muted)}
+  .node li{margin-bottom:4px}
+  .flag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;padding:2px 7px;border-radius:4px;margin-left:6px;vertical-align:2px}
+  .flag.mvp{background:var(--zh-soft);color:var(--zh);border:1px solid rgba(95,126,110,.25)}
+  .flag.later{background:var(--warm-soft);color:#6E5C48;border:1px solid rgba(140,123,106,.25)}
+  .flag.out{background:var(--divider);color:var(--text-soft);border:1px solid var(--divider)}
+
+  table{width:100%;border-collapse:collapse;margin:16px 0 24px;font-size:13.5px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--divider);vertical-align:top}
+  th{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-soft);
+    font-weight:700;background:var(--card)}
+  td strong{color:var(--text)}
+  td.never{color:#6E5C48}
+  tr:last-child td{border-bottom:none}
+
+  footer{margin-top:72px;padding-top:20px;border-top:1px solid var(--divider);font-size:12px;
+    color:var(--text-soft);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  @media (max-width:700px){
+    .page{padding:40px 20px 64px} h1{font-size:26px}
+    .map{grid-template-columns:1fr}
+    table,thead,tbody,th,td,tr{display:block}
+    thead{display:none}
+    td{border-bottom:none;padding:4px 0}
+    tr{display:block;padding:14px 0;border-bottom:1px solid var(--divider)}
+    td::before{content:attr(data-label);display:block;font-size:10px;text-transform:uppercase;
+      letter-spacing:.1em;color:var(--text-soft);font-weight:700;margin-bottom:2px}
+  }
+</style>
+</head>
+<body>
+<a href="index.html" class="back">← Home</a>
+<div class="page">
+
+<header>
+  <div class="eyebrow">DoseEgg · Design</div>
+  <h1>Information architecture</h1>
+  <p class="subtitle">What the app's places are, what belongs in the menu, and how Look Back grows as the record fills up. Written to settle the menu question before any Look Back screens get drawn.</p>
+  <p class="meta">Draft 1 · August 2026 · proposal, not a decision</p>
+</header>
+
+<p class="lede">The menu question is easy to answer badly, because every candidate sounds reasonable in a list. So this starts with a test rather than a list.</p>
+
+
+<!-- ══════════════ THE TEST ══════════════ -->
+<h2>What earns a place in the menu</h2>
+
+<div class="rule">
+  <strong>Is it a place you go, or a thing you make?</strong> A menu is a drawer of destinations. Somewhere you return to, that holds state, that is still there when you come back. A report is not that: it is an <em>output</em>, produced from an interval, and it belongs beside the thing that defines the interval. An appointment is not that either: it is a single date, and it belongs where the date does work.
+</div>
+
+<p>Two supporting checks, in order:</p>
+<ul>
+  <li><b>Does it hold content the user edits or accumulates?</b> The medication schedule does. A generated report does not.</li>
+  <li><b>Would someone go looking for it?</b> If the honest answer is "only right after doing something else," it is a step in that flow, not a destination.</li>
+</ul>
+
+<p>Applied honestly this cuts the candidate list roughly in half, which is the point. Every extra row in a drawer is a row someone has to read past for the life of the product.</p>
+
+
+<!-- ══════════════ THE MAP ══════════════ -->
+<h2>The proposed map</h2>
+
+<div class="map">
+  <div class="node home">
+    <div class="role">Home · not a menu item</div>
+    <h4>Timeline <span class="flag mvp">Built</span></h4>
+    <p>The day's rail. Where nearly all time is spent, and the default screen on launch. It does not appear in the menu as a destination, but the menu needs a way back to it.</p>
+    <ul>
+      <li>Floating button → the logging actions</li>
+      <li>Tap an entry → detail sheet, correct or enrich</li>
+      <li>Scroll back → earlier days (timeline-based history nav)</li>
+    </ul>
+  </div>
+
+  <div class="node">
+    <div class="role">Menu · destination 1</div>
+    <h4>Look Back <span class="flag mvp">MVP</span></h4>
+    <p>The retrospective surface. Grows with the record: a rendering at first, comparisons later, co-occurrence last.</p>
+    <ul>
+      <li>Owns the interval (week, six weeks, since last visit)</li>
+      <li>Holds the <b>Next visit</b> date, because that is where the date does work</li>
+      <li>Holds <b>Make a report</b>, because a report is made from an interval</li>
+    </ul>
+  </div>
+
+  <div class="node">
+    <div class="role">Menu · destination 2</div>
+    <h4>Medicine Cabinet <span class="flag mvp">MVP</span></h4>
+    <p>The <b>schedule</b>: which medications you take and when each one is <em>meant</em> to happen. This is the intention, as opposed to the record of what actually happened. Content the user edits and returns to.</p>
+    <ul>
+      <li>Per-med detail, schedule, conditional dosing</li>
+      <li>Extends to non-drug treatments (PT, exercise) later</li>
+      <li>Source of the "planned time" every Look Back chart measures against</li>
+    </ul>
+  </div>
+
+  <div class="node">
+    <div class="role">Menu · destination 3</div>
+    <h4>Settings <span class="flag mvp">MVP</span></h4>
+    <p>Not optional: two decided features have nowhere else to live.</p>
+    <ul>
+      <li>In-app text size control (decided 2026-08-05)</li>
+      <li>AI settings page — every AI touchpoint with its on/off state (Open Questions)</li>
+      <li>Data export and account, when those exist</li>
+    </ul>
+  </div>
+
+  <div class="node">
+    <div class="role">Not a destination</div>
+    <h4>Report <span class="flag out">Inside Look Back</span></h4>
+    <p>An artefact you generate, hand over, and stop thinking about. It has no standing state to return to, and it is produced from an interval that Look Back already owns.</p>
+    <p>Putting it there also lands it in the right place for consent: generating is an explicit user action, which is exactly what the AI rules require [C-14, C-15].</p>
+  </div>
+</div>
+
+<div class="rule warn">
+  <strong>An observation, not a challenge.</strong> The MVP menu is three rows. The no-tabs and hamburger decision was made in May, before the surface count was known, and a drawer holding three items is close to the point where a drawer stops earning its cost. I would still keep it — it is cheap, and the list grows post-MVP with caregiver, sharing and history — but if the menu is <em>still</em> three rows when the design is otherwise done, that is the moment to re-examine rather than ship a drawer out of habit.
+</div>
+
+
+<!-- ══════════════ ENTRY POINTS ══════════════ -->
+<h2>How people reach Look Back</h2>
+
+<p>Four ways in, and they are not equivalent. What matters is what the person already wants when they arrive, because that determines what should be on screen.</p>
+
+<table>
+  <thead>
+    <tr><th>From</th><th>Arrives wanting</th><th>Lands on</th><th>Notes</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td data-label="From"><strong>The menu</strong></td>
+      <td data-label="Wanting">Nothing specific. Browsing.</td>
+      <td data-label="Lands on">Current period, nothing selected, whatever statements qualify.</td>
+      <td data-label="Notes">The only entry with no question attached, so it carries the summary state.</td>
+    </tr>
+    <tr>
+      <td data-label="From"><strong>An entry on the Timeline</strong></td>
+      <td data-label="Wanting">"Is this normal for me?" A question already formed.</td>
+      <td data-label="Lands on">That day, already selected, in the period containing it.</td>
+      <td data-label="Notes">The strongest entry point. Never dump them on the summary and make them find the day again.</td>
+    </tr>
+    <tr>
+      <td data-label="From"><strong>A card at the top of Timeline</strong></td>
+      <td data-label="Wanting">Nothing yet — the app is offering.</td>
+      <td data-label="Lands on">The statement that qualified, with its evidence.</td>
+      <td data-label="Notes">Quiet card, never a badge or a push. Must be dismissible or it becomes 鸡肋.</td>
+    </tr>
+    <tr>
+      <td data-label="From"><strong>A visit reminder</strong></td>
+      <td data-label="Wanting">"What do I tell them?"</td>
+      <td data-label="Lands on">The interval since the last visit, with Make a report in reach.</td>
+      <td data-label="Notes">The one legitimate notification, because it fires on a real event rather than an engagement target. Post-MVP.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="rule">
+  <strong>The consequence for the build.</strong> Three of these four arrive with a target already chosen: a day, a statement, an interval. So Look Back cannot be a page with one fixed layout. It has to accept a target on arrival, which is the same argument as insights being addressable objects: <code>{id, claim, evidence, coverage, range, era}</code>. This is a schema question before it is a screen question, and it sits behind the entry-schema gate in <code>TASKS.md</code>.
+</div>
+
+
+<!-- ══════════════ NO PLAN ══════════════ -->
+<h2>What happens if someone skips onboarding</h2>
+
+<div class="rule">
+  <strong>First, the word.</strong> Two different things, and almost every rule below turns on the difference. The <b>schedule</b> is the intention: which medications you take and roughly when each one is meant to happen. The <b>record</b> is what actually happened: the entries. AGENTS.md already leans on this — "a schedule is a plan, not an observation" is why an <code>assumed</code> dose may never be counted as a taken one. Below, "schedule" always means the intention.
+</div>
+
+<p class="lede">The schedule is the spine of the product. Confirmation cards propose from it, <code>assumed</code> entries are inferred from it, and every planned-time rail in Look Back is measured against it. But onboarding has to be skippable — a long setup form is the worst possible first minute for someone newly diagnosed, and possibly the worst minute of their day. So the question is not how to make people finish it. It is what the app is with nothing in it.</p>
+
+<div class="rule">
+  <strong>Onboarding is a shortcut into Medicine Cabinet, not a separate flow.</strong> Same editor, two doors. Skipping costs nothing except a door you can still find later, in the one place where looking for it makes sense. It also halves the build: one screen to design, not a wizard plus an editor that drift apart.
+</div>
+
+<h3>With no schedule, the app degrades honestly</h3>
+<ul>
+  <li><b>No confirmation cards.</b> There is nothing to propose, so the default logging path is the floating button. The loop still closes, it is just manual.</li>
+  <li><b>No <code>assumed</code> entries.</b> That basis only exists relative to a schedule. Everything is <code>asserted</code>, which is the stronger kind of record anyway.</li>
+  <li><b>No planned-time rails in Look Back</b>, and no statement that says "as planned." Rhythm statements still work: "your midday dose ranged from 12:15 to 2:00" needs no schedule to be true.</li>
+</ul>
+
+<div class="rule">
+  <strong>This generalises the ladder.</strong> A statement's requirement is not only <em>how much</em> record exists but <em>which kinds</em>. Schedule-dependent statements gate on a schedule the same way co-occurrence gates on five days each side. Nothing new to invent — it is the same rule with a second axis.
+</div>
+
+<h3>The schedule can build itself from use</h3>
+<p>If someone logs the same medication at roughly the same time three mornings running, the app already knows a slot. It can offer one: <em>"You have logged Rytary around 8 most mornings. Want me to expect it?"</em> Confirm, adjust, or dismiss. That is the confirmation-card pattern turned on the schedule itself, and it means setup becomes a by-product of use rather than a toll gate.</p>
+
+<div class="rule warn">
+  <strong>Guard on that.</strong> The app may only ever propose <em>what it has seen</em> — a medication the person logged, at a time they used. It may never propose a dose they have not taken, a time they have not used, or an amount at all. The line is the same one as everywhere else: this is a memory aid, not a prescription. Offer it once per pattern and never again if dismissed.
+</div>
+
+<h3>Picking a medication, not typing one</h3>
+<p>A starter list of common Parkinson's medications to choose from, with free text always available for anything not on it — generics, non-US brands, supplements, anything. Choosing beats typing for this audience by a wide margin, and it is the difference between a thirty-second setup and one abandoned mid-word.</p>
+<p>The two halves meet here: <b>whatever someone logs by hand gets captured into Medicine Cabinet</b>, so the list they end up with is theirs rather than ours. The built-in list is a convenience for the common case, not a definition of what counts as a medication.</p>
+<div class="rule warn">
+  <strong>Keep the list dumb on purpose.</strong> Names only. No doses, no interaction warnings, no "commonly taken with", no descriptions of what each drug does. The moment a bundled drug list carries clinical content it becomes something that has to be maintained, versioned and defended, and a stale entry in a medical product is worse than no entry. It is a spelling aid.
+</div>
+
+<h3>The smallest useful schedule is times, not doses</h3>
+<p>Worth separating, because it makes the first ask much smaller. <b>Times drive everything in MVP</b> — the confirmation card, the rails, the drift statements, the whole of Look Back. <b>Milligrams drive nothing</b> except the doctor export, which is Phase 4 and not validated yet. So the first ask is: which medications, and roughly when.</p>
+
+<div class="rule">
+  <strong>Optional means optional, not deferred.</strong> An entry without a dose is not a half-finished entry, and nothing in the product should imply otherwise — no "add this later", no grey placeholder, no completeness indicator. Absence blocks nothing. This is the same shape as <em>depth is optional, identity is not</em>, applied to the schedule rather than the record.
+</div>
+
+<div class="rule">
+  <strong>And people should be able to use their own names for things.</strong> "The white one." "Morning pill." A nickname. Some of that is convenience, but some of it is privacy: a drug name can disclose a diagnosis to anyone who picks up the phone, and not everyone has told their family. Withholding it is a reasonable thing to want, not a gap to close.<br><br>
+  So the starter list is a <em>spelling aid</em> and free text is a first-class option, never a fallback. And the app may <b>never rename, correct or normalise</b> what someone called their own medication — which is a real temptation for a smart-tagging feature and should be closed off before that feature exists. If a canonical name is ever needed for an export, that is the user's choice at that moment, not a field the app enforces.
+</div>
+
+<h3>What we actually lose without doses — less than it looks</h3>
+<p>Nothing in Look Back uses an amount. Every statement in the bank is about timing, spread, or co-occurrence. The two places a dose seems to matter turn out to be weaker than expected:</p>
+<ul>
+  <li><b>The doctor export.</b> The prescriber generally has the prescription record already. What they lack is what happened <em>between</em> visits, which is exactly what we do have.</li>
+  <li><b>Titration.</b> Dose changes are genuinely worth seeing on the timeline — but what carries the meaning is <em>that something changed and when</em>, not the number. "Changed my morning dose" is a loggable event with no milligrams in it.</li>
+</ul>
+<p>Which is a useful principle in itself: <b>the interesting variable is the change, not the amount.</b> An app that records the change honestly is more useful than one that demands a number and gets abandoned during setup.</p>
+
+
+<!-- ══════════════ AUTHORING VS USE ══════════════ -->
+<h2>Where a thing is set up, and where it does its work</h2>
+
+<div class="rule">
+  <strong>These are different places, and the first draft of this page conflated them.</strong> The appointment date <em>does its work</em> in Look Back: it anchors the interval and creates the moment where offering a report is welcome. But <em>authoring</em> it is a scheduling task, and Look Back is not a scheduling surface. Same shape as the medication schedule, which is used everywhere — confirmation cards, rails, drift — and authored in exactly one place.
+</div>
+
+<p>So Look Back shows the next visit and acts on it, without becoming the place you manage visits. For a single date, editing it inline where it appears is enough and needs no screen. What it must not grow into is a calendar.</p>
+
+<h3>A "Schedules" destination — the right idea, not yet</h3>
+<p>Grouping the medication schedule and appointments under one roof is coherent: both are future-facing commitments, as opposed to the record behind them. Two reasons to hold off. The medication schedule already has a good home in Medicine Cabinet, and splitting it out would leave the Cabinet holding half a subject. And one date does not justify a row on its own.</p>
+
+<div class="rule">
+  <strong>A useful trigger, which also answers the report question: a single thing is a field or a button. A list of things needs a place.</strong><br><br>
+  <b>Reports.</b> One report is an action — a button in Look Back, because there is nothing to choose between. Add a caregiver update, a raw data export, an insurance letter, and now the user has to <em>pick which one</em>, and picking needs a screen. That is the moment <b>Reports</b> becomes a destination. Tutu expects that stack to grow, so the first report should be built so it can move without a rewrite.<br><br>
+  <b>Schedules.</b> One appointment date is a field. Add recurring PT, a titration step, a refill date, and there is a list of future commitments to look at together. That is the moment <b>Schedules</b> becomes a destination.<br><br>
+  <b>The rule predicts the case we already settled.</b> Medicine Cabinet was a destination from the start, and it should be: it was never one medication, it was always a list.
+</div>
+
+<p>This is a better rule than guessing at the final menu, because it names the observable moment to revisit rather than asking anyone to predict it.</p>
+
+
+<!-- ══════════════ PHASES ══════════════ -->
+<h2>What Look Back can honestly say, by how much record exists</h2>
+
+<p class="lede">The requirement is not a single screen with an empty state bolted on. Each row below is a genuinely different thing the surface is for. The rule underneath all of them: a data requirement is a property of each <em>statement</em>, not a gate on the surface, so the page always renders whatever currently qualifies and never shows a locked card.</p>
+
+<table>
+  <thead>
+    <tr><th>Record</th><th>What it is for</th><th>What it shows</th><th>What it must not do</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td data-label="Record"><strong>Nothing yet</strong><br>day 0</td>
+      <td data-label="For">Explaining itself once, briefly.</td>
+      <td data-label="Shows">One line: what this place will be able to tell them, in plain language. Nothing else.</td>
+      <td data-label="Must not" class="never">Sit empty. Show a locked or blurred preview. Count down to anything.</td>
+    </tr>
+    <tr>
+      <td data-label="Record"><strong>A few days</strong><br>1–5 days</td>
+      <td data-label="For">Memory. Showing a week that is still filling.</td>
+      <td data-label="Shows">The week-in-progress chart, partially complete. "So far this is a picture of four days."</td>
+      <td data-label="Must not" class="never">Draw a comparison. Imply the picture is finished. Nag for the missing days.</td>
+    </tr>
+    <tr>
+      <td data-label="Record"><strong>One week</strong><br>~6 days<span class="flag mvp">Phase 1</span></td>
+      <td data-label="For"><b>Recall.</b> What did my week look like.</td>
+      <td data-label="Shows">Dose timing spread, session counts, the shape of a day, coverage. Day rows and the coverage grid.</td>
+      <td data-label="Must not" class="never">Attribute anything to anything. State a rate without its denominator.</td>
+    </tr>
+    <tr>
+      <td data-label="Record"><strong>Three to four weeks</strong><span class="flag mvp">Phase 2</span></td>
+      <td data-label="For"><b>Compare.</b> How does this stretch sit against my own past.</td>
+      <td data-label="Shows">Week-over-week, drift in timing, the six-week distribution view. Adds day columns and the slot clouds.</td>
+      <td data-label="Must not" class="never">Compare the person to anyone else [C-10]. Draw a trendline. Say better or worse.</td>
+    </tr>
+    <tr>
+      <td data-label="Record"><strong>Six to eight weeks</strong><span class="flag later">Phase 3</span></td>
+      <td data-label="For"><b>Explain.</b> What goes with what.</td>
+      <td data-label="Shows">Co-occurrence with both denominators stated; the clock-versus-dose alignment pair.</td>
+      <td data-label="Must not" class="never">Emit a co-occurrence whose obvious action is to do less. Name a cause. Ship a claim with fewer than ~5 days on each side.</td>
+    </tr>
+    <tr>
+      <td data-label="Record"><strong>An interval between visits</strong><br>~3 months<span class="flag later">Phase 4</span></td>
+      <td data-label="For"><b>Visit prep.</b> What do I tell them, and do I have grounds to ask.</td>
+      <td data-label="Shows">The interval since the last visit; two or three things worth raising, each with evidence; Make a report.</td>
+      <td data-label="Must not" class="never">Advise. Suggest any medication change, including for the app's own benefit. Ship before the doctor-facing half is validated.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="rule">
+  <strong>Read the flags as build order, not as calendar.</strong> Phase 1 and 2 are the MVP surface and can be built now: the statements are written, the charts exist, and nothing in them needs a clinician's opinion. Phase 3 is buildable but should follow real logged data, because the thresholds are guesses until something has run against a real record. Phase 4 carries the research dependency and should not be designed in detail until the doctor-export question has an answer.
+</div>
+
+
+<!-- ══════════════ OPEN ══════════════ -->
+<h2>Open, and what I would do</h2>
+
+<h3>Meals — parked, with one distinction worth keeping</h3>
+<p>Confirmed as meal guidance rather than saved logging shortcuts, and flagged as low priority. Parked post-MVP. The reason to write anything down now is a line that will matter whenever it comes back.</p>
+<div class="rule warn">
+  <strong>The app can show someone their own meal timing. It cannot tell them what to eat.</strong> The first is a record and it already exists — meal timing relative to a dose is captured today [C-05], and it is one side of the strongest co-occurrence statement in the bank. The second is dietary advice, in a product that has just banned itself from advising, and the evidence does not support a general list anyway: the protein interaction with levodopa is real, but its size is individual. A shared recipe library would make a claim about people it cannot make.
+</div>
+<p>So if meals return, the honest feature is <em>"here is what your own record says about eating and your midday dose"</em>, not <em>"here is what to cook"</em>. That version needs no new content, no new menu row, and no clinical review. It is already most of the way built.</p>
+
+<h3>Next visit as a real object</h3>
+<p>One date buys three things: it anchors the interval so Look Back stops guessing, it justifies the only notification the product should ever send, and it creates the moment where offering a report is welcome rather than pushy. That is a lot of value from one field.</p>
+<div class="rule warn">
+  <strong>Guard it, though.</strong> Appointments creep into scheduling features — reminders, doctor details, a calendar, a history of visits. The MVP version is one date and one pre-visit nudge. If it grows past that before the report is validated, it has grown for its own sake.
+</div>
+
+<h3>Does Look Back appear in the menu on day one?</h3>
+<p>Yes. Hiding a row until it earns content makes the app feel unstable, and there is something honest to show from the first week anyway. The alternative — a visible row that opens an apology — is what the day-0 line in the table above exists to avoid.</p>
+
+<h3>Still unsettled</h3>
+<ul>
+  <li>Whether "Medicine Cabinet" survives as the user-facing name or stays an internal one.</li>
+  <li>Where a caregiver view would attach, if it ever exists. Not MVP, but it is the most likely fourth menu row and worth not painting into a corner.</li>
+  <li>Whether the Timeline arrival card and the visit reminder are the same mechanism wearing two hats, or genuinely separate.</li>
+</ul>
+
+<footer>
+  <span>DoseEgg · Design · Information architecture</span>
+  <span>Draft 1 · August 2026</span>
+</footer>
+
+</div>
+</body>
+</html>
