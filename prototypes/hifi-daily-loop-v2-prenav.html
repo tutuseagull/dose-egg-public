@@ -1,0 +1,2282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>DoseEgg — Timeline (hi-fi v2 · depth layer)</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<style>
+/* ═══════════════════ LAYER 1 — PRIMITIVES ═══════════════════
+   "Stitch blue" — swapped 2026-08-06 on the domain lead's preference. Provisional.
+   Oat+petrol preserved in palette-*.html; restore by swapping this block only.
+   Token names stay unchanged — they are positional, not descriptive.      */
+:root{
+  --paper-0:#FFFFFF; --paper-50:#F9F9FF; --paper-100:#F1F3FF; --paper-200:#E4E8F5;
+  --paper-300:#D3D9E8; --paper-400:#ABB3C6; --paper-500:#7C8598; --paper-600:#5F6879;
+  --paper-700:#3E4658; --paper-800:#262C3A; --paper-900:#141B2B;
+  --ink-400:#4A7BC8; --ink-500:#2B5BA9; --ink-600:#1E4380; --ink-700:#143059;
+  --hue-mark:#3B4E7A;   /* one mark colour — icon carries the type, colour carries nothing */
+  --red-600:#A33A2A;
+  --backdrop:#D9DDE8;   /* review frame only — not a product surface */
+}
+/* ═══════════════════ LAYER 2 — SEMANTIC ═══════════════════ */
+:root{
+  --surface-page:var(--paper-50); --surface-card:var(--paper-0);
+  --surface-raised:var(--paper-100); --surface-sunken:var(--paper-200);
+  --text-primary:var(--paper-900); --text-secondary:var(--paper-700);
+  --text-muted:var(--paper-600); --text-inverse:var(--paper-50);
+  --border-subtle:var(--paper-200); --border-interactive:var(--paper-500);
+  --accent:var(--ink-500); --accent-hover:var(--ink-600); --accent-quiet:var(--ink-400);
+  --on-accent:var(--paper-0);
+  --mark:var(--hue-mark);
+  --focus-ring:var(--ink-500); --focus-ring-width:3px; --focus-ring-offset:2px;
+  --feedback-error:var(--red-600);
+
+  --font-serif:'Newsreader',Georgia,serif;
+  --font-sans:'Inter',-apple-system,system-ui,sans-serif;
+  --text-display:2rem; --text-title:1.5rem; --text-heading:1.1875rem;
+  --text-body:1.0625rem; --text-small:1rem; --text-label:.875rem;
+  --leading-tight:1.2; --leading-body:1.55;
+
+  --motion-fast:120ms; --motion-base:200ms; --motion-slow:320ms;
+  --ease-out:cubic-bezier(.2,0,0,1);
+
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
+  --space-6:24px; --space-8:32px; --space-12:48px;
+  --radius-sm:6px; --radius-md:10px; --radius-lg:16px; --radius-full:999px;
+
+  /* Touch targets — three tiers by context of use. Separate tokens even where the
+     value matches today, so each can move independently. See design-tokens.html. */
+  --target-min:48px;        /* floor, everything */
+  --target-routine:48px;    /* ordinary moments: dose confirm, tiles, nav */
+  --target-critical:56px;   /* low-capacity: FOG, low energy, FAB */
+  --target-gap:16px;        /* between adjacent targets — separation beats height */
+
+  /* ── tunable while we compare — fold back into the scale once settled ── */
+  --gutter:16px;        /* page side margin */
+  --rail-indent:52px;   /* clears the marker + rail */
+  --card-pad:16px;      /* inside the entry card */
+  /* Rail geometry — derived from the 36px mark, so they move together.
+     Named rather than left as bare numbers: 17 and 14 are not arbitrary, they
+     centre the rail and its terminus under the mark. */
+  --rail-x:17px;        /* rail centre = (mark 36 / 2) - (rail 1.5 / 2) */
+  --rail-dot:7px;       /* terminus diameter */
+  --rail-dot-x:14px;    /* terminus left = rail-x - (dot - rail width)/2 */
+  --rail-dot-y:6px;     /* terminus sits just inside the last entry's padding */
+  --meta-gap:5px;       /* icon → value inside a metadata pair. Optical, not scale. */
+  --text-meta:.875rem;  /* metadata, chips, timestamps — 14px floor */
+
+  --shell-w:420px;      /* review-frame width — the toast is sized against this */
+}
+@media (prefers-reduced-motion:reduce){
+  :root{--motion-fast:0ms;--motion-base:0ms;--motion-slow:0ms}
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+
+/* ═══════════════════ base ═══════════════════ */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:100%}
+html[data-text-scale="large"]{font-size:112.5%}   /* 18px */
+html[data-text-scale="larger"]{font-size:125%}    /* 20px */
+html[data-text-scale="huge"]{font-size:150%}      /* 24px */
+html[data-text-scale="max"]{font-size:200%}       /* 32px — WCAG 1.4.4 corner case */
+body{margin:0;background:var(--backdrop);font-family:var(--font-sans);
+     font-size:var(--text-body);line-height:var(--leading-body);
+     color:var(--text-primary);-webkit-font-smoothing:antialiased;
+     display:flex;justify-content:center;min-height:100vh}
+/* dvh = DYNAMIC viewport height. Plain `vh` on a phone is measured against the
+   browser window with its toolbars HIDDEN, so 100vh is always taller than what
+   you can actually see — the bottom of the page sits behind the URL bar. `dvh`
+   tracks the toolbar as it collapses and expands. Declared second so browsers
+   that don't know dvh keep the vh line above. */
+@supports (height:100dvh){ body{min-height:100dvh} .shell{min-height:100dvh} }
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+:focus-visible{outline:var(--focus-ring-width) solid var(--focus-ring);
+               outline-offset:var(--focus-ring-offset);border-radius:var(--radius-sm)}
+
+/* phone shell — review frame only, not part of the design */
+.shell{width:100%;max-width:var(--shell-w);background:var(--surface-page);min-height:100vh;
+       position:relative;display:flex;flex-direction:column;
+       box-shadow:0 0 0 1px rgba(0,0,0,.06)}
+
+/* ── demo bar (dev only) ── */
+.demo-bar{display:flex;gap:var(--space-2);padding:var(--space-2) var(--space-3);
+          background:var(--paper-800);align-items:center;flex-wrap:wrap}
+/* `margin-right:auto` used to shove the buttons to the right edge. With
+   flex-wrap on, that opened a hole between the label and the first button
+   whenever the row was too narrow to hold everything — the gap grew as the
+   remaining buttons wrapped away. Everything packs left now and wraps as one
+   run, which is what a row of dev chrome should do. */
+.demo-bar .db{font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+              color:var(--paper-400);font-weight:500;
+              padding-right:var(--space-1)}
+.demo-btn{font-size:12px;font-weight:500;color:var(--paper-100);
+          background:rgba(255,255,255,.12);padding:5px 10px;border-radius:var(--radius-full);
+          display:flex;align-items:center;min-height:32px;text-decoration:none}
+.demo-btn:hover{background:rgba(255,255,255,.2)}
+/* Home lives in the demo bar, not in a floating pill over the app.
+   The other prototypes overlay an inline-styled 10px pill on the phone frame —
+   it covers product UI and sits below the 14px floor [C-16]. This link is review
+   chrome, same category as "reset", so it belongs with the review chrome and
+   disappears with it when the demo bar is deleted. */
+.demo-btn.home{background:rgba(255,255,255,.22);font-weight:600}
+.tuner{display:none;grid-template-columns:1fr 1fr;gap:var(--space-2) var(--space-3);
+       padding:var(--space-3);background:var(--paper-800);border-top:1px solid rgba(255,255,255,.1)}
+.tuner.open{display:grid}
+.tuner label{font-size:11px;color:var(--paper-400);display:flex;flex-direction:column;gap:3px}
+.tuner select{font-size:12px;padding:4px 6px;border-radius:var(--radius-sm);
+              background:rgba(255,255,255,.1);color:var(--paper-50);border:none;font-family:inherit}
+.tuner select option{background:var(--paper-800);color:var(--paper-100)}
+
+/* ── top bar ── */
+.top{display:flex;align-items:center;justify-content:space-between;
+     padding:var(--space-4) var(--space-4) var(--space-2)}
+.top h1{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
+        line-height:var(--leading-tight);margin:0;color:var(--text-primary)}
+.icon-btn{width:var(--target-min);height:var(--target-min);display:flex;align-items:center;
+          justify-content:center;border-radius:var(--radius-full);color:var(--text-muted);
+          flex:0 0 auto}
+.icon-btn i{font-size:22px}
+.icon-btn:hover{background:var(--surface-raised)}
+.top .icon-btn:first-child{margin-left:calc(var(--space-3) * -1)}
+.top .icon-btn:last-child{margin-right:calc(var(--space-3) * -1)}
+
+.scroll{flex:1;overflow-y:auto;padding:0 var(--gutter) 120px}
+
+/* ── confirmation card ── */
+.confirm{background:var(--surface-card);border:1px solid var(--border-subtle);
+         border-radius:var(--radius-lg);padding:var(--space-4);margin-bottom:var(--space-6);
+         animation:rise var(--motion-base) var(--ease-out)}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.confirm-q{font-size:var(--text-heading);font-weight:600;margin-bottom:2px}
+.confirm-meta{font-size:var(--text-label);color:var(--text-muted);margin-bottom:var(--space-4)}
+/* v2: two answers, not three options. "Did you take it?" has exactly two answers;
+   the third button in v1 ("Edit") was a modifier on Yes wearing an answer's clothes,
+   and at 17px "Not exactly" wrapped to two lines inside a one-third column.
+   Splitting it out fixes the semantics and removes the width ceiling at once. */
+.c-actions{display:flex;gap:var(--target-gap);flex-wrap:wrap}
+.c-btn{flex:1 1 6rem;min-height:var(--target-routine);border-radius:var(--radius-md);
+       font-weight:500;font-size:var(--text-small);background:var(--surface-page);
+       border:1px solid var(--border-interactive);color:var(--text-primary);
+       padding:var(--space-2) var(--space-3);
+       transition:background var(--motion-fast) var(--ease-out)}
+.c-btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.c-btn.primary:hover{background:var(--accent-hover)}
+.c-btn:not(.primary):hover{background:var(--surface-raised)}
+/* The third path. Quiet by weight and hue, never by size or contrast [C-16]. */
+.c-more{display:flex;align-items:center;justify-content:center;gap:var(--space-2);
+        width:100%;min-height:var(--target-min);margin-top:var(--target-gap);
+        font-size:var(--text-small);font-weight:400;color:var(--accent);
+        border-radius:var(--radius-md)}
+.c-more i{font-size:18px}
+.c-more:hover{background:var(--surface-raised)}
+
+/* ── timeline ──────────────────────────────────────────────────
+   A continuous rail, not a stack of rows. The line is the point:
+   it says time passed between these, and that the day is one thing. */
+.day-label{font-size:var(--text-label);letter-spacing:.08em;text-transform:uppercase;
+           color:var(--text-muted);margin:var(--space-6) 0 var(--space-3);font-weight:500}
+.day-label:first-child{margin-top:0}
+
+/* Oura's structural move: the TIME sits on the rail row, next to the marker —
+   outside the card. The card hangs below it. That is what makes it read as a
+   timeline rather than a list of cards. */
+.rail{position:relative;padding-bottom:var(--space-2)}
+.rail::before{content:'';position:absolute;left:var(--rail-x);top:16px;bottom:10px;width:1.5px;
+              background:var(--border-subtle)}
+/* terminus — the rail is punctuated, not cut off */
+.rail::after{content:'';position:absolute;left:var(--rail-dot-x);bottom:var(--rail-dot-y);width:var(--rail-dot);height:var(--rail-dot);
+             border-radius:50%;background:var(--border-subtle)}
+
+.entry{position:relative;display:block;width:100%;text-align:left;
+       padding:0 0 var(--space-6) var(--rail-indent)}
+.emark{position:absolute;left:0;top:0;width:36px;height:36px;border-radius:var(--radius-full);
+       display:flex;align-items:center;justify-content:center;z-index:2;
+       box-shadow:0 0 0 4px var(--surface-page)}
+.emark i{font-size:18px;color:#fff}
+/* epistemic state — fill & outline, never hue.
+   Hollow marks fill with the page colour so the rail doesn't run through them. */
+.emark.assumed{background:var(--surface-page)!important;
+               border:1.5px solid var(--border-interactive)}
+.emark.assumed i{color:var(--text-muted);font-size:17px}
+.emark.declined{background:var(--surface-page)!important;border:1.5px solid currentColor}
+.emark.declined i{font-size:17px}
+
+.etime{display:block;font-size:var(--text-meta);color:var(--text-muted);font-weight:500;
+       font-variant-numeric:tabular-nums;padding:var(--space-2) 0 var(--space-2)}
+.ecard{display:block;background:var(--surface-card);border:1px solid var(--border-subtle);
+       border-radius:var(--radius-lg);padding:var(--card-pad);
+       transition:background var(--motion-fast) var(--ease-out);position:relative}
+.entry:hover .ecard{background:var(--surface-raised)}
+.ecard .chev{position:absolute;right:var(--space-4);top:50%;transform:translateY(-50%);
+             color:var(--paper-400);font-size:18px;display:flex}
+.etext{display:block;font-size:var(--text-small);font-weight:600;color:var(--text-primary);
+       line-height:1.35;padding-right:var(--space-6)}
+.emeta{display:flex;gap:var(--space-4);margin-top:var(--space-2);flex-wrap:wrap}
+.emeta span{font-size:var(--text-meta);color:var(--text-muted);display:flex;
+            align-items:center;gap:var(--meta-gap)}
+.emeta i{font-size:15px}
+.enote{display:inline-block;font-size:var(--text-meta);color:var(--text-secondary);
+       background:var(--surface-sunken);border-radius:var(--radius-sm);
+       padding:3px var(--space-2);margin-top:var(--space-3)}
+.entry.ahead{opacity:.55}
+.entry.ahead .emark{border-style:dashed}
+.entry.ahead .ecard{background:transparent;border-style:dashed}
+
+/* ── new-entry highlight ───────────────────────────────────────────────
+   Replaces the "X — added" toast. The entry appearing on the rail at the
+   right time IS the confirmation; this just makes sure you see which one
+   is new. A background wash only — no colour, no scale, no motion that
+   could read as congratulation [C-08]. The fade-out comes free from
+   .ecard's existing background transition when the class is removed.
+   Deliberately not a keyframe animation: the reduced-motion rule zeroes
+   animation durations, which would delete the feedback rather than calm
+   it. A wash that simply appears and later disappears still works. */
+.entry.fresh .ecard{background:var(--surface-raised);
+                    border-color:var(--border-interactive)}
+
+/* ── removal tombstone ─────────────────────────────────────────────────
+   The one case that genuinely needs undo: the evidence is gone, so nothing
+   on screen can confirm what happened. It stays in the rail, in the dead
+   entry's own position, naming what was removed — and it has NO timer.
+   A timed target is the wrong affordance for an audience with bradykinesia
+   (and fails WCAG 2.2.1). It clears when the next removal happens. */
+.tomb{position:relative;display:block;width:100%;
+      padding:0 0 var(--space-6) var(--rail-indent)}
+.tomb .emark{background:var(--surface-page)!important;
+             border:1.5px dashed var(--border-interactive)}
+.tomb .emark i{color:var(--text-muted);font-size:16px}
+.tomb-card{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;
+           background:transparent;border:1px dashed var(--border-subtle);
+           border-radius:var(--radius-lg);padding:var(--space-2) var(--card-pad)}
+.tomb-text{flex:1 1 10ch;min-width:0;font-size:var(--text-small);color:var(--text-muted)}
+.tomb-text b{font-weight:500;color:var(--text-secondary)}
+.tomb-undo{flex:0 0 auto;display:flex;align-items:center;gap:var(--space-2);
+           min-height:var(--target-min);padding:0 var(--space-3);
+           border-radius:var(--radius-md);font-size:var(--text-small);
+           font-weight:500;color:var(--accent)}
+.tomb-undo i{font-size:18px}
+.tomb-undo:hover{background:var(--surface-raised)}
+
+/* elapsed time, shown only for gaps worth noticing */
+.gap{position:relative;padding:0 0 var(--space-6) var(--rail-indent);z-index:1}
+.gap span{position:absolute;left:0;top:-4px;width:36px;text-align:center;
+          font-size:var(--text-label);color:var(--text-muted);background:var(--surface-page);
+          padding:var(--space-1) 0;font-variant-numeric:tabular-nums}
+
+/* now */
+.now{position:relative;padding:0 0 var(--space-6) var(--rail-indent);z-index:2}
+.now::before{content:'';position:absolute;left:12px;top:2px;width:11px;height:11px;
+             border-radius:50%;background:var(--accent);
+             box-shadow:0 0 0 4px var(--surface-page)}
+.now span{font-size:var(--text-label);color:var(--accent);font-weight:600;
+          letter-spacing:.04em;font-variant-numeric:tabular-nums}
+
+.empty-day{font-size:var(--text-small);color:var(--text-muted);padding:var(--space-4) 0 var(--space-6)}
+
+/* first-run empty state */
+.empty{text-align:center;padding:var(--space-12) var(--space-4)}
+.empty .mark{font-size:40px;margin-bottom:var(--space-4);color:var(--accent-quiet)}
+.empty h2{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
+          margin:0 0 var(--space-2)}
+.empty p{font-size:var(--text-small);color:var(--text-secondary);margin:0 auto;max-width:30ch}
+
+/* ── FAB ────────────────────────────────────────────────────────────────
+   v2: pinned to the VIEWPORT, not to the page.
+   It was `position:absolute` inside .shell, which anchors it to the bottom of
+   the phone shell — and on a phone the shell's bottom is below the fold. Now a
+   fixed "dock" spans the shell's width and the button sits inside it.
+
+   Why a dock instead of just `position:fixed` on the button: a fixed element is
+   positioned against the viewport, but the shell is centred with a max-width, so
+   `right:16px` would pin it to the browser edge on desktop, not the phone frame.
+   Centring it needs a transform — and .fab already uses transform for its press
+   animation. Two rules writing the same property is a bug waiting to happen, so
+   the dock owns the centring and the button keeps its transform. No tab bar
+   required: a dock is just an empty fixed strip. */
+.fab-dock{position:fixed;left:50%;transform:translateX(-50%);
+          width:100%;max-width:var(--shell-w);
+          bottom:calc(var(--space-6) + env(safe-area-inset-bottom));
+          padding:0 var(--space-4);display:flex;justify-content:flex-end;
+          z-index:40;
+          /* the strip is invisible and must not swallow taps meant for the
+             timeline underneath — only the button itself is tappable */
+          pointer-events:none}
+.fab{pointer-events:auto;
+     width:var(--target-critical);height:var(--target-critical);
+     border-radius:var(--radius-full);background:var(--accent);
+     color:var(--on-accent);display:flex;align-items:center;justify-content:center;
+     box-shadow:0 3px 12px rgba(43,91,169,.28);
+     transition:transform var(--motion-fast) var(--ease-out),background var(--motion-fast)}
+.fab i{font-size:28px}
+.fab:hover{background:var(--accent-hover)}
+.fab:active{transform:scale(.94)}
+
+/* ── sheets ── */
+.scrim{position:fixed;inset:0;background:rgba(26,25,22,.34);opacity:0;pointer-events:none;
+       transition:opacity var(--motion-base) var(--ease-out);z-index:50}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;transform:translate(-50%,102%);bottom:var(--kb,0px);width:100%;
+       display:flex;flex-direction:column;gap:var(--space-6);
+       max-width:var(--shell-w);background:var(--surface-card);
+       border-radius:var(--radius-lg) var(--radius-lg) 0 0;z-index:60;
+       padding:var(--space-2) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
+       transition:transform var(--motion-slow) var(--ease-out);
+       box-shadow:0 -3px 24px rgba(26,25,22,.10)}
+/* A step asks one question, so its sheet is short and the field lands close to
+   the bottom edge — which is where the thumb rests and, on a phone, exactly
+   where the keyboard arrives. Steps get a deeper floor. */
+.sheet.instep{padding-bottom:calc(var(--space-12) + env(safe-area-inset-bottom))}
+.sheet.open{transform:translate(-50%,0)}
+/* The detail sheet can outgrow the screen at large text scales — it scrolls
+   rather than clipping. AGENTS.md: no fixed-height text containers. */
+.sheet.tall{max-height:88vh;overflow-y:auto;overscroll-behavior:contain}
+@supports (height:100dvh){ .sheet.tall{max-height:88dvh} }
+.pull{width:40px;height:4px;border-radius:var(--radius-full);background:var(--paper-300);
+      margin:var(--space-2) auto 0;flex:0 0 auto}
+.sheet h2{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
+          margin:0;line-height:var(--leading-tight)}
+
+.quick-row{display:flex;gap:var(--target-gap);flex-wrap:wrap}
+/* Icons removed 2026-08-11. On the small buttons they rendered at 19-20px
+   against the grid tiles' 38px badges, so three different icon sizes were
+   competing in one sheet. Dropping them lets every label in the sheet start on
+   the same left edge — .strip, .quick and .tile all pad by --space-4 — which is
+   a stronger ordering signal than the icons were providing.
+   Trade-off worth watching: the quick row is the low-capacity surface, and an
+   icon aids recognition under stress. The labels are short and unlike each
+   other, so text alone should hold. The alternative fix was normalising the
+   icon sizes rather than removing them — revisit if this tests badly. */
+.quick{flex:1 1 8rem;min-height:var(--target-critical);display:flex;align-items:center;
+       justify-content:flex-start;background:var(--surface-raised);
+       border:1px solid var(--border-subtle);
+       border-radius:var(--radius-md);font-size:var(--text-small);font-weight:500;
+       padding:var(--space-3) var(--space-4);text-align:left;
+       transition:background var(--motion-fast),border-color var(--motion-fast)}
+.quick:hover{background:var(--surface-sunken)}
+.quick.flash{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+
+#log-body{display:flex;flex-direction:column;gap:var(--space-6)}
+.log-head{display:flex;align-items:center;gap:var(--space-2)}
+.backbtn{width:var(--target-min);height:var(--target-min);display:flex;align-items:center;
+         justify-content:center;border-radius:var(--radius-full);color:var(--text-secondary);
+         margin-left:calc(var(--space-3) * -1);flex:0 0 auto}
+.backbtn i{font-size:22px}
+.backbtn:hover{background:var(--surface-raised)}
+
+/* Sheet rhythm — two values, and only ONE place each is set.
+   BETWEEN groups: --space-6 (24), set once as the sheet's flex `gap`. Children carry
+   no vertical margins at all, so reordering them can never open or close a gap. That
+   was a real bug three times running: spacing that lived on one child's margin-bottom
+   silently disappeared when something moved above or below it.
+   WITHIN a group of adjacent targets: --target-gap (16). Accessibility rule, not taste. */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--target-gap)}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:var(--space-3);
+      padding:var(--space-4);background:var(--surface-page);border:1px solid var(--border-subtle);
+      border-radius:var(--radius-md);min-height:96px;text-align:left;
+      transition:background var(--motion-fast),border-color var(--motion-fast)}
+.tile:hover{background:var(--surface-raised);border-color:var(--border-interactive)}
+.tile-ico{width:38px;height:38px;border-radius:var(--radius-full);display:flex;
+          align-items:center;justify-content:center;flex:0 0 auto}
+.tile-ico i{font-size:20px;color:#fff}
+.tile-name{font-size:var(--text-small);font-weight:500}
+.strip{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-min);
+       padding:var(--space-3) var(--space-4);background:var(--surface-page);
+       border:1px dashed var(--border-interactive);border-radius:var(--radius-md);width:100%;
+       text-align:left;font-size:var(--text-small)}
+/* same label treatment as .tile-name, so Photo reads as a peer of the grid */
+.strip-name{font-size:var(--text-small);font-weight:500}
+.strip .sub{color:var(--text-muted);font-size:var(--text-label);font-weight:400}
+.strip:hover{background:var(--surface-raised)}
+
+/* ══ photo, and what the app read off it ══
+   Three looks, because the app's guess must never be able to pass for the
+   person's own answer — this record is going to a doctor.
+     dashed + plus     nobody has said anything yet
+     outlined + spark  we read it off the photo
+     solid             you said it
+   Touching a guess makes it yours; there is no separate "looks right" button,
+   because tapping the same value again is already the confirmation. */
+.photo-add{display:flex;align-items:center;gap:var(--space-3);width:100%;text-align:left;
+       min-height:var(--target-critical);padding:var(--space-3) var(--space-4);
+       background:var(--surface-page);border:1px dashed var(--border-interactive);
+       border-radius:var(--radius-md);font-size:var(--text-small)}
+.photo-add:hover{background:var(--surface-raised)}
+.photo-add > i{font-size:22px;color:var(--text-muted);flex:0 0 auto}
+.photo-shot{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;
+       border-radius:var(--radius-md);background:var(--surface-sunken)}
+.read-line{display:flex;align-items:flex-start;gap:var(--space-2);
+       color:var(--text-muted);font-size:var(--text-label);line-height:var(--leading-body)}
+/* icon and copy are the only two flex children — the copy is wrapped so an
+   emphasis inside it cannot become a third box and break the sentence apart */
+.read-line > i{flex:0 0 auto;font-size:16px}
+.read-line > span{min-width:0}
+.read-line.busy i{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.note-in.guess{border-style:dashed;border-color:var(--border-interactive)}
+
+/* ═══════════════ DETAIL SHEET (new in v2) ═══════════════
+   Two jobs, deliberately kept apart:
+     CORRECT  — what actually happened. Changes the doctor export. High stakes.
+     ENRICH   — optional context. Low stakes, high frequency.
+   Everything writes to the record the moment it is tapped, so closing the sheet
+   at any point leaves a valid entry. [C-09: a partial entry is a valid entry] */
+#detail-body{display:flex;flex-direction:column;gap:var(--space-6)}
+/* A label belongs to the thing under it, so it has to SIT closer to it than
+   the next group does. Measured: nominal was 12 within / 24 between, but the
+   header's inherited line-height (1.55) hides 4px of half-leading beneath the
+   text, so it read 16 vs 24 — a 1:1.5 ratio the eye cannot resolve into a
+   hierarchy. Two fixes, both needed: --leading-tight on the header removes
+   ~2.6px of that phantom space, and the gap drops to --space-2. Now ~9 within
+   vs 24 between, roughly 1:2.5.
+   Worth remembering generally: vertical rhythm has to be measured from where
+   the INK stops, not where the box stops. Setting a gap in a token and
+   trusting it is how proximity quietly breaks. */
+.sec{display:flex;flex-direction:column;gap:var(--space-2)}
+.sec-h{font-size:var(--text-meta);letter-spacing:.08em;text-transform:uppercase;
+       color:var(--text-muted);font-weight:500;line-height:var(--leading-tight)}
+.sec-opt{text-transform:none;letter-spacing:0}
+.d-head{display:flex;align-items:flex-start;gap:var(--space-3)}
+.d-head .emark{position:static;box-shadow:none;flex:0 0 auto}
+.d-title{display:flex;flex-direction:column;gap:2px;min-width:0}
+.d-title strong{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
+                line-height:var(--leading-tight);word-break:break-word;text-align:left}
+/* The name is editable, and says so the same way the time does — dotted
+   underline plus a pencil. One grammar for "this value can be changed". */
+.d-title-btn{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-min);
+             text-align:left;border-radius:var(--radius-sm)}
+.d-title-btn strong{border-bottom:2px dotted var(--border-interactive);padding-bottom:2px}
+.d-title-btn > i{font-size:19px;color:var(--text-muted);flex:0 0 auto}
+.lbl-in{width:100%;font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
+        min-height:var(--target-critical);color:var(--text-primary);
+        background:var(--surface-page);border:1px solid var(--border-interactive);
+        border-radius:var(--radius-md);padding:0 var(--space-3)}
+.lbl-in:focus{outline:none;border-color:var(--accent);
+              box-shadow:0 0 0 var(--focus-ring-width) rgba(43,91,169,.18)}
+.d-title span{font-size:var(--text-meta);color:var(--text-muted)}
+
+/* Basis — the one control that changes what a doctor sees.
+   Collapsed to a status row when the fact is settled; expanded when it is not. */
+.basis-row{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-min);
+           width:100%;text-align:left;padding:var(--space-2) var(--space-3);
+           background:var(--surface-page);border:1px solid var(--border-subtle);
+           border-radius:var(--radius-md)}
+.basis-row:hover{background:var(--surface-raised)}
+.basis-row > i{font-size:22px;color:var(--text-muted);flex:0 0 auto}
+.basis-row .bt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto}
+.basis-row .bt b{font-size:var(--text-small);font-weight:500}
+.basis-row .bt em{font-size:var(--text-meta);color:var(--text-muted);font-style:normal}
+.basis-row .act{font-size:var(--text-meta);color:var(--accent);font-weight:500;flex:0 0 auto}
+/* Stacked, not segmented: three side-by-side labels wrap into unreadable
+   two-line stacks at 150%+, and stacking buys a bigger target per option. */
+.opts{display:flex;flex-direction:column;gap:var(--target-gap)}
+.opt{display:flex;align-items:center;gap:var(--space-3);width:100%;text-align:left;
+     min-height:var(--target-critical);padding:var(--space-2) var(--space-3);
+     background:var(--surface-page);border:1px solid var(--border-subtle);
+     border-radius:var(--radius-md);
+     transition:background var(--motion-fast),border-color var(--motion-fast)}
+.opt:hover{background:var(--surface-raised)}
+.opt.on{border-color:var(--accent);background:var(--surface-raised);box-shadow:inset 0 0 0 1px var(--accent)}
+.opt > i{font-size:22px;color:var(--text-muted);flex:0 0 auto}
+.opt.on > i{color:var(--accent)}
+.opt .ot{display:flex;flex-direction:column;gap:1px;min-width:0}
+.opt .ot b{font-size:var(--text-small);font-weight:500}
+.opt .ot em{font-size:var(--text-meta);color:var(--text-muted);font-style:normal}
+
+/* Time — nudges, not a scroll picker. A ±15 button is a single tap that
+   tolerates tremor; a wheel picker demands sustained fine control. */
+.timeval{font-family:var(--font-serif);font-size:var(--text-display);font-weight:400;
+         font-variant-numeric:tabular-nums;line-height:1}
+.timesub{font-size:var(--text-meta);color:var(--text-muted)}
+/* Duration sits with the time, not under "context". How long something lasted
+   is a temporal fact — for an activity it is arguably the point, since the
+   dose-response question is about how much movement happened, not that some
+   happened. Burying it in optional context made it invisible. */
+/* Day and anchor are secondary facts — usually already right — so they read as
+   a quiet sentence above the time ("Ended · Today") rather than as two always-
+   open chip rows. Dotted underline is the same "this can be changed" signal the
+   time and the entry name already use; one grammar, three places. */
+.minirow{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
+.minibtn{display:flex;align-items:center;gap:var(--space-1);min-height:var(--target-min);
+         font-size:var(--text-small);color:var(--text-secondary);
+         border-radius:var(--radius-sm);padding:0 var(--space-1)}
+.minibtn span{border-bottom:2px dotted var(--border-interactive);padding-bottom:1px}
+.minibtn i{font-size:15px;color:var(--text-muted)}
+/* THE RULE, fixed 2026-08-14: dotted underline + PENCIL opens its own step ·
+   dotted underline + CARET expands in place. Before this, the name opened a
+   step, the time swapped itself for fields, and the day dropped a chip row —
+   three behaviours behind one affordance, so the affordance predicted nothing.
+   Tutu: "the UI indicator is the same, so I would expect the behavior be the
+   same." */
+.minibtn.step i{font-size:17px}
+.minibtn:hover{background:var(--surface-raised)}
+.minisep{color:var(--paper-400);font-size:var(--text-small)}
+/* The time is a button — tapping it swaps in numeric fields. Signalled with a
+   dotted underline and a pencil, because a big number alone reads as output. */
+.timeval-btn{display:flex;align-items:center;gap:var(--space-3);
+             min-height:var(--target-routine);padding:0;border-radius:var(--radius-sm)}
+.timeval-btn .timeval{border-bottom:2px dotted var(--border-interactive);
+                      padding-bottom:2px}
+.timeval-btn i{font-size:20px;color:var(--text-muted)}
+/* Numeric fields, not a wheel. A wheel picker is a DRAG gesture, and Nunes et
+   al. (2016) found people with PD do better with multiple-tap than drag; a
+   numeric keypad is pure tapping. It is also the accessible baseline the date-
+   input literature keeps arriving at — a picker should always be optional. */
+.timefields{display:flex;align-items:center;gap:var(--space-2)}
+.tf{width:3.5ch;min-height:var(--target-critical);text-align:center;
+    font-family:var(--font-serif);font-size:var(--text-display);font-weight:400;
+    font-variant-numeric:tabular-nums;color:var(--text-primary);
+    background:var(--surface-page);border:1px solid var(--border-interactive);
+    border-radius:var(--radius-md);padding:0 var(--space-2)}
+.tf:focus{outline:none;border-color:var(--accent);
+          box-shadow:0 0 0 var(--focus-ring-width) rgba(43,91,169,.18)}
+.tf-sep{font-family:var(--font-serif);font-size:var(--text-display);
+        color:var(--text-muted)}
+.nudges{display:flex;gap:var(--target-gap);flex-wrap:wrap}
+.nudge{flex:1 1 4.5rem;min-height:var(--target-routine);border-radius:var(--radius-md);
+       background:var(--surface-page);border:1px solid var(--border-interactive);
+       font-size:var(--text-small);font-weight:500;font-variant-numeric:tabular-nums;
+       padding:var(--space-2)}
+.nudge:hover{background:var(--surface-raised)}
+/* Disabled rather than hidden. Hiding would reflow the row and move the
+   remaining targets under the user's thumb between taps — the one thing you
+   never do to someone with a tremor. Lower contrast is normally banned as a
+   "quiet" lever [C-16]; unavailability is the standing exception, since the
+   control must read as unavailable to anyone. */
+.nudge[disabled]{color:var(--text-muted);border-color:var(--border-subtle);
+                 background:transparent;cursor:not-allowed}
+.nudge[disabled]:hover{background:transparent}
+.nowbtn{display:flex;align-items:center;justify-content:center;gap:var(--space-2);
+        width:100%;min-height:var(--target-routine);border-radius:var(--radius-md);
+        border:1px solid var(--border-interactive);background:var(--surface-page);
+        font-size:var(--text-small);font-weight:500}
+.nowbtn i{font-size:18px;color:var(--text-muted)}
+.nowbtn:hover{background:var(--surface-raised)}
+.nowbtn[disabled]{color:var(--text-muted);border-color:var(--border-subtle);
+                  background:transparent;cursor:not-allowed}
+
+/* Context — unset fields are invitations (chips), set fields are facts (rows). */
+/* Column gap and row gap are answering different questions, so they stopped
+   sharing a value. --target-gap (16) is the accessibility rule for targets
+   SIDE BY SIDE, where the thumb travels horizontally between them. Stacked
+   chips are a different case: each is already 48px tall, far past any target
+   minimum, so the separation is in the height rather than the gap.
+   And the flat 16 was measured from the box, not the ink. A chip wraps 17px
+   text in a 48px pill, hiding ~11px of padding on each side, so a 16px row gap
+   reads as 38px between the two labels — double the 19px from the header. The
+   header then looks glued to the first chip and the second one floats away.
+   At 12 the ink gap is 34 against 19: still clearly looser than the header,
+   which is right, but the group holds together. */
+.chips{display:flex;column-gap:var(--target-gap);row-gap:var(--space-3);flex-wrap:wrap}
+.chip{display:flex;align-items:center;gap:var(--space-2);min-height:var(--target-routine);
+      /* --space-3 not --space-4: four chips at 16px side padding needed 408px in
+         a 358px row, so "3 + More" could never make one line. Trimming 4px a
+         side buys 32px and lands the row on one line at 430px while still
+         wrapping gracefully at 390. The 16px GAP between them is untouched —
+         that one is the adjacent-target accessibility rule, not taste. */
+      padding:var(--space-2) var(--space-3);border-radius:var(--radius-full);
+      background:var(--surface-page);border:1px dashed var(--border-interactive);
+      font-size:var(--text-small);color:var(--text-secondary)}
+.chip i{font-size:18px;color:var(--text-muted);flex:0 0 auto}
+.chip:hover{background:var(--surface-raised)}
+/* AFFORDANCE, 2026-08-12. Dashed used to mean both "empty" and "tap to open" —
+   two jobs, one style, so it read as just another option chip. Dashed is a real
+   convention for EMPTINESS (Figma's add-fill rows, Notion's "+ Add a property"),
+   not for expandability. Split into the three signals people already know:
+       + label     nothing here yet — tapping ADDS a value
+       label  ⌄    has a value — tapping EXPANDS the chooser in place
+       label  ›    tapping GOES somewhere (its own step)
+   The caret direction is not decoration: down means it opens here, right means
+   it leaves. We have both behaviours, so the distinction earns its keep. */
+.chip{border-style:solid;border-color:var(--border-subtle);color:var(--text-secondary)}
+.chip.set{border-color:var(--border-subtle);background:var(--surface-raised);
+          color:var(--text-primary)}
+.chip.set i{color:var(--text-muted)}
+/* An estimate has to READ as an estimate at a glance. A guessed value keeps the
+   chip and loses the filled ground, and carries ≈ instead of the field's own
+   icon. Typed rather than drawn from the icon font on purpose: ≈ already means
+   "about this" to everyone, in every language on the roadmap, and it cannot
+   silently vanish the way a missing glyph does. */
+.chip.set.guess{background:var(--surface-page);border-color:var(--border-interactive)}
+.est{font-weight:600;color:var(--accent-quiet);font-style:normal}
+.chip .est{font-size:var(--text-small);flex:0 0 auto}
+/* ≈ carries the meaning visually; a screen reader gets the word instead, since
+   "approximately equal to" is not what the symbol is doing here. */
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.chip.pick{border-style:solid}
+/* "More…" is a door, not an unset value — dashed means "nothing here yet", and
+   there is plenty here. Solid, with the same caret the rest of the app uses to
+   mean "this opens something". */
+.chip.more{border-style:solid;border-color:var(--border-subtle);color:var(--text-secondary)}
+.chip.more i{font-size:16px;color:var(--text-muted)}
+.chip.pick.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.chip.pick.on i{color:var(--on-accent)}
+/* Search + rows for open-ended lists. Rows, not chips: a chip grid makes the
+   eye scan in two dimensions, and a filtered list is read top-down.
+   FLEXIBLE height with a cap, not a fixed tall box. The case for a fixed height
+   is layout stability, but each list now owns its own step — there is nothing
+   for it to jump against, so a fixed box would only add dead space under a
+   three-item list. */
+.searchwrap{display:flex;align-items:center;gap:var(--space-2);
+            min-height:var(--target-routine);padding:0 var(--space-3);
+            background:var(--surface-page);border:1px solid var(--border-interactive);
+            border-radius:var(--radius-md)}
+.searchwrap i{font-size:19px;color:var(--text-muted);flex:0 0 auto}
+.searchin{flex:1 1 auto;min-width:0;border:none;background:none;font:inherit;
+          font-size:var(--text-small);color:var(--text-primary);outline:none;
+          min-height:var(--target-routine)}
+.rowlist{display:flex;flex-direction:column;gap:var(--space-2);
+         max-height:44vh;overflow-y:auto;overscroll-behavior:contain}
+.rowitem{display:flex;align-items:center;gap:var(--space-3);width:100%;
+         min-height:var(--target-critical);padding:0 var(--space-4);text-align:left;
+         background:var(--surface-page);border:1px solid var(--border-subtle);
+         border-radius:var(--radius-md);font-size:var(--text-small)}
+.rowitem:hover{background:var(--surface-raised)}
+.rowitem.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);
+            background:var(--surface-raised)}
+.rowitem.add{border-style:dashed;border-color:var(--border-interactive);color:var(--accent)}
+.rowitem i{font-size:18px;color:var(--text-muted);flex:0 0 auto}
+.rowitem.add i{color:var(--accent)}
+.rowempty{font-size:var(--text-small);color:var(--text-muted);padding:var(--space-4) 0}
+/* Band label inside the scrolling list. Quieter than a .sec-h — it separates
+   two parts of one list rather than announcing a new section. */
+.rowgroup{font-size:var(--text-meta);letter-spacing:.08em;text-transform:uppercase;
+          color:var(--text-muted);font-weight:500;line-height:var(--leading-tight);
+          padding:var(--space-3) 0 var(--space-1)}
+.rowgroup:first-child{padding-top:0}
+/* Duration is a number, so it is typed, not searched. */
+.numrow{display:flex;align-items:center;gap:var(--space-3)}
+.numin{width:5ch;min-height:var(--target-critical);text-align:center;
+       font-family:var(--font-serif);font-size:var(--text-display);font-weight:400;
+       font-variant-numeric:tabular-nums;color:var(--text-primary);
+       background:var(--surface-page);border:1px solid var(--border-interactive);
+       border-radius:var(--radius-md);padding:0 var(--space-2)}
+.numin:focus{outline:none;border-color:var(--accent);
+             box-shadow:0 0 0 var(--focus-ring-width) rgba(43,91,169,.18)}
+.numunit{font-size:var(--text-small);color:var(--text-muted)}
+/* The platform's own date control. This is the one place a wheel is right, and
+   the reason is that we do not build it: iOS renders its wheel, Android its
+   calendar, a desktop browser its own — each already keyboard-reachable,
+   screen-reader-labelled and localised. A wheel we drew ourselves would be a
+   drag target we own, which is the thing Nunes et al. warn against (DG5). */
+.date-in{width:100%;min-height:var(--target-critical);padding:0 var(--space-4);
+      font-family:var(--font-sans);font-size:var(--text-body);color:var(--text-primary);
+      background:var(--surface-page);border:1px solid var(--border-interactive);
+      border-radius:var(--radius-md)}
+.date-in:focus{outline:none;border-color:var(--accent);
+      box-shadow:0 0 0 var(--focus-ring-width) color-mix(in srgb,var(--focus-ring) 22%,transparent)}
+/* SHAPE FOLLOWS BEHAVIOUR — the rule the chips and nudges were only half
+   obeying, written down so it stops being an accident:
+     .chip  = SELECTOR. Sets a value, can be `.on`, pill (--radius-full).
+     .nudge = ACTION.   Does a thing, never selected, rect (--radius-md).
+   "Now" was styled apart as a "jump not an increment". True, but it is still
+   an action in a row of actions, and one differently-coloured item in a set
+   reads as more important rather than as differently-shaped. Consistency wins;
+   the distinction it was making was not worth a second style. */
+.picker{display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-3);
+        background:var(--surface-page);border:1px solid var(--border-subtle);
+        border-radius:var(--radius-md)}
+.picker .pl{font-size:var(--text-meta);color:var(--text-muted)}
+/* Always present, one row tall, grows with what you write.
+   It replaced a chip that opened it — and a chip is a SELECTOR by the rule two
+   rules up: it sets a value and can be `.on`. "Note" set nothing, it revealed
+   an editor, so it was the wrong shape for its job and read as clutter.
+   Net height is a wash: one empty row costs what the chip cost, and an
+   interaction, a piece of state and a conditional branch all disappear.
+   resize:none because the field sizes itself; a drag handle on a control that
+   auto-grows is a promise of manual work nobody needs to do. */
+.note-in{width:100%;font:inherit;font-size:var(--text-small);color:var(--text-primary);
+         background:var(--surface-page);border:1px solid var(--border-subtle);
+         border-radius:var(--radius-md);padding:var(--space-3);resize:none;
+         min-height:var(--target-min);line-height:var(--leading-body);
+         overflow:hidden}
+.note-in:focus{border-color:var(--accent);outline:none;
+               box-shadow:0 0 0 var(--focus-ring-width) rgba(43,91,169,.18)}
+
+.d-done{min-height:var(--target-critical);border-radius:var(--radius-md);
+        background:var(--accent);color:var(--on-accent);font-weight:500;
+        font-size:var(--text-small);width:100%}
+.d-done:hover{background:var(--accent-hover)}
+/* Destructive, and coloured as such. This is a UI action, not health data —
+   the red/green ban in AGENTS.md is about never scoring a person's symptoms. */
+.d-remove{display:flex;align-items:center;justify-content:center;gap:var(--space-2);
+          min-height:var(--target-min);width:100%;font-size:var(--text-small);
+          color:var(--feedback-error);font-weight:500;border-radius:var(--radius-md)}
+.d-remove i{font-size:19px}
+.d-remove:hover{background:var(--surface-raised)}
+
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="demo-bar">
+    <a class="demo-btn home" href="../index.html">← Home</a>
+    <span class="db">Hi-fi · Timeline · v2</span>
+    <button class="demo-btn" onclick="demoAddDose()">+ due dose</button>
+    <button class="demo-btn" onclick="demoEmpty()">empty</button>
+    <button class="demo-btn" onclick="toggleTuner()">tune ▾</button>
+    <button class="demo-btn" onclick="location.reload()">reset</button>
+  </div>
+
+  <!-- temporary tuning panel — delete before this becomes real -->
+  <div class="tuner" id="tuner">
+    <label>Text scale
+      <select onchange="setScale(this.value)">
+        <option value="">100% (default)</option>
+        <option value="large">112.5%</option>
+        <option value="larger">125%</option>
+        <option value="huge">150%</option>
+        <option value="max">200% · WCAG 1.4.4</option>
+      </select></label>
+    <label>Card padding
+      <select onchange="setVar('--card-pad',this.value)">
+        <option value="12px">12</option><option value="16px" selected>16</option>
+        <option value="20px">20</option></select></label>
+    <label>Rail indent
+      <select onchange="setVar('--rail-indent',this.value)">
+        <option value="44px">44</option><option value="52px" selected>52</option>
+        <option value="60px">60</option></select></label>
+    <label>Gutter
+      <select onchange="setVar('--gutter',this.value)">
+        <option value="12px">12</option><option value="16px" selected>16</option>
+        <option value="20px">20</option></select></label>
+    <label>Meta / chip size
+      <select onchange="setVar('--text-meta',this.value)">
+        <option value="12px">12 · below floor</option>
+        <option value="13px">13 · below floor</option>
+        <option value="0.875rem" selected>14 · floor</option>
+        <option value="1rem">16</option></select></label>
+    <label>Routine target
+      <select onchange="setVar('--target-routine',this.value)">
+        <option value="44px">44</option><option value="48px" selected>48</option>
+        <option value="52px">52</option><option value="56px">56</option></select></label>
+    <label>Critical target
+      <select onchange="setVar('--target-critical',this.value)">
+        <option value="48px">48</option><option value="56px" selected>56</option>
+        <option value="64px">64</option></select></label>
+    <label>Target gap
+      <select onchange="setVar('--target-gap',this.value)">
+        <option value="8px">8 · old</option><option value="16px" selected>16</option>
+        <option value="24px">24</option></select></label>
+  </div>
+
+  <div class="top">
+    <button class="icon-btn" aria-label="Menu"><i class="ph ph-list"></i></button>
+    <button class="icon-btn" aria-label="More"><i class="ph ph-dots-three"></i></button>
+  </div>
+
+  <div class="scroll" id="scroll">
+    <div id="card-area"></div>
+    <div id="timeline"></div>
+  </div>
+
+</div>
+
+<!-- Outside .shell: the dock is fixed to the viewport, so nesting it in a
+     positioned ancestor would only reintroduce the problem it solves. -->
+<div class="fab-dock">
+  <button class="fab" id="fab" onclick="openSheet('sheet-log')" aria-label="Add to today">
+    <i class="ph ph-plus"></i>
+  </button>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeSheets()"></div>
+
+<!-- ══ Quick Log sheet ══ -->
+<div class="sheet" id="sheet-log" role="dialog" aria-label="Add to today" tabindex="-1">
+  <div class="pull"></div>
+  <div id="log-body"></div>
+</div>
+
+<!-- No `capture` attribute on purpose: with it, iOS goes straight to the
+     shutter and the photo library becomes unreachable, which loses the case
+     where you photographed lunch and log it an hour later. Without it you get
+     one extra tap and both doors. Revisit if testing says the tap costs more
+     than the library path is worth. -->
+<input type="file" id="photo-in" accept="image/*" hidden
+       aria-hidden="true" tabindex="-1" onchange="onPhotoPicked(this)">
+
+<!-- ══ Entry detail sheet (v2) — contents rendered from state ══ -->
+<div class="sheet tall" id="sheet-detail" role="dialog" aria-label="Entry detail" tabindex="-1">
+  <div class="pull"></div>
+  <div id="detail-body"></div>
+</div>
+
+
+<script>
+/* ═════════ state ═════════
+   Entry shape follows docs/entry-schema.md:
+   type   = dose | symptom | activity | meal | note
+   basis  = asserted | declined | assumed
+   fields = editable context, keyed by CONTEXT below
+   meta   = derived/computed display pairs the user cannot edit here
+   note   = free text  [C-12: stored raw so phrases can be tagged later] */
+const ICON = { dose:'ph-pill', symptom:'ph-waveform', activity:'ph-footprints',
+               meal:'ph-fork-knife', note:'ph-note-pencil' };
+const TYPE_NAME = { dose:'Medication', symptom:'How I feel', activity:'Activity',
+                    meal:'Food', note:'Note' };
+const MARK = 'var(--mark)';   /* one colour for every type — the icon does the work */
+
+/* v2: days are data, not two hand-wired arrays. Past days are editable — people
+   remember things late, and a record you cannot correct is a record you stop trusting. */
+/* `ago` = days before today. It used to be the array index, which was fine
+   while there were exactly two days and wrong the moment you could pick a
+   date. Position in a list is not a fact about a day. */
+let DAYS = [
+  { ago:0, live:true, list:[
+    { time:'10:00', text:'Walk', type:'activity', basis:'asserted', anchor:'end',
+      fields:{ dur:20 }, meta:[['ph-map-pin','Around the block']] },
+    { time:'09:40', text:'Meds kicked in', type:'symptom', basis:'asserted',
+      meta:[['ph-clock','85 min after dose']] },
+    { time:'08:15', text:'Levodopa 100mg', type:'dose', basis:'asserted',
+      fields:{ meal:'With food' } }
+  ]},
+  { ago:1, live:false, list:[
+    { time:'14:10', text:'Levodopa 100mg', type:'dose', basis:'asserted',
+      meta:[['ph-clock','40 min late']] },
+    { time:'12:00', text:'Lunch', type:'meal', basis:'asserted', fields:{ protein:'High' } },
+    /* seeded unresolved so the confirm/correct path is demoable on load */
+    { time:'08:20', text:'Levodopa 100mg', type:'dose', basis:'assumed' }
+  ]}
+];
+
+/* Optional context, per type. Adding a field here adds it to the sheet — no other edits.
+   Deliberately one field each: this is enrichment, not a form to complete. */
+const CONTEXT = {
+  /* `bare` = the value already contains its own label, so prefixing it would
+     read as "Food: With food". Everything else gets "Label: value", because a
+     value alone loses the question it answered — "High" does not say protein,
+     and "Tremor" under "Meds kicked in" reads as if the entry WERE tremor. */
+  dose:     [ { key:'meal',    label:'Food',     icon:'ph-fork-knife', bare:true,
+                choices:['Before food','With food','After food'] } ],
+  /* Low/Some/High stays the fast path — most people estimate, and the evidence
+     is about roughly how much protein, not exact grams. `grams` is a second,
+     more precise way of saying the same thing for anyone who counts (renal
+     diets, protein-redistribution diets, people already weighing food).
+     Mutually exclusive on purpose: they are two precisions of ONE fact, and
+     storing both invites them to disagree. Deliberately NOT auto-converting
+     grams into a level — there is no standard per-meal threshold for low vs
+     high, so any mapping we invented would be a clinical claim we cannot back
+     [reference_doseegg_levodopa_food]. */
+  meal:     [ { key:'protein', label:'Protein',  icon:'ph-egg-crack',
+                choices:['Low','Some','High'], grams:'proteinG',
+                gramShortcuts:[5,10,20,30] } ],           /* D-12: 3 levels */
+  /* activity duration is handled in the time section, not here — length is a
+     temporal fact, not context. Kept in CONTEXT so the picker can reuse it. */
+  /* kind drives the control, not the option count — numeric data gets typed,
+     open-ended categorical data gets searched, short closed lists stay inline. */
+  activity: [ { key:'dur', label:'How long', icon:'ph-timer', temporal:true,
+                kind:'duration', choices:[10,20,30,45,60,90] } ],
+  /* MULTI, because C-02 is explicit that one limb can be ON while another is
+     OFF — a single-select "Where" cannot express that, which made it a control
+     that quietly contradicted a constraint. Limb-level for the same reason. */
+  symptom:  [ { key:'body',    label:'Where',    icon:'ph-person', multi:true,
+                choices:['Left arm','Right arm','Left leg','Right leg',
+                         'Head or neck','Whole body'] } ],
+  note:     []
+};
+
+/* What a new entry is called, per type. The tiles create an entry with the
+   generic label and open the sheet on it, so the label is the first thing you
+   can change — same "uncertainty drives disclosure" rule as an unconfirmed
+   dose: lead with whatever the app does not yet know.
+   Vocabulary follows glossary.html — patient words (kicked in, wearing off),
+   not clinical synonyms. */
+const NEW_LABEL = { dose:'Medication', activity:'Activity', meal:'Food',
+                    symptom:'How I feel', note:'Photo' };
+const SUGGEST = {
+  dose:     ['Levodopa 100mg','Levodopa 150mg','Entacapone','Amantadine'],
+  /* PLACEHOLDER LIST, 2026-08-12. "Exercise" was dropped: it is a category
+     wearing an entry's clothes, so logging it records roughly nothing — the
+     same hollow-stop problem as a tile that logs "Activity".
+     Leans on movement types that recur in PD communities (non-contact boxing,
+     tai chi, dance) without implying anyone should be doing them — these are
+     vocabulary, not a prescription [C-08]. "Rest" earns its place because not
+     doing something is data too [project_doseegg_input_model].
+     The real list comes from the onboarding activity library in TASKS.md;
+     anything typed here becomes a permanent option for that user anyway. */
+  activity: ['Walk','Boxing','Tai chi','Dance','Cycling','Swimming','Stretching',
+             'Yoga','Physical therapy','Housework','Gardening','Errands','Rest'],
+  meal:     ['Breakfast','Lunch','Dinner','Snack'],
+  /* "Meds kicked in" / "Meds wearing off" — parallel on purpose. Without the
+     prefix the pair reads inconsistently in a list, and bare "Wearing off"
+     collides with ordinary tiredness, which is a different entry entirely.
+     Both remain the patient terms glossary.html asks for; the prefix only
+     says whose wearing off it is. */
+  symptom:  ['Tremor','Stiffness','Froze in place','Low energy',
+             'Meds kicked in','Meds wearing off'],
+  note:     []
+};
+
+/* The follow-up depends on WHICH symptom, not just that it is a symptom.
+   "Meds kicked in" is only meaningful because something changed in the body —
+   asking what is the difference between a timestamp and an observation.
+   This also lets C-01 hold structurally rather than by discipline: tremor (OFF)
+   and extra movement (peak ON) are opposite states, and because the option sets
+   differ per event, no single control ever merges them into "movement issues".
+
+   VOCABULARY IS A FIRST PASS AND NEEDS VALIDATING with the domain lead and
+   glossary.html.
+   These are patient words, not clinical ones, and "extra movement" stands in
+   for dyskinesia deliberately [C-11 — non-stigmatising language for visible
+   symptoms]. Wrong words here would be worse than no field, because they teach
+   people how to describe their own bodies. */
+const SYMPTOM_FIELDS = {
+  'Meds kicked in': { key:'eased',    label:'What eased',
+    choices:['Tremor','Stiffness','Slowness','Balance','Mood','Pain'] },
+  'Meds wearing off': { key:'returned', label:'What came back',
+    choices:['Tremor','Stiffness','Slowness','Fatigue','Anxiety','Pain'] },
+  'Froze in place': { key:'justbefore', label:'Just before it',
+    choices:['Turning','A doorway','Starting to walk','A crowd','In a hurry','Tired'] },
+  'Low energy':     { key:'lowfeel',  label:'How it feels',
+    choices:['Heavy limbs','Sleepy','Foggy','Flat','Aching'] }
+};
+const SYMPTOM_DEFAULT = { key:'notice', label:'What you notice',
+  choices:['Tremor','Stiffness','Slowness','Extra movement','Balance',
+           'Fatigue','Foggy','Pain'] };
+
+/* CONTEXT is keyed by type; this adds the per-event layer on top. */
+function fieldsFor(e){
+  const base = CONTEXT[e.type] || [];
+  if (e.type !== 'symptom') return base;
+  const extra = SYMPTOM_FIELDS[e.text] || SYMPTOM_DEFAULT;
+  return [{ ...extra, icon:'ph-waveform', multi:true }].concat(base);
+}
+
+/* Basis, written for the person whose record it is. The sub-line names the
+   consequence in the export, because that is the only reason the distinction exists. */
+const BASIS = {
+  asserted:{ opt:'I took it',        sub:'On the record as taken',
+             status:'You confirmed this',      icon:'ph-check-circle' },
+  declined:{ opt:"I didn't take it", sub:'On the record as skipped',
+             status:'You said you didn\'t take this', icon:'ph-prohibit' },
+  assumed: { opt:"I don't remember", sub:'Stays unconfirmed in your export',
+             status:'Not confirmed',           icon:'ph-question' }
+};
+const BASIS_ORDER = ['asserted','declined','assumed'];
+
+let currentDose = { name:'Levodopa 100mg', sched:'10:30' };  // one card max, never stacks
+let active = null;          // {e, day} — the entry open in the detail sheet
+let basisOpen = false;      // is the basis chooser expanded
+let openField = null;       // which context field is showing its choices
+let editingLabel = false;   // is the entry name swapped for a text field
+/* Option 2, routed by list length. A secondary choice with 4+ options takes
+   over the sheet as its own step with a back button (the Oura pattern); 2-3
+   options stay inline as chips. Two behaviours, but each is the cheaper one
+   for its case: a whole step to choose between Low/Some/High is theatre, and
+   nine activity types inline is the tall sheet with two competing Done buttons
+   Tutu hit. Threshold lives in one place so it can be tuned. */
+let pickerStep = null;      // null | {kind:'label'} | {kind:'field', key}
+let openMini = null;        // null | 'day' | 'anchor' — which qualifier is open
+const STEP_THRESHOLD = 4;
+const usesStep = n => n >= STEP_THRESHOLD;
+let freshEntry = null;      // the entry to mark as new in the next render
+let lastFocus = null;
+const REDUCED_MOTION = matchMedia('(prefers-reduced-motion: reduce)');
+
+const el = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nowTime = () => { const d=new Date();
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+const sortDay = d => d.list.sort((a,b) => startMin(b) - startMin(a));
+
+/* ═════════ rendering — timeline ═════════ */
+function markHTML(e){
+  if (e.basis === 'assumed')
+    return `<span class="emark assumed"><i class="ph ${ICON[e.type]}"></i></span>`;
+  if (e.basis === 'declined')
+    return `<span class="emark declined" style="color:${MARK}"><i class="ph ${ICON[e.type]}"></i></span>`;
+  return `<span class="emark" style="background:${MARK}"><i class="ph-fill ${ICON[e.type]}"></i></span>`;
+}
+/* editable context first, then anything derived */
+function metaPairs(e){
+  const out = [];
+  fieldsFor(e).forEach(f => {
+    if (f.grams && e.fields && e.fields[f.grams] != null){
+      out.push([f.icon, `${f.label}: ${e.fields[f.grams]} g`]); return;
+    }
+    if (!(e.fields && e.fields[f.key])) return;
+    /* a known interval reads better as a span than as a bare length */
+    if (f.temporal) out.push([f.icon,
+      `${fromMin(startMin(e))}–${fromMin(endMin(e))} · ${fmtDur(e.fields[f.key])}`]);
+    else {
+      const val = e.fields[f.key];
+      const txt = Array.isArray(val) ? val.join(', ') : val;
+      out.push([f.icon, f.bare ? txt : `${f.label}: ${txt}`]);
+    }
+  });
+  if (e.photo && e.type !== 'note') out.push(['ph-camera', 'Photo']);
+  (e.meta || []).forEach(m => out.push(m));
+  return out;
+}
+const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+const fromMin = m => { m = ((m % 1440) + 1440) % 1440;
+  return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); };
+/* Duration is stored as a plain number of minutes. Formatting is display only,
+   so nothing has to parse "1.5 hours" back into arithmetic ever again. */
+const durMin = v => (typeof v === 'number' ? v : 0);
+function fmtDur(m){
+  if (!m) return '';
+  if (m < 60) return m + ' min';
+  const h = Math.floor(m/60), r = m % 60;
+  return r ? `${h}h ${r}m` : `${h}h`;
+}
+/* An activity is an INTERVAL, not a point. `time` is whichever end the user
+   anchored it to; the other end is derived from the duration. Everything that
+   orders or reads the record uses the START, so the rail stays chronologically
+   honest however the entry was typed in. If the duration is unknown the two
+   collapse and the anchor stops mattering — which is correct, not a fallback. */
+function startMin(e){
+  const t = toMin(e.time), d = durMin(e.fields && e.fields.dur);
+  return (e.anchor === 'end' && d) ? t - d : t;
+}
+function endMin(e){
+  const t = toMin(e.time), d = durMin(e.fields && e.fields.dur);
+  return (e.anchor === 'end' || !d) ? t : t + d;
+}
+const hasInterval = type => (CONTEXT[type] || []).some(f => f.temporal);
+/* the user's own most-used values for a field, same shape as rankLabels */
+function rankField(type, key){
+  const seen = new Map();
+  DAYS.forEach(d => d.list.forEach(e => {
+    const v = e.fields && e.fields[key];
+    if (e.type !== type || e.removed || !v) return;
+    seen.set(v, (seen.get(v) || 0) + 1);
+  }));
+  return [...seen.entries()].sort((a,b) => b[1]-a[1]).map(x => x[0]);
+}
+/* Show recorded_at only when it is far enough from occurred_at to change how
+   the entry should be read. Under 20 minutes is the same moment in practice. */
+function lagLabel(e){
+  if (!e.recorded || e.recorded === e.time) return null;
+  return Math.abs(toMin(e.recorded) - toMin(e.time)) >= 20 ? e.recorded : null;
+}
+function gapLabel(a, b){                      /* a is later, b is earlier */
+  const d = toMin(a) - toMin(b);
+  if (d < 75) return null;                    /* under ~an hour isn't worth saying */
+  const h = Math.round(d/60);
+  return h >= 24 ? null : h + 'h';
+}
+/* A removed entry leaves a marker where it stood, naming what went. Undo is
+   right there and never expires — the alternative was a floating bar at the
+   other end of the screen on a six-second fuse. */
+function tombHTML(e, di, i){
+  return `<div class="tomb">
+    <span class="emark"><i class="ph ph-minus"></i></span>
+    <span class="etime">${e.time}</span>
+    <span class="tomb-card">
+      <span class="tomb-text">Removed: <b>${esc(e.text)}</b></span>
+      <button class="tomb-undo" onclick="undoRemove(${di},${i})">
+        <i class="ph ph-arrow-counter-clockwise"></i>Undo</button>
+    </span>
+  </div>`;
+}
+function entryHTML(e, di, i){
+  if (e.removed) return tombHTML(e, di, i);
+  /* basis is surfaced only where it changes what the reader should believe:
+     asserted is the default and carries no badge. */
+  const note = e.basis === 'assumed'  ? '<span class="enote">Not confirmed</span>'
+             : e.basis === 'declined' ? '<span class="enote">Reported not taken</span>' : '';
+  const meta = metaPairs(e).map(m =>
+      `<span><i class="ph ${m[0]}"></i>${esc(m[1])}</span>`).join('');
+  const free = e.note ? `<span class="enote">${esc(e.note)}</span>` : '';
+  const cls = 'entry' + (e === freshEntry ? ' fresh' : '');
+  return `<button class="${cls}" onclick="tapEntry(${di},${i})">
+    ${markHTML(e)}
+    <span class="etime">${fromMin(startMin(e))}</span>
+    <span class="ecard">
+      <span class="etext">${esc(e.text)}</span>
+      ${meta ? `<span class="emeta">${meta}</span>` : ''}
+      ${note}${free}
+      <span class="chev"><i class="ph ph-caret-right"></i></span>
+    </span>
+  </button>`;
+}
+/* returns the rail's INNER html — the caller wraps it, so nothing is string-surgeried */
+function railInner(day, di){
+  let h = '';
+  day.list.forEach((e,i) => {
+    if (i > 0){                               /* gaps read downward: newest first */
+      const g = gapLabel(fromMin(startMin(day.list[i-1])), fromMin(startMin(e)));
+      if (g) h += `<div class="gap"><span>${g}</span></div>`;
+    }
+    h += entryHTML(e, di, i);
+  });
+  return h;
+}
+function renderTimeline(){
+  const tl = el('timeline');
+  const anything = DAYS.some(d => d.list.length);
+  if (!anything && !currentDose){
+    tl.innerHTML = `<div class="empty">
+      <div class="mark"><i class="ph ph-egg"></i></div>
+      <h2>Your day, as it happens</h2>
+      <p>Doses, movement, meals, how you feel. Whatever you want to remember lands
+      here, in the order it happened.</p></div>`;
+    return;
+  }
+  let h = '';
+  DAYS.forEach((day, di) => {
+    if (!day.live && !day.list.length) return;          /* hide empty past days */
+    h += `<div class="day-label">${esc(dayLabelText(di))}</div>`;
+    if (!day.list.length){
+      h += '<div class="empty-day">Nothing logged yet today. The + button is ready when you are.</div>';
+      return;
+    }
+    h += '<div class="rail">'
+       + (day.live ? `<div class="now"><span>Now · ${nowTime()}</span></div>` : '')
+       + railInner(day, di)
+       + '</div>';
+  });
+  tl.innerHTML = h;
+}
+function renderCard(){
+  const a = el('card-area');
+  if (!currentDose){ a.innerHTML=''; return; }
+  /* COPY CHANGE v2: v1's middle button said "Edit", which didn't tell you whether
+     pressing it counted as a yes. It now sits below as its own path and says so. */
+  a.innerHTML = `<div class="confirm">
+    <div class="confirm-q">Did you take ${esc(currentDose.name.split(' ')[0])}?</div>
+    <div class="confirm-meta">Scheduled ${currentDose.sched} · now ${nowTime()}</div>
+    <div class="c-actions">
+      <button class="c-btn primary" onclick="cardYes()">Yes</button>
+      <button class="c-btn" onclick="cardNo()">No</button>
+    </div>
+    <button class="c-more" onclick="cardAdjust()">
+      Yes, but not as scheduled<i class="ph ph-caret-right"></i></button>
+    </div>`;
+}
+
+/* ═════════ rendering — detail sheet ═════════ */
+function renderDetail(){
+  if (!active) return;
+  el('sheet-detail').classList.toggle('instep', !!pickerStep);
+  if (pickerStep){ renderPickerStep(); return; }
+  const e = active.e;
+  const fields = fieldsFor(e);
+  let h = '';
+
+  /* — identity. The name is a value like any other, so it is editable here;
+       without this the log-sheet tiles could only ever produce placeholders. — */
+  const sugg = labelChoices(e.type);
+  if (editingLabel){
+    h += `<div class="sec">
+      <div class="sec-h">What was it</div>
+      <input class="lbl-in" id="lbl-in" value="${esc(e.text)}"
+             aria-label="Name of this entry" oninput="setLabel(this.value)">
+      ${sugg.length ? `<div class="chips">` + sugg.map(t =>
+          `<button class="chip pick${t===e.text?' on':''}" onclick="pickLabel(${JSON.stringify(t).replace(/"/g,'&quot;')})">${esc(t)}</button>`
+        ).join('') + `</div>` : ''}
+      <button class="d-done" onclick="endLabelEdit()">Done</button>
+    </div>`;
+  } else {
+    h += `<div class="d-head">
+      ${markHTML(e)}
+      <span class="d-title">
+        <button class="d-title-btn" onclick="startLabelEdit()" aria-label="Edit the name">
+          <strong>${esc(e.text)}</strong><i class="ph ph-pencil-simple"></i>
+        </button>
+        <span>${TYPE_NAME[e.type]} · ${esc(dayName(active.day))}</span>
+      </span></div>`;
+  }
+
+  /* — CORRECT: basis. Doses only. You cannot "assume" someone went for a walk,
+       and pretending otherwise would put a control on screen that never earns
+       its place. (`inferred` from sensors is post-MVP — see entry-schema.md.) — */
+  /* ...AND ONLY WHEN IT IS ACTUALLY IN QUESTION. An entry you just made by hand
+     is asserted by definition, so "You confirmed this / On the record as taken"
+     tells you something you cannot not know — it reads as the app doubting a
+     record you are in the middle of creating.
+     This is what "uncertainty drives disclosure" always meant; I had it
+     surfacing on certainty too. Now: unanswered (assumed) or reported-skipped
+     (declined) show it; asserted shows nothing. To un-assert something you made
+     yourself, remove it — that is the honest gesture, not a status flip. */
+  if (e.type === 'dose' && e.basis !== 'asserted'){
+    const b = BASIS[e.basis];
+    h += '<div class="sec"><div class="sec-h">The record</div>';
+    if (!basisOpen){
+      h += `<button class="basis-row" onclick="toggleBasis()">
+        <i class="ph ${b.icon}"></i>
+        <span class="bt"><b>${b.status}</b><em>${b.sub}</em></span>
+        <span class="act">Change</span></button>`;
+    } else {
+      h += '<div class="opts">' + BASIS_ORDER.map(k => {
+        const o = BASIS[k];
+        return `<button class="opt${k===e.basis?' on':''}" onclick="setBasis('${k}')">
+          <i class="ph ${k===e.basis?'ph-radio-button':'ph-circle'}"></i>
+          <span class="ot"><b>${o.opt}</b><em>${o.sub}</em></span></button>`;
+      }).join('') + '</div>';
+    }
+    h += '</div>';
+  }
+
+  h += photoSectionHTML(e);
+  h += timeSectionHTML(e);
+  h += durationSectionHTML(e);
+
+  /* — ENRICH. Unset fields are dashed invitations; set fields are solid facts.
+       Always rendered, because Note applies to every type even where CONTEXT is empty.
+       COPY, 2026-08-11: this said "Context", which is product-design vocabulary —
+       nobody says "let me add context to this". "Details" is what it is. — */
+  h += '<div class="sec"><div class="sec-h">Details <span class="sec-opt">· optional</span></div>';
+  h += '<div class="chips">';
+  fields.filter(f => !f.temporal).forEach(f => {
+    const g = f.grams && e.fields ? e.fields[f.grams] : null;
+    const raw = e.fields && e.fields[f.key];
+    /* "Tremor +1" rather than "2 what eased" — it names the first thing, which
+       is the one most likely to be the point, and keeps the chip to one line.
+       The picker underneath shows exactly which ones. */
+    const shown = (g != null) ? (g + ' g')
+                : Array.isArray(raw) ? (raw.length === 1 ? raw[0] : `${raw[0]} +${raw.length - 1}`)
+                : raw;
+    const v = shown == null ? shown : (f.bare ? shown : `${f.label}: ${shown}`);
+    /* a value the app guessed swaps its own icon for the spark and drops the
+       filled background — same chip, visibly not yet yours */
+    const guessed = !!(e.guess && (e.guess[f.key] || (f.grams && e.guess[f.grams])));
+    h += v
+      ? `<button class="chip set${guessed ? ' guess' : ''}" onclick="toggleField('${f.key}')">
+           ${guessed ? '<span class="est" aria-hidden="true">&#8776;</span><span class="vh">Estimated from the photo: </span>' : `<i class="ph ${f.icon}"></i>`}${esc(v)}<i class="ph ph-caret-down"></i></button>`
+      : `<button class="chip" onclick="toggleField('${f.key}')">
+           <i class="ph ph-plus"></i>${f.label}</button>`;
+  });
+  h += '</div>';
+
+  /* the open field's choices, inline under the chip row */
+  const f = fields.find(x => x.key === openField);
+  if (f){
+    const v = e.fields && e.fields[f.key];
+    const chosen = Array.isArray(v) ? v : (v ? [v] : []);
+    h += `<div class="picker"><span class="pl">${f.label}${f.multi ? ' · pick any' : ''}</span><div class="chips">`
+      + f.choices.map(c =>
+          `<button class="chip pick${chosen.includes(c)?' on':''}" onclick="${f.multi
+            ? `toggleMulti('${f.key}',${q(c)})` : `setField('${f.key}',${q(c)})`}">${esc(c)}</button>`
+        ).join('')
+      + (f.grams ? `<button class="chip more" onclick="openPicker('field','${f.key}')">Grams
+          <i class="ph ph-caret-right"></i></button>` : '')
+      + '</div></div>';
+  }
+  /* The note lives INSIDE Details rather than under a second header. Two
+     headers for one optional group is one more than the content earns — and
+     after tapping "Note" the user has just told us what it is, so naming it
+     again is the interface repeating itself. The placeholder and the aria-label
+     carry the meaning.
+     COPY, 2026-08-11: the placeholder used to read "Anything worth remembering",
+     which sets a bar. It asks the user to judge whether a thought qualifies
+     before writing it, and casts the app as the judge of worth — the same move
+     as grading how much someone tracks [C-08, docs/patient-voice-quotes.md].
+     Someone writing "everything is awful today" should not clear a relevance
+     test first. "Anything" is the whole point. */
+  h += `<textarea class="note-in${e.guess && e.guess.note ? ' guess' : ''}" id="note-in" rows="1" aria-label="Notes"
+          placeholder="Write anything here"
+          oninput="setNote(this.value); autoGrow(this)">${esc(e.note || '')}</textarea>`;
+  h += '</div>';
+
+  /* — footer. Done sits lowest: it is the most-used control and the bottom of a
+       bottom sheet is the most reachable place on the screen. — */
+  h += `<div class="sec">
+      <button class="d-done" onclick="closeSheets()">Done</button>
+      <button class="d-remove" onclick="removeActive()">
+        <i class="ph ph-trash"></i>Remove this entry</button>
+    </div>`;
+
+  el('detail-body').innerHTML = h;
+  const nn = el('note-in'); if (nn) autoGrow(nn);   /* open an existing note at its real size */
+}
+
+/* ═════════ the top bar ══════════════════════════════════════════════════
+   DECIDED 2026-08-12: no title. The old "Today" duplicated the rail's own
+   TODAY label a few rows below, so the largest text on the screen was a word
+   already present in smaller type. The rail label now carries the date, which
+   puts it beside the section you are actually reading — scroll to yesterday
+   and it reads "YESTERDAY · TUE 11 AUG" rather than staying pinned to a header
+   you have scrolled past.
+   The four rejected variants (title / date / next dose / nothing at all) were
+   built as a switchable set and live in git history if the question reopens.
+   "Next dose" is the one worth revisiting: it was the only variant carrying an
+   actionable fact, and it was dropped for placement rather than for content.
+   This slot is where DoseEgg branding goes later. */
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS_LONG = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+/* Day 0 is today, 1 is yesterday, and so on down the rail. */
+function dateFor(ago){
+  const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - ago); return d;
+}
+const shortDate = d => `${DAYS_LONG[d.getDay()].slice(0,3)} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
+const isoDate = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+/* Today and Yesterday earn a word; every other day is just its date. Naming a
+   Tuesday "3 days ago" makes the reader do arithmetic to place it. */
+function dayName(i){
+  const d = DAYS[i];
+  if (!d) return '';
+  return d.ago === 0 ? 'Today' : d.ago === 1 ? 'Yesterday' : shortDate(dateFor(d.ago));
+}
+function dayLabelText(i){
+  const d = DAYS[i];
+  const date = shortDate(dateFor(d.ago));
+  return d.ago <= 1 ? `${dayName(i)} · ${date}` : date;
+}
+
+/* ═════════ log sheet — two steps, both of them meaningful ═══════════════
+   REVISED 2026-08-11 after Tutu pushed back, and the push-back was right.
+
+   The old tiles logged "Activity" at the current time and opened the detail
+   sheet to fix it. That satisfied "a complete stop in 1-2 taps" only on paper:
+   an entry named after its own category records nothing, so the stop was
+   hollow, and making it mean something cost MORE taps than saying it plainly
+   would have. Simplifying entry was the whole point.
+
+   The confirmation card works because the app has a genuine PREDICTION to
+   confirm — a scheduled dose is a real proposal. A category is not a proposal.
+   So the split is:
+
+     app can propose something specific  → propose it, user confirms  (1 tap)
+     app cannot                          → ask, with choices          (2 taps)
+
+   Asking is not a blank form. The rule in AGENTS.md bans empty fields and a
+   Save button; a short list of named options has neither. Picking IS the log —
+   no sheet opens afterwards, nothing needs revising, and depth stays available
+   by tapping the entry later.
+
+   Short version, and the wording that should go in AGENTS.md:
+   DEPTH IS OPTIONAL, IDENTITY IS NOT. A placeholder label must never reach the
+   record. */
+let logStep = null;          // null = categories · otherwise the chosen type
+
+const TILES = [
+  ['dose','ph-pill','Medication'], ['activity','ph-footprints','Activity'],
+  ['meal','ph-fork-knife','Food & protein'], ['symptom','ph-waveform','How I feel']
+];
+const q = t => JSON.stringify(t).replace(/"/g,'&quot;');
+
+/* ── what this user actually logs ────────────────────────────────────────
+   Ranks past entries of a type by how often they appear, weighting anything
+   logged near this clock time x3 — "Breakfast" and "Dinner" are the same
+   category and never the same answer, and the thing that separates them is
+   the hour. Reads only this user's own record; no averages, no comparison to
+   other patients [C-10].
+
+   This is not a model and does not trip C-14 (all MVP AI is user-initiated,
+   nothing ambient): it is a count over local data, run on tap. It is however
+   the natural first step toward the on-device work in ai-lab.html — the same
+   predict-then-confirm shape, just cheaper.
+
+   Deliberately returns NOTHING for a user with no history. An invented
+   proposal is worse than an honest question, and a cold-start guess dressed
+   as a prediction is how these features lose trust on day one. */
+function rankLabels(type){
+  const now = toMin(nowTime()), seen = new Map();
+  DAYS.forEach(d => d.list.forEach(e => {
+    if (e.type !== type || e.removed) return;
+    const r = seen.get(e.text) || { n:0, near:0 };
+    r.n++;
+    const diff = Math.abs(toMin(e.time) - now);
+    if (Math.min(diff, 1440 - diff) <= 120) r.near++;
+    seen.set(e.text, r);
+  }));
+  return [...seen.entries()]
+    .map(([text, r]) => ({ text, score: r.n + r.near * 3 }))
+    .sort((a, b) => b.score - a.score)
+    .map(x => x.text);
+}
+/* history first, then the generic list for anything they have not tried yet */
+function labelChoices(type){
+  const mine = rankLabels(type);
+  return mine.concat((SUGGEST[type] || []).filter(t => !mine.includes(t)));
+}
+
+function renderLogSheet(){
+  let h = '';
+  if (!logStep){
+    h += '<h2>Add to today</h2>';
+    /* Photo names itself, so it stays one tap to the shutter. Two doors to a
+       camera (here and inside Food) is a deliberate bet, not an oversight:
+       they lead to different records. Usage decides whether both survive. */
+    h += `<button class="strip" onclick="pickPhoto('note')">
+      <span><span class="strip-name">Photo</span> <span class="sub">· take one or pick from your album</span></span>
+    </button>`;
+    h += '<div class="grid">' + TILES.map(([t,ico,name]) =>
+      `<button class="tile" onclick="openCategory('${t}')">
+        <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ${ico}"></i></span>
+        <span class="tile-name">${name}</span></button>`).join('') + '</div>';
+  } else {
+    h += `<div class="log-head">
+        <button class="backbtn" onclick="openCategory(null)" aria-label="Back">
+          <i class="ph ph-caret-left"></i></button>
+        <h2>${TYPE_NAME[logStep]}</h2>
+      </div>`;
+    /* The camera leads the Food step — a photo is the fastest complete meal
+       entry there is. It only appears here on a cold start, because once you
+       have any food history the Food tile skips straight to the detail sheet,
+       where the same camera sits at the top. Two ways in, one function. */
+    if (logStep === 'meal'){
+      h += `<button class="photo-add" onclick="pickPhoto('meal')">
+        <i class="ph ph-camera"></i>
+        <span class="strip-name">Log from a photo</span></button>`;
+    }
+    h += searchRowsHTML(logStep, null,
+                        t => `logNamed('${logStep}',${q(t)})`,
+                        `logNamed('${logStep}', searchQ.trim())`, 'search-log');
+  }
+  /* The crisis row is reachable from both steps — it is never a detour. */
+  h += `<div class="quick-row">
+      <button class="quick" onclick="quickLog(this,'Froze in place','symptom')">Froze in place</button>
+      <button class="quick" onclick="quickLog(this,'Low energy','symptom')">Low energy</button>
+    </div>`;
+  el('log-body').innerHTML = h;
+}
+/* The app proposes when it can and asks when it cannot — one rule, two paths.
+   With history: prefill the detail sheet with the likeliest entry, already a
+   complete valid record, and let the user confirm by walking away or change
+   anything in place. Tapping the tile then Done is two taps, the same as the
+   chooser, except the user also had every detail in front of them.
+   Without history: the chooser, because there is nothing honest to propose. */
+function openCategory(t){
+  searchQ = '';
+  const guess = rankLabels(t)[0];
+  if (!guess){ logStep = t; renderLogSheet(); return; }
+  closeSheets();
+  const e = { time:nowTime(), recorded:nowTime(), text:guess, type:t, basis:'asserted' };
+  if (hasInterval(t)) e.anchor = 'end';   /* you log a workout after it ends */
+  addEntry(e, 0);
+  openDetail(e, 0);
+}
+
+/* Picking IS the log. Nothing opens afterwards. */
+function logNamed(type, text){
+  closeSheets();
+  const e = { time:nowTime(), recorded:nowTime(), text, type, basis:'asserted' };
+  if (hasInterval(type)) e.anchor = 'end';
+  addEntry(e, 0);
+}
+function logOther(type){
+  closeSheets();
+  const e = { time:nowTime(), recorded:nowTime(), text:NEW_LABEL[type],
+              type, basis:'asserted' };
+  if (hasInterval(type)) e.anchor = 'end';
+  addEntry(e, 0);
+  openDetail(e, 0);
+  startLabelEdit();
+}
+
+/* ═════════ photo ════════════════════════════════════════════════════════
+   A photo is IDENTITY, not depth. It says a meal happened and roughly when —
+   the part that must never be optional — and it says it faster than any list
+   of chips can. What is on the plate is depth, and depth is what the app is
+   allowed to guess at.
+
+   So the read fills the note and the protein level, and marks both as GUESSES.
+   A guess renders differently from an answer until you touch it, and it stays
+   a guess if you never do. That is the honest state: "the app estimated this
+   and the patient never disagreed" is not the same claim as "the patient said
+   this", and the export is the reason the difference matters.
+
+   Level, not grams, deliberately. A photo can support "looks like a lot of
+   protein"; it cannot support "31 g". Grams stay the thing you type when you
+   are actually counting [CONTEXT.meal].
+
+   The read is simulated here. A real build sends the frame to a vision model —
+   on-device first, since this is a photograph inside a health record. Every
+   fifth photo comes back unreadable ON PURPOSE: a demo where the AI is always
+   right is a demo of a product that does not exist, and the failure path is
+   the one that needs designing. */
+const READS = [
+  { items:'Salmon, rice, green salad',      protein:'High' },
+  { items:'Porridge with berries',          protein:'Low'  },
+  { items:'Chicken sandwich, crisps',       protein:'Some' },
+  { items:'Two eggs on toast',              protein:'Some' },
+  { items:null,                             protein:null   },
+];
+let readN = 0;
+
+/* The SAME shutter, a different question. Food has one obvious question — what
+   is on the plate — so it is worth asking without being asked. An arbitrary
+   photo does not: it might be a pill packet, a footpath, a rash, or nothing.
+   Reading it unprompted would spend a model call and a privacy decision on a
+   question nobody posed, so the generic photo waits for the button.
+   What it can offer, once asked, is where the photo seems to belong — as a
+   suggestion with a visible No, never as a silent re-filing. */
+const NOTE_READS = [
+  { caption:'A plate of pasta with tomato sauce', looks:'meal' },
+  { caption:'A blister pack of tablets',          looks:'dose' },
+  { caption:'A footpath through a park',          looks:'activity' },
+  { caption:'A handwritten note on lined paper',  looks:null },
+  { caption:null,                                 looks:null },
+];
+let noteReadN = 0;
+let photoFor = null;        /* 'meal' | 'note' | the entry the shutter was opened from */
+
+/* Clock-derived, because at 12:40 "Lunch" is a better first guess than "Food"
+   and the name sits under a pencil either way — it never claims to be settled. */
+function mealNameNow(){
+  const h = new Date().getHours();
+  return h < 11 ? 'Breakfast' : h < 15 ? 'Lunch'
+       : h < 17 ? 'Snack'     : h < 21 ? 'Dinner' : 'Snack';
+}
+
+function pickPhoto(target){
+  photoFor = target;
+  const inp = el('photo-in');
+  inp.value = '';           /* so re-picking the same file still fires change */
+  inp.click();
+}
+
+function onPhotoPicked(input){
+  const f = input.files && input.files[0];
+  if (!f) return;                    /* cancelled — nothing happened, so say nothing */
+  let e = photoFor;
+  if (photoFor === 'meal' || photoFor === 'note'){
+    closeSheets();
+    e = photoFor === 'meal'
+      ? { time:nowTime(), recorded:nowTime(), text:mealNameNow(), type:'meal', basis:'asserted' }
+      : { time:nowTime(), recorded:nowTime(), text:'Photo',       type:'note', basis:'asserted' };
+    addEntry(e, 0);
+    openDetail(e, 0);
+  }
+  e.photo = URL.createObjectURL(f);
+  applyPhotoTime(e, f);
+  if (e.type === 'meal') startRead(e);   /* food reads itself; everything else asks first */
+  renderDetail(); renderTimeline();
+}
+
+/* The photo carries its own timestamp, and it is a better answer than "now" for
+   anything logged after the fact. Three guards, all of them about not
+   overwriting something truer:
+     - only when the time is still the one the app filled in (time === recorded)
+     - only within today, because crossing midnight is the day picker's job
+     - only when the shot is more than five minutes old, since "just took it"
+       already means now and re-stating it would be noise. */
+function applyPhotoTime(e, f){
+  if (!f.lastModified || e.time !== e.recorded) return;
+  const d = new Date(f.lastModified);
+  if (d.toDateString() !== new Date().toDateString()) return;
+  const mins = d.getHours() * 60 + d.getMinutes();
+  if (toMin(nowTime()) - mins < 5) return;
+  e.time = fromMin(mins);
+  e.recorded = nowTime();
+  e.photoTime = true;
+  sortDay(DAYS[0]);
+}
+
+function startRead(e){
+  e.reading = true;
+  const r = READS[readN % READS.length]; readN++;
+  setTimeout(() => {
+    e.reading = false;
+    e.read = r.items ? 'ok' : 'failed';
+    if (r.items){
+      e.guess = e.guess || {};
+      /* never overwrite something already there — a guess may fill a blank, it
+         may not correct a person */
+      if (!e.note){ e.note = r.items; e.guess.note = true; }
+      e.fields = e.fields || {};
+      if (e.fields.protein == null && e.fields.proteinG == null){
+        e.fields.protein = r.protein; e.guess.protein = true;
+      }
+    }
+    if (active && active.e === e) renderDetail();
+    renderTimeline();
+  }, 1400);
+}
+
+/* The asked-for read. Returns a caption and, when it can, a guess at where the
+   photo belongs — offered as a question with a No next to it. Moving someone's
+   record into a different category on a model's say-so is not a suggestion, it
+   is a decision, and it is not ours to make. */
+function readPhoto(e){
+  e.reading = true; e.read = null;
+  renderDetail();
+  const r = NOTE_READS[noteReadN % NOTE_READS.length]; noteReadN++;
+  setTimeout(() => {
+    e.reading = false;
+    e.read = r.caption ? 'ok' : 'failed';
+    if (r.caption){
+      e.guess = e.guess || {};
+      if (!e.note){ e.note = r.caption; e.guess.note = true; }
+      if (r.looks && r.looks !== e.type) e.looks = r.looks;
+    }
+    if (active && active.e === e) renderDetail();
+    renderTimeline();
+  }, 1400);
+}
+
+function convertTo(t){
+  const e = active.e;
+  e.type = t;
+  delete e.looks;
+  /* "Photo" described the record, not the thing. Once it is a meal it needs a
+     meal's name — and the name sits under a pencil, so it stays arguable. */
+  if (e.text === 'Photo') e.text = (t === 'meal') ? mealNameNow() : NEW_LABEL[t];
+  if (hasInterval(t) && !e.anchor) e.anchor = 'end';
+  /* now that we know it is food, the plate is worth a second look */
+  if (t === 'meal' && !(e.fields && e.fields.protein != null)){ startRead(e); }
+  renderDetail(); renderTimeline();
+}
+function dismissLooks(){ delete active.e.looks; renderDetail(); }
+
+function photoSectionHTML(e){
+  if (e.type !== 'meal' && e.type !== 'note') return '';
+  /* On a meal the photo is depth: the entry is complete without it, and the
+     header has to say so in the same word Details uses. On a plain photo entry
+     it is the record itself, so no qualifier. */
+  const opt = (e.type === 'meal') ? ' <span class="sec-opt">· optional</span>' : '';
+  let h = `<div class="sec"><div class="sec-h">Photo${opt}</div>`;
+  if (!e.photo){
+    /* One line. What the read does is explained by the read itself, a second
+       later — saying it in advance is the interface narrating its own feature. */
+    h += `<button class="photo-add" onclick="pickPhoto(active.e)">
+      <i class="ph ph-camera"></i>
+      <span class="strip-name">Log from a photo</span></button>`;
+  } else {
+    h += `<img class="photo-shot" src="${e.photo}" alt="Photo of this meal">`;
+    if (e.photoTime)
+      h += `<div class="read-line"><i class="ph ph-clock"></i><span>Time taken from the photo: ${e.time}</span></div>`;
+    if (e.reading)
+      h += `<div class="read-line busy"><i class="ph ph-circle-notch"></i><span>Reading the photo…</span></div>`;
+    else if (e.read === 'failed')
+      h += `<div class="read-line"><i class="ph ph-eye-slash"></i><span>Couldn’t read this one. The photo is saved. Add the rest yourself if you want to.</span></div>`;
+    else if (e.read === 'ok')
+      /* the ≈ line only makes sense where there is an ≈ on screen — a plain
+         photo produces a caption and nothing else, so it gets its own sentence */
+      h += e.type === 'meal'
+        ? `<div class="read-line"><i class="ph ph-magic-wand"></i><span>Read from the photo. <b class="est">&#8776;</b> means we guessed. Tap it to correct, or leave it.</span></div>`
+        : `<div class="read-line"><i class="ph ph-magic-wand"></i><span>Caption read from the photo. Edit it below if it is off.</span></div>`;
+
+    /* On a plain photo the read is a button, not a reflex. Offered again after
+       a failure, because "try again" is a reasonable thing to want and a
+       dead end is not. */
+    if (e.type !== 'meal' && !e.reading && e.read !== 'ok'){
+      h += `<button class="photo-add" onclick="readPhoto(active.e)">
+        <i class="ph ph-magic-wand"></i>
+        <span class="strip-name">${e.read === 'failed' ? 'Try reading it again' : 'Read this photo'}</span></button>`;
+    }
+    if (e.looks){
+      h += `<div class="read-line"><i class="ph ph-question"></i><span>This looks like
+              <b>${TYPE_NAME[e.looks]}</b>. Move it there?</span></div>`;
+      h += `<div class="chips">
+        <button class="chip pick" onclick="convertTo('${e.looks}')">Make it ${TYPE_NAME[e.looks]}</button>
+        <button class="chip pick" onclick="dismissLooks()">No, leave it</button></div>`;
+    }
+  }
+  return h + '</div>';
+}
+
+/* Taking a value makes it yours. Grams and level are two precisions of one
+   fact, so answering either one clears the guess on both. */
+function ownIt(key){
+  const g = active && active.e.guess; if (!g) return;
+  delete g[key];
+  if (key === 'protein')  delete g.proteinG;
+  if (key === 'proteinG') delete g.protein;
+}
+
+/* ═════════ time entry ═══════════════════════════════════════════════════
+   Three ranges, three mechanisms, escalating only as far as needed:
+
+     just happened   → nudges (±15m / ±1h). Nunes et al. 2016 (DG5) found
+                       people with PD do better with multiple-tap than drag,
+                       so a stepper beats a wheel. But DG3 caps multiple-tap
+                       at ~10 taps before fatigue, which is exactly why nudges
+                       alone cannot reach "yesterday afternoon".
+     earlier today   → tap the time, type it. Numeric keypad, no drag anywhere.
+     another day     → day chips.
+
+   Nothing is hidden behind the escalation: all three are on screen at once.
+   The date-entry accessibility literature is consistent that a picker widget
+   must always be optional and typing must always be possible. */
+
+/* You cannot already have done something you have not done yet. Today is
+   clamped to the current time; yesterday needs no clamp because every time
+   yesterday is in the past. Scheduled-but-unrealised doses are the one thing
+   that legitimately sits in the future, and they live on the confirmation
+   card, not in this sheet — so nothing here needs an exemption. */
+function canNudge(mins){
+  const t = toMin(active.e.time);
+  if (mins < 0) return t + mins >= 0;
+  if (active.day !== 0) return true;
+  return t + mins <= toMin(nowTime());
+}
+const isNow = () => active.day === 0 && active.e.time === nowTime();
+
+function timeSectionHTML(e){
+  const lag = lagLabel(e);
+  const anchored = hasInterval(e.type);
+
+  /* "Ended · Today · 19:00" — the qualifiers stay collapsed until tapped.
+     Both lists are 2 items, below STEP_THRESHOLD, so they open inline. */
+  let mini = '<div class="minirow">';
+  if (anchored){
+    mini += `<button class="minibtn" onclick="toggleMini('anchor')">
+      <span>${e.anchor === 'start' ? 'Started' : 'Ended'}</span>
+      <i class="ph ph-caret-down"></i></button><span class="minisep">·</span>`;
+  }
+  /* Pencil, not caret: this one opens a step now. */
+  mini += `<button class="minibtn step" onclick="openPicker('day')" aria-label="Change the day">
+      <span>${esc(dayName(active.day))}</span><i class="ph ph-pencil-simple"></i></button>`;
+  mini += '</div>';
+
+  if (openMini === 'anchor')
+    mini += '<div class="chips">' + [['start','Started at'],['end','Ended at']].map(([v,l]) =>
+      `<button class="chip pick${(e.anchor||'end')===v?' on':''}" onclick="setAnchor('${v}')">${l}</button>`
+    ).join('') + '</div>';
+
+  /* The time no longer swaps itself for fields in place. Same affordance as the
+     name, so: same behaviour. The nudges stay out here rather than moving into
+     the step, because they are not editing — they are one-tap corrections, and
+     burying the most common one behind a screen would cost a tap to save a tap. */
+  const face = `<button class="timeval-btn" onclick="openPicker('time')" aria-label="Edit the time">
+         <span class="timeval">${e.time}</span><i class="ph ph-pencil-simple"></i>
+       </button>`;
+
+  /* "+1h" gave up its slot to "Now", 2026-08-11. It was the most-often-disabled
+     button on the row — anything logged near the present time cannot move an
+     hour forward — and Now is the jump people actually reach for. Marked apart
+     because it is a jump, not an increment.
+     Now is never disabled. A disabled control asks the user to work out WHY it
+     is dead; an idempotent one just does nothing when it is already true. That
+     costs a wasted tap at worst, and the wasted tap is cheaper than the puzzle. */
+  const nudges = [[-60,'\u22121h'],[-15,'\u221215m'],[15,'+15m']].map(([m,l]) =>
+      `<button class="nudge" onclick="nudge(${m})"${canNudge(m)?'':' disabled'}>${l}</button>`
+    ).join('')
+    + `<button class="nudge" onclick="setNow()">Now</button>`;
+
+  /* Header is static and generic; the row below carries the specifics.
+     It used to read "When it ended" above a row reading "Ended · Today", which
+     said "ended" twice — and of the two, the row is the one worth keeping,
+     because it is tappable. A header that restates a control is a header doing
+     the control's job badly. "When" also runs parallel to "How long". */
+  return `<div class="sec"><div class="sec-h">When</div>
+    ${mini}
+    ${face}
+    ${lag ? `<div class="timesub">Logged at ${lag}</div>` : ''}
+    <div class="nudges">${nudges}</div>
+  </div>`;
+}
+
+/* Duration gets the same treatment as the time: its own section, a few
+   shortcuts ranked by what this user actually logs, and one door to the rest.
+   Previously it was a lone "Add" chip in a different visual idiom. */
+function durationSectionHTML(e){
+  const f = (CONTEXT[e.type] || []).find(x => x.temporal);
+  if (!f) return '';
+  const v = e.fields && e.fields[f.key];
+  /* WHICH three: by how often this user picks them. IN WHAT ORDER: by size.
+     Frequency ranking is right for categorical values, where there is no
+     natural order to violate — but 20, 10, 30 reads as broken, because numbers
+     carry their own order and the eye expects it. So: relevance chooses the
+     set, magnitude arranges it. Three plus More… keeps the row to four, which
+     fits on one line on a wider phone and wraps gracefully on a narrow one. */
+  const pool = rankField(e.type, f.key)
+                 .concat(f.choices.filter(c => !rankField(e.type, f.key).includes(c)));
+  const picks = (v ? [v] : []).concat(pool.filter(c => c !== v))
+                  .slice(0, 3).sort((a, b) => a - b);
+  /* Tapping the selected chip re-sets the same value rather than clearing it.
+     A single-select group that empties when you tap the current choice is a
+     destructive action hiding inside an ordinary-looking one — and the same
+     reasoning as "Now": idempotent beats surprising. */
+  const chips = picks.map(c =>
+      `<button class="chip pick${c===v?' on':''}" onclick="pickField('${f.key}',${c})">${fmtDur(c)}</button>`)
+    .concat([`<button class="chip more" onclick="openPicker('field','${f.key}')">More<i class="ph ph-caret-right"></i></button>`]);
+  return `<div class="sec"><div class="sec-h">${f.label}</div>
+    <div class="chips">${chips.join('')}</div></div>`;
+}
+
+/* One exit only — back. Every choice commits the moment it is tapped, so there
+   is nothing to confirm and no second Done competing with the sheet's own.
+   Two shapes, chosen by what KIND of data the field holds — not by how many
+   options it has, which was the earlier rule and the cruder one:
+     open-ended categorical → search + rows + add-your-own
+     numeric / temporal     → type the number + shortcuts (searching numbers
+                              is nonsense, and the number is unbounded anyway) */
+/* One implementation for both search screens. The log sheet's category step and
+   the detail sheet's name step are the same question — "which one of these?" —
+   so they should not drift into two components. Rows rather than chips because
+   the list is open-ended: a chip cloud is scanned in two dimensions and stops
+   working somewhere around a dozen items, which the activity list just passed. */
+function searchRowsHTML(type, current, pickExpr, addExpr, inputId){
+  const qy = searchQ.trim().toLowerCase();
+  const all = labelChoices(type);
+  const exact = all.some(t => t.toLowerCase() === qy);
+
+  let h = `<div class="searchwrap"><i class="ph ph-magnifying-glass"></i>
+      <input class="searchin" id="${inputId}" value="${esc(searchQ)}"
+             placeholder="Search, or type your own"
+             aria-label="Search" oninput="onSearch(this.value)"></div>`;
+  h += '<div class="rowlist">';
+
+  /* Your own words beat any library we could ship, and they join the list. */
+  if (qy && !exact)
+    h += `<button class="rowitem add" onclick="${addExpr}">
+      <i class="ph ph-plus"></i>Use “${esc(searchQ.trim())}”</button>`;
+
+  const row = t => `<button class="rowitem${t===current?' on':''}" onclick="${pickExpr(t)}">${esc(t)}</button>`;
+
+  if (qy){
+    /* Filtering already shortens the list, and bands would only fragment it. */
+    const hits = all.filter(t => t.toLowerCase().includes(qy));
+    h += hits.map(row).join('');
+  } else {
+    /* TWO BANDS. What you actually log sits at the top, ranked by how often you
+       pick it — a handful of rows, no scrolling for the common case. Everything
+       else follows A–Z, because a long list you are SCANNING rather than
+       choosing from needs a predictable order, and alphabetical is the only
+       order a stranger can guess. Relevance for the short band, alphabet for
+       the long one; the same split as durations, where relevance chose the set
+       and magnitude arranged it.
+       Items repeat across the bands on purpose — the lower list is the complete
+       one, so anything missing from it would read as missing entirely. */
+    const mine = rankLabels(type).slice(0, 6);
+    if (mine.length){
+      h += '<div class="rowgroup">Yours</div>' + mine.map(row).join('');
+      h += '<div class="rowgroup">All</div>';
+    }
+    h += [...all].sort((a, b) => a.localeCompare(b)).map(row).join('');
+    if (!all.length) h += '<div class="rowempty">Nothing here yet.</div>';
+    /* Restored after the two-band rewrite dropped it. The "Use “X”" row only
+       shows once you have typed, so without this the door is invisible to
+       anyone who never types — the exact gap Tutu hit twice. Sits at the end,
+       after "All", so it never competes with the list itself. */
+    h += `<button class="rowitem add" onclick="focusSearch()">
+      <i class="ph ph-plus"></i>Add your own</button>`;
+  }
+  return h + '</div>';
+}
+
+function renderPickerStep(){
+  const e = active.e;
+  const kind = pickerStep.kind;
+  const isLabel = kind === 'label';
+  const field = (isLabel || kind === 'time' || kind === 'day')
+    ? null : fieldsFor(e).find(f => f.key === pickerStep.key);
+  const title = isLabel ? `${TYPE_NAME[e.type]} type`
+              : kind === 'time' ? 'Time'
+              : kind === 'day'  ? 'Day'
+              : field.label;
+
+  let h = `<div class="log-head">
+      <button class="backbtn" onclick="closePicker()" aria-label="Back">
+        <i class="ph ph-caret-left"></i></button>
+      <h2>${esc(title)}</h2>
+    </div>`;
+
+  if (kind === 'time'){
+    /* No Set button. The fields write straight to the record as you type, so
+       Back is the only exit and it cannot lose anything — the same contract
+       every other step here already has. A Set button on a live field is a
+       button that promises a save which already happened. */
+    h += `<div class="timefields">
+        <input class="tf" id="tf-h" inputmode="numeric" maxlength="2" value="${e.time.slice(0,2)}"
+               aria-label="Hour" oninput="onTimeField('h',this)">
+        <span class="tf-sep">:</span>
+        <input class="tf" id="tf-m" inputmode="numeric" maxlength="2" value="${e.time.slice(3)}"
+               aria-label="Minute" oninput="onTimeField('m',this)">
+      </div>`;
+  } else if (kind === 'day'){
+    /* Today and Yesterday cover almost everything, so they stay one tap. The
+       date control sits at the same level rather than behind a "more" — it is
+       the answer for anything older, not an advanced option. */
+    const shortcuts = DAYS.map((d, i) => i).filter(i => DAYS[i].ago <= 1 || i === active.day);
+    h += '<div class="chips">' + shortcuts.map(i =>
+        `<button class="chip pick${i===active.day?' on':''}" onclick="setDay(${i})">${esc(dayName(i))}</button>`
+      ).join('') + '</div>';
+    h += `<div class="picker"><span class="pl">Or pick a date</span>
+        <input class="date-in" type="date" value="${isoDate(dateFor(DAYS[active.day].ago))}"
+               max="${isoDate(dateFor(0))}" aria-label="Pick a date"
+               onchange="setDate(this.value)"></div>`;
+  } else if (isLabel){
+    h += searchRowsHTML(e.type, e.text,
+                        t => `pickLabel(${q(t)})`, 'pickLabel(searchQ.trim())',
+                        'search-detail');
+  } else if (field.grams){
+    const g = e.fields && e.fields[field.grams];
+    const lvl = e.fields && e.fields[field.key];
+    h += `<div class="numrow">
+        <input class="numin" id="num-in" inputmode="numeric" maxlength="3" value="${g || ''}"
+               aria-label="${esc(field.label)} in grams" oninput="onGramField('${field.key}',this)">
+        <span class="numunit">grams</span>
+      </div>`;
+    h += '<div class="chips">' + field.gramShortcuts.map(n =>
+        `<button class="chip pick${n===g?' on':''}" onclick="pickGrams('${field.key}',${n})">${n} g</button>`
+      ).join('') + '</div>';
+    /* The coarse answer stays reachable here — someone who opened Grams by
+       mistake should not have to go back to say "High". */
+    h += `<div class="picker"><span class="pl">Or just roughly</span><div class="chips">`
+      + field.choices.map(c =>
+          `<button class="chip pick${lvl===c?' on':''}" onclick="pickField('${field.key}',${q(c)})">${esc(c)}</button>`
+        ).join('') + '</div></div>';
+  } else if (field.kind === 'duration'){
+    const cur = (e.fields && e.fields[field.key]) || '';
+    h += `<div class="numrow">
+        <input class="numin" id="num-in" inputmode="numeric" maxlength="3" value="${cur}"
+               aria-label="${esc(field.label)} in minutes" oninput="onNumField('${field.key}',this)">
+        <span class="numunit">minutes</span>
+      </div>`;
+    h += '<div class="chips">' + [...field.choices].sort((a,b)=>a-b).map(m =>
+        `<button class="chip pick${m===cur?' on':''}" onclick="pickField('${field.key}',${m})">${fmtDur(m)}</button>`
+      ).join('') + '</div>';
+    /* No Clear button here. It did two things on one tap — emptied the value AND
+       returned to the sheet — because picking a value is what closes this step.
+       Clearing is not picking, so it should not navigate. The number field above
+       already clears when you empty it, which is the gesture Tutu suggested:
+       right next to "minutes", where the value lives. */
+  }
+  el('detail-body').innerHTML = h;
+  /* Land on the hour with the keypad already up. Opening a step to type and
+     then having to tap the field is the step charging for itself. */
+  if (kind === 'time'){ const hh = el('tf-h'); if (hh){ hh.focus(); hh.select(); } }
+}
+/* The same box appears on two surfaces. Both stay in the DOM once rendered, so
+   they need DISTINCT ids — sharing one is invalid HTML and el() would silently
+   return whichever came first, which is not always the open one.
+   Focus and caret are restored by hand because a keystroke destroys the input;
+   a full re-render is cheap at this size and keeps a single code path. */
+function focusSearch(){
+  const si = el(pickerStep ? 'search-detail' : 'search-log');
+  if (si) si.focus();
+}
+function onSearch(v){
+  searchQ = v;
+  if (pickerStep) renderDetail(); else renderLogSheet();
+  const si = el(pickerStep ? 'search-detail' : 'search-log');
+  if (si){ si.focus(); si.setSelectionRange(si.value.length, si.value.length); }
+}
+/* Live like the other numeric fields; never re-renders mid-keystroke. */
+/* Grams supersede the level, and an empty box means neither. */
+function onGramField(key, node){
+  const digits = node.value.replace(/\D/g,'').slice(0,3);
+  if (digits !== node.value) node.value = digits;
+  const e = active.e, f = (CONTEXT[e.type]||[]).find(x => x.key === key);
+  e.fields = e.fields || {}; ownIt(f.grams);
+  delete e.fields[key];
+  if (digits === '') delete e.fields[f.grams]; else e.fields[f.grams] = parseInt(digits,10);
+  renderTimeline();
+}
+function pickGrams(key, n){
+  const e = active.e, f = (CONTEXT[e.type]||[]).find(x => x.key === key);
+  e.fields = e.fields || {}; ownIt(f.grams);
+  delete e.fields[key]; e.fields[f.grams] = n;
+  pickerStep = null; openField = null;
+  renderDetail(); renderTimeline();
+}
+function onNumField(key, node){
+  const digits = node.value.replace(/\D/g,'').slice(0,3);
+  if (digits !== node.value) node.value = digits;
+  const e = active.e; e.fields = e.fields || {}; ownIt(key);
+  if (digits === '') delete e.fields[key]; else e.fields[key] = parseInt(digits,10);
+  sortDay(DAYS[active.day]); renderTimeline();
+}
+function openPicker(kind, key){ pickerStep = { kind, key }; openMini = null; searchQ = ''; renderDetail(); }
+/* Coming back from a field's own step means that field has been answered, so
+   its inline picker collapses too. Leaving it open showed the value and the
+   chooser for it at the same time. */
+function closePicker(){ pickerStep = null; searchQ = ''; openField = null; renderDetail(); }
+function pickField(key, val){
+  const e = active.e; e.fields = e.fields || {}; ownIt(key);
+  const f = fieldsFor(e).find(x => x.key === key);
+  if (f && f.grams) delete e.fields[f.grams];   /* a level supersedes grams */
+  if (val === null) delete e.fields[key]; else e.fields[key] = val;
+  pickerStep = null; openField = null;
+  sortDay(DAYS[active.day]);        /* duration moves the derived start */
+  renderDetail(); renderTimeline();
+}
+function toggleMini(k){ openMini = (openMini === k) ? null : k; renderDetail(); }
+/* Switching anchor keeps the clock time and re-reads what it means, which is
+   what "I meant that was the start" expects. Re-sorts: the derived start moves. */
+function setAnchor(v){ active.e.anchor = v; openMini = null;
+                       sortDay(DAYS[active.day]); renderDetail(); renderTimeline(); }
+
+/* The entry name is always open-ended, so it always gets the search step. */
+function startLabelEdit(){ openPicker('label'); }
+function endLabelEdit(){ editingLabel = false; renderDetail(); }
+/* Live, like the time fields — writes through to the rail without re-rendering
+   the sheet, which would take the caret with it. */
+function setLabel(v){ active.e.text = v; renderTimeline(); }
+function pickLabel(t){ active.e.text = t; editingLabel = false; pickerStep = null; searchQ = '';
+                       renderDetail(); renderTimeline(); }
+
+/* Writes live so the rail behind the sheet stays truthful, but never calls
+   renderDetail: re-rendering mid-keystroke would destroy the field and take the
+   caret with it. This is also why the step needs no Set button. */
+function onTimeField(which, node){
+  const digits = node.value.replace(/\D/g,'').slice(0,2);
+  if (digits !== node.value) node.value = digits;
+  const cap = which === 'h' ? 23 : 59;
+  let n = digits === '' ? 0 : Math.min(cap, parseInt(digits,10));
+  const [hh,mm] = active.e.time.split(':');
+  active.e.time = which === 'h' ? String(n).padStart(2,'0') + ':' + mm
+                                : hh + ':' + String(n).padStart(2,'0');
+  sortDay(DAYS[active.day]);
+  renderTimeline();
+  if (which === 'h' && digits.length === 2){ const m = el('tf-m'); if (m){ m.focus(); m.select(); } }
+}
+function setNow(){
+  if (active.day !== 0) setDay(0);
+  active.e.time = nowTime();
+  sortDay(DAYS[0]);
+  renderDetail(); renderTimeline();
+}
+/* Moving days moves the entry between lists — the day IS the list it lives in. */
+function setDay(target){
+  openMini = null;
+  const e = active.e;
+  if (target !== active.day){
+    DAYS[active.day].list = DAYS[active.day].list.filter(x => x !== e);
+    DAYS[target].list.push(e);
+    sortDay(DAYS[target]);
+    active.day = target;
+  }
+  /* Picking the day you are already on is not a mistake to punish — it is how
+     someone confirms. Close the step either way. */
+  pickerStep = null;
+  pruneDays();
+  renderDetail(); renderTimeline();
+}
+
+/* A day older than yesterday has no bucket until someone puts something in it.
+   Created on demand, removed again when it empties, so the rail never shows a
+   date with nothing under it. */
+function setDate(iso){
+  if (!iso) return;
+  const [y, m, d] = iso.split('-').map(Number);
+  const ago = Math.round((dateFor(0) - new Date(y, m - 1, d)) / 86400000);
+  if (ago < 0) return;                 /* you cannot have logged the future */
+  let i = DAYS.findIndex(x => x.ago === ago);
+  if (i < 0){
+    DAYS.push({ ago, live:false, list:[] });
+    DAYS.sort((a, b) => a.ago - b.ago);
+    active.day = DAYS.findIndex(x => x.list.includes(active.e));
+    i = DAYS.findIndex(x => x.ago === ago);
+  }
+  setDay(i);
+}
+/* Indices shift when a day is added or dropped, and active.day is an index, so
+   it gets re-derived from the entry itself rather than adjusted by hand. */
+function pruneDays(){
+  DAYS = DAYS.filter(d => d.ago <= 1 || d.list.length);
+  if (active) active.day = DAYS.findIndex(x => x.list.includes(active.e));
+}
+
+/* ═════════ detail actions — every one writes straight to the record ═════════ */
+function openDetail(e, day){
+  active = { e, day };
+  basisOpen = (e.type === 'dose' && e.basis === 'assumed');  /* lead with what's unresolved */
+  openField = null; editingLabel = false;
+  pickerStep = null; openMini = null;
+  renderDetail();
+  openSheet('sheet-detail');
+}
+function tapEntry(di, i){ openDetail(DAYS[di].list[i], di); }
+function toggleBasis(){ basisOpen = !basisOpen; renderDetail(); }
+function setBasis(k){
+  active.e.basis = k;
+  basisOpen = false;
+  renderDetail(); renderTimeline();
+}
+function nudge(mins){
+  if (!canNudge(mins)) return;                    /* the button is disabled; belt and braces */
+  const e = active.e;
+  let m = toMin(e.time) + mins;
+  m = Math.max(0, Math.min(23*60 + 59, m));       /* stay inside the day — no silent rollover */
+  e.time = String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
+  /* occurred_at only. e.recorded is untouched — the user is correcting when the
+     dose happened, not rewriting when they told us about it. */
+  sortDay(DAYS[active.day]);                      /* order is a property of the day, not the DOM */
+  renderDetail(); renderTimeline();
+}
+function toggleField(key){
+  const f = fieldsFor(active.e).find(x => x.key === key);
+  if (f && f.kind === 'duration'){ openPicker('field', key); return; }
+  openField = (openField === key) ? null : key; renderDetail();   /* short closed list */
+}
+/* MULTI fields hold an array and toggle; the picker deliberately stays open,
+   because "what eased" is usually more than one thing and closing after each
+   tap would make the second answer cost as much as the first. Single fields
+   keep replacing and closing, which is right when there is only one answer. */
+function toggleMulti(key, val){
+  const e = active.e; e.fields = e.fields || {}; ownIt(key);
+  const cur = Array.isArray(e.fields[key]) ? e.fields[key].slice() : [];
+  const i = cur.indexOf(val);
+  if (i > -1) cur.splice(i, 1); else cur.push(val);
+  if (cur.length) e.fields[key] = cur; else delete e.fields[key];
+  renderDetail(); renderTimeline();        /* openField untouched — stay open */
+}
+function setField(key, val){
+  const e = active.e;
+  e.fields = e.fields || {}; ownIt(key);
+  /* Same guard as pickField — the inline picker and the step both write here,
+     and grams/level must never coexist. Missing it left "26 g" AND "Some" on
+     the same meal, which is two answers to one question. */
+  const f = fieldsFor(e).find(x => x.key === key);
+  if (f && f.grams) delete e.fields[f.grams];
+  if (val === null) delete e.fields[key]; else e.fields[key] = val;
+  openField = null;
+  renderDetail(); renderTimeline();
+}
+/* Height follows content: reset, then take the scroll height. Runs on input and
+   once after every render, so an existing note opens at its real size. */
+function autoGrow(n){ n.style.height = 'auto'; n.style.height = n.scrollHeight + 'px'; }
+function setNote(v){
+  const e = active.e;
+  if (v) e.note = v; else delete e.note;   /* empty means no note, not an empty one */
+  /* the moment they type into a read, it stops being a read. Class removed on
+     the live node rather than by re-rendering, for the same caret reason. */
+  if (e.guess && e.guess.note){
+    delete e.guess.note;
+    const n = el('note-in'); if (n) n.classList.remove('guess');
+  }
+  renderTimeline();                        /* no re-render: don't steal the caret */
+}
+/* The entry is not spliced out — it is flagged and kept in place, so the rail
+   doesn't jump and the marker can name what went. One tombstone at a time:
+   removing something else commits the previous removal. */
+function removeActive(){
+  const e = active.e;
+  purgeTombs();
+  e.removed = true;
+  closeSheets();
+  renderTimeline();
+}
+function purgeTombs(){ DAYS.forEach(d => { d.list = d.list.filter(x => !x.removed); }); }
+function undoRemove(di, i){ delete DAYS[di].list[i].removed; renderTimeline(); }
+
+/* ═════════ card actions — D-01 no reason ask · D-02 no stack, quiet collapse ═════════
+   TIMESTAMPS. Two stamps, never one [docs/entry-schema.md]:
+     time      = occurred_at, when the thing happened. Drives sort order.
+     recorded  = recorded_at, when the user told us. Never drives sort order.
+   The card proposes "Levodopa, 10:30" and Yes CONFIRMS THAT PROPOSAL — so the
+   dose lands at 10:30, not at the moment of tapping. Stamping it "now" made Yes
+   and "Yes, but not as scheduled" produce identical records, which left the
+   second button with nothing to do. Nudging the time in the detail sheet moves
+   occurred_at only; recorded_at is a fact about the past and never changes. */
+function cardYes(){
+  addEntry({ time:currentDose.sched, recorded:nowTime(),
+             text:currentDose.name, type:'dose', basis:'asserted' }, 0);
+  currentDose = null; renderCard();
+}
+function cardNo(){
+  /* "No" is a REPORTED skip → basis:'declined'. Clinically valuable, and distinct
+     from 'assumed' (we asked and got nothing back). */
+  addEntry({ time:currentDose.sched, recorded:nowTime(),
+             text:currentDose.name, type:'dose', basis:'declined' }, 0);
+  currentDose = null; renderCard();
+}
+/* "Not exactly" = yes, with corrections. The entry lands as asserted at the
+   SCHEDULED time (not now) — that is the fact being corrected — and the sheet
+   opens on it. Two taps have already produced a complete, valid record; the
+   sheet is where depth becomes available, never where it becomes required. */
+function cardAdjust(){
+  const e = { time:currentDose.sched, recorded:nowTime(),
+              text:currentDose.name, type:'dose', basis:'asserted' };
+  addEntry(e, 0);
+  currentDose = null; renderCard();
+  openDetail(e, 0);
+}
+
+/* a new dose falling due quietly collapses the unanswered one into the timeline as 'assumed' */
+function demoAddDose(){
+  if (currentDose){
+    DAYS[0].list.push({ time:currentDose.sched, recorded:nowTime(),
+                        text:currentDose.name, type:'dose', basis:'assumed' });
+    sortDay(DAYS[0]);
+    renderTimeline();
+  }
+  const t = ['14:00','17:30','21:00'];
+  currentDose = { name:'Levodopa 100mg', sched:t[Math.floor(Math.random()*3)] };
+  renderCard();
+}
+function demoEmpty(){ DAYS.forEach(d => d.list = []); currentDose = null;
+                      renderCard(); renderTimeline(); }
+
+/* ═════════ logging ═════════
+   No confirmation message. The entry appearing on the rail at the right time
+   IS the confirmation — a toast saying "Walk — added" next to a visible Walk
+   entry is the same fact twice, and the weaker copy of it. What the app owes
+   the user instead is certainty about WHICH entry is new, and a guarantee it
+   is actually on screen. Hence the highlight plus the scroll. */
+function addEntry(e, di){
+  DAYS[di].list.unshift(e);
+  sortDay(DAYS[di]);
+  freshEntry = e;
+  renderTimeline();
+  freshEntry = null;          /* only the render right after the add marks it */
+  /* Scroll to the ENTRY, not to the top. Now that order follows occurred_at, a
+     confirmed 10:30 dose logged at 17:19 lands partway down the rail — scrolling
+     to the top would show the user everywhere except the thing they just did. */
+  requestAnimationFrame(() => {
+    const n = document.querySelector('.entry.fresh');
+    if (!n) return;
+    n.scrollIntoView({ block:'center',
+                       behavior: REDUCED_MOTION.matches ? 'auto' : 'smooth' });
+    /* Remove the class on the live node rather than re-rendering, so the wash
+       fades out via .ecard's transition instead of being replaced mid-fade. */
+    setTimeout(() => n.classList.remove('fresh'), 1800);
+  });
+}
+function quickLog(btn, text, type){
+  addEntry({ time:nowTime(), recorded:nowTime(), text, type, basis:'asserted' }, 0);
+  btn.classList.add('flash');     /* confirmation at the source, where the eye is */
+  setTimeout(()=> btn.classList.remove('flash'), 600);
+  setTimeout(closeSheets, 260);
+}
+
+/* ═════════ sheets ═════════ */
+const SHEETS = ['sheet-log','sheet-detail'];
+/* `inert` on the sheets that are not open. A closed sheet is only translated
+   off-screen, so without this its buttons stay tabbable and its text stays in
+   the accessibility tree — a keyboard or screen-reader user can land inside a
+   panel nobody can see. One attribute does focus, pointer events and AT
+   visibility in one go. */
+function setSheetInert(openId){
+  SHEETS.forEach(sid => { const n = el(sid);
+    if (sid === openId) n.removeAttribute('inert'); else n.setAttribute('inert',''); });
+}
+function openSheet(id){
+  if (id === 'sheet-log'){ logStep = null; searchQ = ''; renderLogSheet(); }
+  lastFocus = document.activeElement;
+  el('scrim').classList.add('open');
+  SHEETS.forEach(s => el(s).classList.toggle('open', s === id));
+  setSheetInert(id);
+  el(id).focus();                                   /* screen readers land inside the sheet */
+}
+function closeSheets(){
+  el('scrim').classList.remove('open');
+  SHEETS.forEach(s => el(s).classList.remove('open'));
+  setSheetInert(null);
+  active = null; openField = null; editingLabel = false; pickerStep = null; openMini = null;
+  if (lastFocus && lastFocus.focus) lastFocus.focus();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(); });
+
+/* ── temporary tuning controls — remove before this becomes real ── */
+function toggleTuner(){ el('tuner').classList.toggle('open'); }
+function setScale(v){
+  if (v) document.documentElement.dataset.textScale = v;
+  else delete document.documentElement.dataset.textScale;
+}
+function setVar(name, value){ document.documentElement.style.setProperty(name, value); }
+
+/* iOS does not shrink the layout viewport when the keyboard opens, so anything
+   pinned to bottom:0 ends up behind it — and the time step is nothing but a
+   field you are meant to type into. visualViewport reports what is actually
+   visible, so the sheet sits on top of the keyboard instead of under it.
+   `interactive-widget=resizes-content` covers Chrome and Android, where the
+   layout viewport does shrink and this measures zero. Both paths, one rule. */
+const vv = window.visualViewport;
+if (vv){
+  const trackKeyboard = () => {
+    const hidden = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    document.documentElement.style.setProperty('--kb', Math.round(hidden) + 'px');
+  };
+  vv.addEventListener('resize', trackKeyboard);
+  vv.addEventListener('scroll', trackKeyboard);
+  trackKeyboard();
+}
+
+renderCard(); renderTimeline(); renderLogSheet(); setSheetInert(null);
+</script>
+</body>
+</html>
