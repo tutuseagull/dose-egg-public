@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DoseEgg · Look Back</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" rel="stylesheet">
+<style>
+/* ═══════════════════ LAYER 1 — PRIMITIVES ═══════════════════
+   "Stitch blue" — copied verbatim from hifi-daily-loop-v2.html so the two
+   files cannot drift on colour. Token names are positional, not descriptive.  */
+:root{
+  --paper-0:#FFFFFF; --paper-50:#F9F9FF; --paper-100:#F1F3FF; --paper-200:#E4E8F5;
+  --paper-300:#D3D9E8; --paper-400:#ABB3C6; --paper-500:#7C8598; --paper-600:#5F6879;
+  --paper-700:#3E4658; --paper-800:#262C3A; --paper-900:#141B2B;
+  --ink-400:#4A7BC8; --ink-500:#2B5BA9; --ink-600:#1E4380; --ink-700:#143059;
+  --hue-mark:#3B4E7A;   /* one mark colour — every dose dot is the same colour */
+  --red-600:#A33A2A;
+  --backdrop:#D9DDE8;   /* review frame only — not a product surface */
+}
+/* ═══════════════════ LAYER 2 — SEMANTIC ═══════════════════ */
+:root{
+  --surface-page:var(--paper-50); --surface-card:var(--paper-0);
+  --surface-raised:var(--paper-100); --surface-sunken:var(--paper-200);
+  --text-primary:var(--paper-900); --text-secondary:var(--paper-700);
+  --text-muted:var(--paper-600); --text-inverse:var(--paper-50);
+  --border-subtle:var(--paper-200); --border-interactive:var(--paper-500);
+  --accent:var(--ink-500); --accent-hover:var(--ink-600); --accent-quiet:var(--ink-400);
+  --on-accent:var(--paper-0);
+  --mark:var(--hue-mark);
+  --focus-ring:var(--ink-500); --focus-ring-width:3px; --focus-ring-offset:2px;
+  --feedback-error:var(--red-600);
+
+  --font-serif:'Newsreader',Georgia,serif;
+  --font-sans:'Inter',-apple-system,system-ui,sans-serif;
+  --text-display:2rem; --text-title:1.5rem; --text-heading:1.1875rem;
+  --text-body:1.0625rem; --text-small:1rem; --text-label:.875rem;
+  --leading-tight:1.2; --leading-body:1.55;
+
+  --motion-fast:120ms; --motion-base:200ms; --motion-slow:320ms;
+  --ease-out:cubic-bezier(.2,0,0,1);
+
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
+  --space-6:24px; --space-8:32px; --space-12:48px;
+  --radius-sm:6px; --radius-md:10px; --radius-lg:16px; --radius-full:999px;
+
+  --target-min:48px; --target-routine:48px; --target-critical:56px; --target-gap:16px;
+
+  --gutter:16px;
+  --card-pad:16px;
+  --text-meta:.875rem;
+  --shell-w:420px;
+  --drawer-w:320px;     /* menu panel width cap — same family as --shell-w */
+}
+@media (prefers-reduced-motion:reduce){
+  :root{--motion-fast:0ms;--motion-base:0ms;--motion-slow:0ms}
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+
+/* ═══════════════════ base ═══════════════════ */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:100%}
+body{margin:0;background:var(--backdrop);font-family:var(--font-sans);
+     font-size:var(--text-body);line-height:var(--leading-body);color:var(--text-primary);
+     -webkit-font-smoothing:antialiased;display:flex;justify-content:center}
+button{font-family:inherit;font-size:inherit;border:0;background:none;color:inherit;
+       cursor:pointer;padding:0}
+:focus-visible{outline:var(--focus-ring-width) solid var(--focus-ring);
+               outline-offset:var(--focus-ring-offset);border-radius:var(--radius-sm)}
+[hidden]{display:none!important}
+
+/* phone shell — review frame only, not part of the design */
+.shell{width:100%;max-width:var(--shell-w);background:var(--surface-page);min-height:100vh;
+       position:relative;display:flex;flex-direction:column;
+       box-shadow:0 0 0 1px rgba(0,0,0,.06)}
+
+/* ── demo bar (dev only) ── */
+.demo-bar{display:flex;gap:var(--space-2);padding:var(--space-2) var(--space-3);
+          background:var(--paper-800);align-items:center;flex-wrap:wrap}
+.demo-bar .db{font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+              color:var(--paper-400);font-weight:500;padding-right:var(--space-1)}
+.demo-btn{font-size:12px;font-weight:500;color:var(--paper-100);
+          background:rgba(255,255,255,.12);padding:5px 10px;border-radius:var(--radius-full);
+          display:flex;align-items:center;min-height:32px;text-decoration:none}
+.demo-btn:hover{background:rgba(255,255,255,.2)}
+.demo-btn.home{background:rgba(255,255,255,.22);font-weight:600}
+.demo-btn.on{background:var(--ink-400);color:var(--paper-0)}
+
+/* ── top bar ── */
+.top{display:flex;align-items:center;gap:var(--space-2);
+     padding:var(--space-4) var(--space-4) var(--space-2)}
+.top h1{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
+        line-height:var(--leading-tight);margin:0;color:var(--text-primary);flex:1}
+.icon-btn{width:var(--target-min);height:var(--target-min);display:flex;align-items:center;
+          justify-content:center;border-radius:var(--radius-full);color:var(--text-muted);
+          flex:0 0 auto}
+.icon-btn i{font-size:22px}
+.icon-btn:hover{background:var(--surface-raised)}
+.top .icon-btn:first-child{margin-left:calc(var(--space-3) * -1)}
+
+.scroll{flex:1;overflow-y:auto;padding:0 var(--gutter) var(--space-12)}
+
+/* ═══════════════════ menu drawer ═══════════════════
+   Rows do not navigate yet. The drawer is here to test what the menu holds and
+   whether the labels read right, not the routing between screens.
+   The wrapper is a fixed, shell-width band so the panel lines up with the phone
+   frame on a desktop monitor instead of flying out from the window edge. */
+.drawer-wrap{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:var(--shell-w);z-index:60;pointer-events:none}
+.drawer{position:absolute;top:0;bottom:0;left:0;width:min(84%,var(--drawer-w));
+  background:var(--surface-card);border-right:1px solid var(--border-subtle);
+  transform:translateX(-100%);transition:transform var(--motion-base) var(--ease-out);
+  pointer-events:auto;display:flex;flex-direction:column;
+  padding:var(--space-4) 0}
+.drawer.open{transform:translateX(0)}
+.drawer-head{display:flex;align-items:center;padding:0 var(--space-2) var(--space-4) var(--gutter)}
+.drawer-head .brand{font-family:var(--font-serif);font-size:var(--text-heading);flex:1}
+.navrow{display:flex;align-items:center;gap:var(--space-3);
+  min-height:var(--target-routine);padding:var(--space-2) var(--gutter);
+  color:var(--text-primary);font-size:var(--text-body)}
+.navrow i{font-size:22px;color:var(--mark);flex:0 0 auto;width:var(--space-6);text-align:center}
+.navrow .lab{flex:1;line-height:var(--leading-tight)}
+.navrow .sub{display:block;font-size:var(--text-meta);color:var(--text-muted);
+  font-weight:400;margin-top:var(--space-1)}
+/* where you are is a marker, not a colour swap — same rule the charts use */
+.navrow.here{font-weight:600}
+.navrow.here::after{content:"";width:var(--space-1);height:var(--space-6);
+  border-radius:var(--radius-full);background:var(--accent);flex:0 0 auto}
+.drawer-foot{margin-top:auto;padding:var(--space-4) var(--gutter) 0;
+  border-top:1px solid var(--border-subtle);
+  color:var(--text-muted);font-size:var(--text-meta);line-height:var(--leading-body)}
+.scrim{position:fixed;inset:0;background:rgba(20,27,43,.34);opacity:0;pointer-events:none;
+  transition:opacity var(--motion-base) var(--ease-out);z-index:50}
+.scrim.open{opacity:1;pointer-events:auto}
+
+/* ═══════════════════ scale tabs ═══════════════════ */
+.scales{display:flex;gap:var(--space-1);background:var(--surface-sunken);
+  border-radius:var(--radius-md);padding:var(--space-1);margin-bottom:var(--space-4)}
+.scales button{flex:1;min-height:var(--target-routine);border-radius:var(--radius-sm);
+  font-size:var(--text-small);font-weight:500;color:var(--text-secondary)}
+.scales button[aria-selected="true"]{background:var(--surface-card);color:var(--text-primary);
+  font-weight:600;box-shadow:0 1px 2px rgba(20,27,43,.10)}
+
+/* ═══════════════════ period control ═══════════════════ */
+.period{display:flex;align-items:stretch;gap:var(--space-2)}
+.period .arrow{width:var(--target-routine);min-height:var(--target-routine);
+  border-radius:var(--radius-md);border:1px solid var(--border-subtle);
+  background:var(--surface-card);color:var(--text-secondary);flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center}
+.period .arrow[disabled]{color:var(--paper-400);cursor:default}
+.period .arrow i{font-size:20px}
+.period .rangebox{flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;line-height:var(--leading-tight)}
+.period .r1{font-weight:600}
+.period .r2{font-size:var(--text-meta);color:var(--text-muted)}
+/* Fixed-height row under the stepper. It always exists, so the "this week"
+   button appearing and disappearing never moves the chart under your finger. */
+.periodfoot{display:flex;align-items:center;gap:var(--space-2);
+  min-height:var(--target-routine);margin-bottom:var(--space-2)}
+.periodfoot .cov{flex:1;font-size:var(--text-meta);color:var(--text-muted)}
+.periodfoot .jump{min-height:var(--target-min);padding:0 var(--space-3);
+  border-radius:var(--radius-full);border:1px solid var(--border-subtle);
+  background:var(--surface-card);color:var(--accent);font-size:var(--text-meta);
+  font-weight:600;display:flex;align-items:center}
+
+/* ═══════════════════ readout above the chart ═══════════════════
+   Never empty. With nothing chosen it summarises the period, which is more
+   useful than a prompt and keeps the height constant. min-height is the whole
+   point of this rule: a block above a chart must be measured in every state it
+   can hold, or selecting slides the chart under the finger. */
+.readout{min-height:calc(var(--space-12) + var(--space-8));background:var(--surface-raised);border-radius:var(--radius-md);
+  padding:var(--space-3);margin-bottom:var(--space-2);display:flex;align-items:center}
+.ro-day{font-weight:600;font-size:var(--text-small);line-height:var(--leading-tight)}
+.ro-times{font-size:var(--text-meta);color:var(--accent);line-height:var(--leading-body)}
+.ro-times.muted{color:var(--text-muted)}
+
+/* ═══════════════════ charts ═══════════════════
+   Fills come from tokens through classes, not from hex in SVG attributes, so
+   a palette change reaches the charts the same way it reaches everything else. */
+svg{display:block;width:100%;height:auto}
+.dot{fill:var(--mark)}
+.dot.assumed{fill:var(--surface-card);stroke:var(--mark);stroke-width:1.5;
+  stroke-dasharray:2 2}
+.swarmdot{fill:var(--mark);opacity:.85}
+.swarmdot.dim{opacity:.2}
+.bar{fill:var(--mark)}
+.gridline{stroke:var(--border-subtle);stroke-width:1}
+.planline{stroke:var(--paper-400);stroke-width:1.5;stroke-dasharray:5 5}
+.axistext{font-family:var(--font-sans);font-size:14px;fill:var(--text-muted)}
+.axistext.here{fill:var(--text-primary);font-weight:600}
+.rowband{fill:var(--surface-raised);opacity:0}
+.rowband.on{opacity:1}
+.hit{fill:transparent;cursor:pointer}
+.hit:focus{outline:none}
+.hit:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.chartwrap{margin-bottom:var(--space-4)}
+
+/* ═══════════════════ legend ═══════════════════ */
+.legend{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-4);
+  margin:var(--space-1) 0 var(--space-2)}
+.legend .key{display:flex;align-items:center;gap:var(--space-2);
+  font-size:var(--text-meta);color:var(--text-secondary)}
+.sw{width:11px;height:11px;border-radius:var(--radius-full);background:var(--mark);
+  flex:0 0 auto;display:inline-block}
+.sw.assumed{background:var(--surface-card);border:1.5px dashed var(--mark)}
+.legend-note{background:var(--surface-raised);border-radius:var(--radius-md);
+  padding:var(--space-3);font-size:var(--text-meta);color:var(--text-secondary);
+  margin-bottom:var(--space-4)}
+
+/* ═══════════════════ blank-day control ═══════════════════ */
+.control{background:var(--surface-card);border:1px solid var(--border-subtle);
+  border-radius:var(--radius-md);padding:var(--space-3) var(--card-pad);
+  margin-bottom:var(--space-4)}
+.control .row{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-routine)}
+.control .row .lab{flex:1;font-size:var(--text-small)}
+/* The switch LOOKS like a 52x32 toggle and BEHAVES like a 48px button: the
+   visible track is a pseudo-element inset inside a full-height tap target.
+   Drawing the track on the button itself would have made the whole control
+   32px tall, which is under the floor. [C-16] */
+.switch{width:52px;height:var(--target-routine);position:relative;flex:0 0 auto;
+  border-radius:var(--radius-full)}
+.switch::before{content:"";position:absolute;left:0;right:0;top:var(--space-2);
+  height:var(--space-8);border-radius:var(--radius-full);background:var(--paper-300);
+  transition:background var(--motion-fast) var(--ease-out)}
+.switch::after{content:"";position:absolute;top:var(--space-3);left:var(--space-1);
+  width:var(--space-6);height:var(--space-6);border-radius:var(--radius-full);
+  background:var(--paper-0);box-shadow:0 1px 2px rgba(20,27,43,.20);
+  transition:transform var(--motion-fast) var(--ease-out)}
+.switch[aria-checked="true"]::before{background:var(--accent)}
+.switch[aria-checked="true"]::after{
+  transform:translateX(calc(var(--space-6) - var(--space-1)))}
+.why{display:flex;align-items:center;gap:var(--space-1);min-height:var(--target-min);
+  color:var(--accent);font-size:var(--text-meta);font-weight:500}
+.whynote{font-size:var(--text-meta);color:var(--text-secondary);
+  border-top:1px solid var(--border-subtle);padding-top:var(--space-3);margin-top:var(--space-1)}
+.whynote p{margin:0 0 var(--space-2)}
+.whynote p:last-child{margin:0}
+
+/* ═══════════════════ statements ═══════════════════ */
+.stmt{background:var(--surface-card);border:1px solid var(--border-subtle);
+  border-radius:var(--radius-md);padding:var(--card-pad);margin-bottom:var(--space-3)}
+.stmt p{margin:0 0 var(--space-2);font-size:var(--text-small);
+  line-height:var(--leading-body)}
+.stmt .cov{margin:0;font-size:var(--text-meta);color:var(--text-muted)}
+.sec-h{font-family:var(--font-serif);font-size:var(--text-heading);font-weight:400;
+  margin:var(--space-6) 0 var(--space-2)}
+.lede{color:var(--text-muted);font-size:var(--text-meta);margin:0 0 var(--space-4)}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="demo-bar">
+    <a class="demo-btn home" href="../index.html">← Home</a>
+    <span class="db">Hi-fi · Look Back · v1</span>
+    <button class="demo-btn" id="sparseBtn" onclick="toggleSparse()">early record</button>
+    <button class="demo-btn" onclick="location.reload()">reset</button>
+  </div>
+
+  <div class="top">
+    <button class="icon-btn" id="menuBtn" onclick="openDrawer()"
+            aria-label="Menu" aria-expanded="false"><i class="ph ph-list"></i></button>
+    <h1>Look Back</h1>
+  </div>
+
+  <div class="scroll">
+
+    <!-- Two scales, not four. Day is the Timeline's job, and a month of this
+         record is not a different reading from six weeks, just a rounder number. -->
+    <div class="scales" role="tablist" aria-label="Time scale">
+      <button role="tab" id="tab-week" aria-selected="true"
+              onclick="setScale('week')">Week</button>
+      <button role="tab" id="tab-six" aria-selected="false"
+              onclick="setScale('six')">6 weeks</button>
+    </div>
+
+    <!-- ══════════════ WEEK ══════════════ -->
+    <section id="v-week">
+      <div class="period">
+        <button class="arrow" id="prevW" onclick="stepWeek(-1)" aria-label="Earlier week">
+          <i class="ph ph-caret-left"></i></button>
+        <div class="rangebox">
+          <span class="r1" id="wRange">Aug 7 – 13</span>
+          <span class="r2" id="wWhen">This week</span>
+        </div>
+        <button class="arrow" id="nextW" onclick="stepWeek(1)" aria-label="Later week">
+          <i class="ph ph-caret-right"></i></button>
+      </div>
+      <div class="periodfoot">
+        <span class="cov" id="wCoverage"></span>
+        <button class="jump" id="wJump" onclick="jumpToThisWeek()" hidden>This week</button>
+      </div>
+
+      <div class="readout"><div id="roWeek"></div></div>
+
+      <div class="chartwrap">
+        <svg id="chartA" viewBox="0 0 352 252" role="application"
+             aria-label="One row per day. Each dot is a dose, placed at the time it happened.
+                         Choose a row to read that day.">
+          <g id="aBands"></g>
+          <g id="aLabels" class="axistext"></g>
+          <g id="aBaselines" class="gridline"></g>
+          <g id="aDots"></g>
+          <g id="aAxis" class="axistext" text-anchor="middle"></g>
+          <g id="aHits"></g>
+        </svg>
+      </div>
+
+      <div class="legend">
+        <span class="key"><i class="sw"></i> dose you confirmed</span>
+        <span class="key"><i class="sw assumed"></i> assumed from your schedule</span>
+      </div>
+      <div class="legend-note">
+        An assumed dose is one the app filled in from your schedule because nothing
+        was logged. It is drawn so you can see it, and left out of anything this page
+        says about timing.
+      </div>
+
+      <div id="wStatements"></div>
+    </section>
+
+    <!-- ══════════════ SIX WEEKS ══════════════ -->
+    <section id="v-six" hidden>
+      <p class="lede">Six weeks, measured against your planned times rather than the
+        clock. Each slot has its own planned time, so putting all three on one scale
+        makes the width of a cloud mean the same thing in each.</p>
+
+      <div class="readout"><div id="roSix"></div></div>
+
+      <div class="chartwrap">
+        <svg id="chartB6" viewBox="0 0 340 212" role="application"
+             aria-label="Three clouds of dots, one per dose slot, spread by how far each
+                         dose landed from its planned time. Choose a slot to read it.">
+          <g id="b6Plan"></g>
+          <g id="b6Axis" class="axistext" text-anchor="end"></g>
+          <g id="b6Dots"></g>
+          <g id="b6Labels" class="axistext" text-anchor="middle"></g>
+          <g id="b6Hits"></g>
+        </svg>
+      </div>
+
+      <div class="legend">
+        <span class="key"><i class="sw"></i> a dose you confirmed</span>
+      </div>
+
+      <div id="sStatements"></div>
+
+      <h2 class="sec-h">Movement</h2>
+      <p class="lede">Walks, PT, boxing, tai chi. Choose a week to open it in the week view.</p>
+      <div class="readout"><div id="roMove"></div></div>
+      <div class="chartwrap">
+        <svg id="chartE" viewBox="0 0 340 156" role="application"
+             aria-label="Movement sessions logged in each of six weeks.">
+          <g id="eBars"></g>
+          <g id="eLabels" class="axistext" text-anchor="middle"></g>
+          <g id="eHits"></g>
+        </svg>
+      </div>
+      <div id="mStatements"></div>
+    </section>
+
+    <!-- ══════════════ the denominator control ══════════════
+         Asked for directly: a filter that includes or excludes days with no
+         entries, with a footnote saying why the control exists at all. -->
+    <div class="control">
+      <div class="row">
+        <span class="lab">Count days with no entries</span>
+        <button class="switch" id="blankSw" role="switch" aria-checked="true"
+                aria-label="Count days with no entries" onclick="toggleBlank()"></button>
+      </div>
+      <button class="why" id="whyBtn" onclick="toggleWhy()" aria-expanded="false">
+        <i class="ph ph-info"></i> Why this is here</button>
+      <div class="whynote" id="whyNote" hidden>
+        <p>A day with no entries is a day this app knows nothing about. It is not a day
+          with nothing in it, and it is never counted as a zero.</p>
+        <p>Leaving those days in the count keeps every sentence on this page honest about
+          what it could not see. Taking them out answers a different question: what do the
+          days you did log look like on their own. Both are real questions. Neither is the
+          correct one.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+
+<!-- ══ Menu drawer ══
+     Rows are not wired to their screens yet, on purpose. -->
+<div class="drawer-wrap" id="drawerWrap" inert>
+  <nav class="drawer" id="drawer" aria-label="Main menu">
+    <div class="drawer-head">
+      <span class="brand">DoseEgg</span>
+      <button class="icon-btn" onclick="closeDrawer()" aria-label="Close menu">
+        <i class="ph ph-x"></i></button>
+    </div>
+    <div class="navrow"><i class="ph ph-list-dashes"></i>
+      <span class="lab">Timeline<span class="sub">Today, and the days behind it</span></span></div>
+    <div class="navrow here"><i class="ph ph-chart-scatter"></i>
+      <span class="lab">Look Back<span class="sub">What the record can say so far</span></span></div>
+    <div class="navrow"><i class="ph ph-first-aid-kit"></i>
+      <span class="lab">Medicine Cabinet<span class="sub">What you take, and when</span></span></div>
+    <div class="navrow"><i class="ph ph-gear"></i>
+      <span class="lab">Settings<span class="sub">Text size, AI, your data</span></span></div>
+    <div class="drawer-foot">
+      Rows are not wired to their screens yet. This menu is here to test what it
+      holds and how the labels read.
+    </div>
+  </nav>
+</div>
+
+<script>
+/* ═════════════════════════════════════════════════════════════
+   Sample data — the same six weeks the chart test page uses, so the
+   two files tell the same story without being maintained separately.
+   A day is either a list of doses or null. `null` means no entry at all,
+   which is not the same as a day with no doses, and never draws as zero.
+   Weeks run Friday to Thursday, ending 13 Aug 2026.
+   ═════════════════════════════════════════════════════════════ */
+const DAY_NAMES = ['Fri','Sat','Sun','Mon','Tue','Wed','Thu'];
+const SLOTS   = ['Morning','Midday','Evening'];
+const PLANNED = [7.5, 12.5, 17.5];         /* the schedule, not the record */
+
+const WEEKS = [
+  { range:'Jul 3 – 9', sessions:3, days:[
+    [7.75, 13.25, 18.25], null, [8.75, 13.75, 18.5],
+    [7.5, 12.75, 17.75], [7.667, {h:13.0, assumed:1}, 18.0],
+    null, [7.583, 12.5, 17.5] ]},
+  { range:'Jul 10 – 16', sessions:2, days:[
+    [7.6, 12.9, 17.9], [8.4, 13.4, 18.4], null,
+    null, [7.4, 12.6, 17.6], [7.9, 13.1, 18.1], [8.1, 12.95, 17.8] ]},
+  { range:'Jul 17 – 23', sessions:4, days:[
+    [7.45, 12.6, 17.7], [8.3, 13.3, 18.2], [8.1, 12.9, 17.95],
+    [7.35, 12.55, 17.6], null, [7.5, {h:12.8, assumed:1}, 17.65], [7.7, 12.75, 17.85] ]},
+  { range:'Jul 24 – 30', sessions:3, days:[
+    [7.55, 12.8, 17.8], [8.6, 13.45, 18.3], [8.2, 12.85, 17.7],
+    [7.3, 12.6, 17.4], [7.7, 13.1, 17.8], [7.45, 12.3, 17.6], null ]},
+  { range:'Jul 31 – Aug 6', sessions:5, days:[
+    [7.5, 12.75, 17.83], [8.5, 13.25, 18.25], [8.25, 13.0, 18.0],
+    [7.333, 12.5, 17.667], [7.75, 12.917, 17.75],
+    [7.417, {h:12.667, assumed:1}, 17.583], [7.667, 12.833, 17.917] ]},
+  { range:'Aug 7 – 13', sessions:3, days:[
+    [7.25, 12.333, 17.5], [8.667, 13.5, 18.0], [8.333, 12.833, 17.667],
+    [7.333, 12.583, 17.333], [7.667, 13.167, 17.75],
+    null, [8.083, {h:14.0, assumed:1}, 18.167] ]},
+];
+const CURRENT_WEEK = WEEKS.length - 1;
+
+/* The "early record" demo state: four days into using the app. This is the
+   state that decides whether Look Back is worth opening at all, so it needs to
+   be one tap away rather than something you imagine. */
+const EARLY = { range:'Aug 7 – 13', sessions:1, days:[
+  null, null, null, [7.4, 12.8], [7.6, 12.6, 17.9], null, [8.0, 12.9, 17.8] ]};
+
+/* ── state ────────────────────────────────────────────────── */
+let scale  = 'week';     /* 'week' | 'six' */
+let week   = CURRENT_WEEK;
+let aSel   = null;       /* chosen day row, or null for the whole week */
+let b6Sel  = null;       /* chosen slot cloud, or null for all three */
+let blank  = true;       /* count days with no entries in the denominator */
+let sparse = false;      /* the early-record demo state */
+
+/* ── helpers ──────────────────────────────────────────────── */
+const el = id => document.getElementById(id);
+const dose = d => (typeof d === 'number') ? {h:d} : d;
+
+function weekData(w){ return (sparse && w === CURRENT_WEEK) ? EARLY : WEEKS[w]; }
+function daysOf(w){
+  return weekData(w).days.map((list, i) => ({
+    day: DAY_NAMES[i],
+    doses: list ? list.map(dose) : null
+  }));
+}
+const weekDays = () => daysOf(week);
+
+/* decimal hour 7.25 → "7:15am" */
+function fmt(h){
+  const hr = Math.floor(h), mn = Math.round((h - hr) * 60);
+  const ampm = hr >= 12 ? 'pm' : 'am';
+  const h12 = hr > 12 ? hr - 12 : hr;
+  return h12 + ':' + String(mn).padStart(2,'0') + ampm;
+}
+/* 95 → "1 hour 35 minutes", 35 → "35 minutes". Written out because "1h35"
+   is engineer shorthand and this text is read, not scanned. */
+function mins(n){
+  n = Math.round(n);
+  if (n < 60) return n + ' minutes';
+  const h = Math.floor(n / 60), m = n % 60;
+  return h + (h === 1 ? ' hour' : ' hours') + (m ? ' ' + m + ' minutes' : '');
+}
+function svgEl(name, attrs){
+  const e = document.createElementNS('http://www.w3.org/2000/svg', name);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function wipe(n){ while (n.firstChild) n.removeChild(n.firstChild); }
+function dot(cx, cy, assumed){
+  return svgEl('circle', {cx, cy, r:5, class: assumed ? 'dot assumed' : 'dot'});
+}
+const timeLine = d => d.doses.map(x => fmt(x.h) + (x.assumed ? ' (assumed)' : '')).join(' · ');
+function writeReadout(node, title, line, muted){
+  node.innerHTML = '<div class="ro-day">' + title + '</div>' +
+                   '<div class="ro-times' + (muted ? ' muted' : '') + '">' + line + '</div>';
+}
+
+/* ═══════════ statement rendering ═══════════
+   Every statement carries the coverage it was computed from. That is rule 1,
+   and it is why a statement is a function of the data rather than a string. */
+function stmt(text, coverage){
+  return '<div class="stmt"><p>' + text + '</p><p class="cov">' + coverage + '</p></div>';
+}
+/* The denominator switch changes what "out of" means, and nothing else. */
+function coverage(logged, total){
+  return blank
+    ? 'From ' + logged + ' of ' + total + ' days. Days with no entries are counted.'
+    : 'From the ' + logged + ' days that have entries.';
+}
+
+/* ═══════════ A — rows are days, x is time of day ═══════════ */
+const A = {x0:42, x1:326, y0:26, rowH:30, hrs:[6,22], vbW:340};
+A.pxPerHour = (A.x1 - A.x0) / (A.hrs[1] - A.hrs[0]);
+const aX = h => A.x0 + (h - A.hrs[0]) * A.pxPerHour;
+
+function drawA(){
+  const [bands, labels, lines, dots, axis, hits] =
+    ['aBands','aLabels','aBaselines','aDots','aAxis','aHits'].map(el);
+  [bands, labels, lines, dots, axis, hits].forEach(wipe);
+
+  weekDays().forEach((d, i) => {
+    const y = A.y0 + i * A.rowH;
+    bands.appendChild(svgEl('rect', {x:4, y:y-13, width:332, height:26, rx:6,
+      class:'rowband', 'data-i':i}));
+    const t = svgEl('text', {x:6, y:y+4}); t.textContent = d.day; labels.appendChild(t);
+    lines.appendChild(svgEl('line', {x1:A.x0, y1:y, x2:A.x1, y2:y}));
+    /* a day with no entry draws nothing. Not a zero, not a warning colour. */
+    if (d.doses) d.doses.forEach(x => dots.appendChild(dot(aX(x.h), y, x.assumed)));
+
+    const hit = svgEl('rect', {x:0, y:y - A.rowH/2, width:A.vbW, height:A.rowH,
+      class:'hit', tabindex:0, role:'button', 'aria-pressed':String(i === aSel),
+      'aria-label': d.day + ', ' + (d.doses ? timeLine(d) : 'no entries')});
+    hit.addEventListener('click', () => selectDay(i));
+    hit.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); selectDay(i); }
+      if (e.key === 'ArrowDown'){ e.preventDefault(); selectDay(Math.min(6, i+1)); }
+      if (e.key === 'ArrowUp')  { e.preventDefault(); selectDay(Math.max(0, i-1)); }
+    });
+    hits.appendChild(hit);
+  });
+
+  [[6,'6am'],[10,'10am'],[14,'2pm'],[18,'6pm'],[22,'10pm']].forEach(([h, label]) => {
+    const t = svgEl('text', {x:aX(h), y:A.y0 + 7*A.rowH + 4});
+    t.textContent = label; axis.appendChild(t);
+  });
+  paintA();
+}
+/* Choosing is a toggle: tap the row you are on to go back to the whole week.
+   Same gesture in, same gesture out, so there is no control to label and no
+   verb like "clear" sitting next to someone's health record. */
+function selectDay(i){ aSel = (i === aSel) ? null : i; paintA(); }
+
+function paintA(){
+  document.querySelectorAll('#aBands .rowband')
+    .forEach(b => b.classList.toggle('on', Number(b.dataset.i) === aSel));
+  document.querySelectorAll('#aHits .hit')
+    .forEach((h, i) => h.setAttribute('aria-pressed', String(i === aSel)));
+
+  const days = weekDays();
+  if (aSel === null){
+    const logged = days.filter(d => d.doses);
+    const all = logged.flatMap(d => d.doses);
+    const assumed = all.filter(x => x.assumed).length;
+    const gaps = 7 - logged.length;
+    writeReadout(el('roWeek'), 'Whole week',
+      all.length + ' doses' +
+      (assumed ? ' · ' + assumed + ' assumed' : '') +
+      (gaps ? ' · ' + gaps + (gaps === 1 ? ' blank day' : ' blank days') : ''), false);
+  } else {
+    const d = days[aSel];
+    /* the subject is the record, never the person */
+    writeReadout(el('roWeek'), d.day,
+      d.doses ? timeLine(d) : 'No entries. This picture does not cover it.', !d.doses);
+  }
+}
+
+/* ═══════════ week statements ═══════════ */
+function weekStatements(){
+  const days = weekDays();
+  const logged = days.filter(d => d.doses);
+  const out = [];
+
+  /* Per slot, the confirmed times only. Assumed doses are excluded from any
+     claim about timing — a schedule is a plan, not an observation. */
+  const bySlot = [[], [], []];
+  logged.forEach(d => d.doses.forEach((x, si) => { if (!x.assumed && si < 3) bySlot[si].push(x.h); }));
+  const spread = bySlot.map(v => v.length >= 2 ? (Math.max(...v) - Math.min(...v)) * 60 : null);
+  const ready  = spread.map((s, i) => s !== null && bySlot[i].length >= 4);
+  /* The gate for comparing one slot against another: most of the week logged,
+     and at least two slots with four confirmed times in them. Four days is not
+     a spread, it is four days. The number is a judgement, not a calculation —
+     it is here in one place so it can be argued with and changed. */
+  const canCompare = logged.length >= 5 && ready.filter(Boolean).length >= 2;
+
+  if (canCompare){
+    /* narrowest and widest slot, named by the data rather than assumed */
+    const idx = spread.map((s, i) => ({s, i})).filter(o => ready[o.i])
+                      .sort((a, b) => a.s - b.s);
+    const tight = idx[0], loose = idx[idx.length - 1];
+    const lv = bySlot[loose.i];
+    out.push(stmt(
+      'Your ' + SLOTS[tight.i].toLowerCase() + ' doses landed within ' + mins(tight.s) +
+      ' of each other this week. Your ' + SLOTS[loose.i].toLowerCase() +
+      ' doses spread further, from ' + fmt(Math.min(...lv)) + ' to ' + fmt(Math.max(...lv)) + '.',
+      coverage(logged.length, 7)));
+  } else {
+    /* Phase 1 of the record: recall only. No locked card, no greyed-out
+       placeholder, no "keep logging to unlock". Just what is true today. */
+    out.push(stmt(
+      'This week has ' + logged.length + (logged.length === 1 ? ' day' : ' days') +
+      ' with entries. The chart above shows the times they landed. Comparing your ' +
+      'slots to each other needs a few more days than that.',
+      coverage(logged.length, 7)));
+  }
+
+  const gaps = days.map((d, i) => d.doses ? null : i).filter(i => i !== null);
+  if (gaps.length){
+    const names = gaps.map(i => DAY_NAMES[i]);
+    const list = names.length === 1 ? names[0]
+      : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+    out.push(stmt(
+      list + (names.length === 1 ? ' has' : ' have') +
+      ' no entries, so this week’s picture does not cover ' +
+      (names.length === 1 ? 'that day' : 'those days') + '.',
+      blank
+        ? 'Counted as ' + (names.length === 1 ? 'a day' : 'days') +
+          ' this picture cannot see.'
+        : 'Left out of the count, so the picture above is ' + logged.length + ' days wide.'));
+  } else {
+    out.push(stmt('Every day this week has at least one entry.',
+      'Nothing is missing from this picture.'));
+  }
+  el('wStatements').innerHTML = out.join('');
+}
+
+/* ═══════════ B6 — six weeks, measured against the plan ═══════════ */
+/* x0 is the label gutter. The axis labels are words, not "-30m", so the
+   gutter has to hold the longest of them without clipping. */
+const B6 = {cx:[136, 208, 280], minLo:-30, minHi:90, yLo:30, yHi:170, bucket:7, step:7, x0:88};
+B6.pxPerMin = (B6.yHi - B6.yLo) / (B6.minHi - B6.minLo);
+const b6Y = m => B6.yLo + (m - B6.minLo) * B6.pxPerMin;
+
+/* every confirmed dose, as minutes away from that slot's planned time */
+function slotValues(){
+  const out = [[], [], []];
+  WEEKS.forEach((w, wi) => daysOf(wi).forEach(d => {
+    if (!d.doses) return;
+    d.doses.forEach((x, si) => {
+      if (!x.assumed && si < 3) out[si].push(Math.round((x.h - PLANNED[si]) * 60));
+    });
+  }));
+  return out;
+}
+function slotAssumed(){
+  const out = [0, 0, 0];
+  WEEKS.forEach((w, wi) => daysOf(wi).forEach(d => {
+    if (d.doses) d.doses.forEach((x, si) => { if (x.assumed && si < 3) out[si]++; });
+  }));
+  return out;
+}
+function sixCoverage(){
+  let logged = 0, total = 0;
+  WEEKS.forEach((w, wi) => daysOf(wi).forEach(d => { total++; if (d.doses) logged++; }));
+  return {logged, total};
+}
+/* Beeswarm: bucket by vertical position, then fan out from the centre, so the
+   WIDTH of a cloud is density rather than random jitter that means nothing. */
+function swarm(values){
+  const placed = [], byBucket = new Map();
+  values.slice().sort((a, b) => a - b).forEach(m => {
+    const y = b6Y(m), key = Math.round(y / B6.bucket);
+    const n = byBucket.get(key) || 0;
+    byBucket.set(key, n + 1);
+    placed.push({y, dx: Math.ceil(n / 2) * (n % 2 === 0 ? 1 : -1) * B6.step});
+  });
+  return placed;
+}
+function drawB6(){
+  const [plan, axis, dots, labs, hits] =
+    ['b6Plan','b6Axis','b6Dots','b6Labels','b6Hits'].map(el);
+  [plan, axis, dots, labs, hits].forEach(wipe);
+
+  /* the planned time IS the axis here, not a decoration laid over the data,
+     so this view has no option to hide it */
+  [[-30,'30m early'], [0,'planned'], [30,'30m late'], [60,'1h late'], [90,'1½h late']]
+    .forEach(([m, label]) => {
+      const zero = m === 0;
+      plan.appendChild(svgEl('line', {x1:B6.x0, y1:b6Y(m), x2:322, y2:b6Y(m),
+        class: zero ? 'planline' : 'gridline'}));
+      const t = svgEl('text', {x:B6.x0 - 8, y:b6Y(m) + 4});
+      t.textContent = label;
+      if (zero) t.setAttribute('class', 'here');
+      axis.appendChild(t);
+    });
+
+  slotValues().forEach((list, si) => {
+    /* Fading the other two is legitimate here because this IS a selection.
+       On the movement bars the highlight is a position, so nothing fades. */
+    const dim = b6Sel !== null && b6Sel !== si;
+    swarm(list).forEach(pt => dots.appendChild(svgEl('circle',
+      {cx: B6.cx[si] + pt.dx, cy: pt.y, r:3.5,
+       class: dim ? 'swarmdot dim' : 'swarmdot'})));
+
+    const t = svgEl('text', {x:B6.cx[si], y:200});
+    t.textContent = SLOTS[si];
+    if (b6Sel === si) t.setAttribute('class', 'here');
+    else if (dim) t.setAttribute('opacity', '0.45');
+    labs.appendChild(t);
+
+    const hit = svgEl('rect', {x:B6.cx[si] - 39, y:14, width:78, height:172,
+      class:'hit', tabindex:0, role:'button', 'aria-pressed':String(b6Sel === si),
+      'aria-label': SLOTS[si] + ' doses, ' + list.length + ' of them'});
+    const pick = () => { b6Sel = (b6Sel === si) ? null : si; drawB6(); paintB6(); };
+    hit.addEventListener('click', pick);
+    hit.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); pick(); }
+    });
+    hits.appendChild(hit);
+  });
+}
+function paintB6(){
+  const vals = slotValues(), assumed = slotAssumed(), cov = sixCoverage();
+  if (b6Sel === null){
+    const n = vals.flat().length, a = assumed.reduce((x, y) => x + y, 0);
+    writeReadout(el('roSix'), 'All three slots',
+      n + ' confirmed doses' + (a ? ' · ' + a + ' assumed, left out' : ''), false);
+  } else {
+    const v = vals[b6Sel];
+    writeReadout(el('roSix'), SLOTS[b6Sel],
+      v.length + ' doses · ' + mins(Math.max(...v) - Math.min(...v)) +
+      ' between the earliest and the latest', false);
+  }
+  sixStatements(cov);
+}
+function sixStatements(cov){
+  const vals = slotValues(), assumed = slotAssumed();
+  const widths = vals.map(v => Math.max(...v) - Math.min(...v));
+  const loose = widths.indexOf(Math.max(...widths));
+  const tight = widths.indexOf(Math.min(...widths));
+  const late  = vals[loose].filter(m => m > 15).length;
+
+  const out = [];
+  out.push(stmt(
+    'Over six weeks your ' + SLOTS[tight].toLowerCase() + ' doses were the steadiest, ' +
+    'spread across ' + mins(widths[tight]) + ' from earliest to latest. Your ' +
+    SLOTS[loose].toLowerCase() + ' doses spread across ' + mins(widths[loose]) + '.',
+    'From ' + vals.flat().length + ' confirmed doses on ' + cov.logged +
+    ' of ' + cov.total + ' days. ' + assumed.reduce((a,b)=>a+b,0) + ' assumed doses left out.'));
+  out.push(stmt(
+    late + ' of your ' + vals[loose].length + ' ' + SLOTS[loose].toLowerCase() +
+    ' doses landed more than 15 minutes after the planned time.',
+    'Counted against your schedule of ' + fmt(PLANNED[loose]) + '.'));
+  el('sStatements').innerHTML = out.join('');
+}
+
+/* ═══════════ E — movement sessions per week ═══════════ */
+const E = {x0:34, y0:24, zeroY:120, slot:(330-34)/6, max:6};
+function drawE(){
+  const [bars, labs, hits] = ['eBars','eLabels','eHits'].map(el);
+  [bars, labs, hits].forEach(wipe);
+  const unit = (E.zeroY - E.y0) / E.max;
+  labs.appendChild(svgEl('line', {x1:E.x0, y1:E.zeroY, x2:330, y2:E.zeroY,
+    class:'gridline'}));
+
+  WEEKS.forEach((w, wi) => {
+    const n = weekData(wi).sessions;
+    const h = n * unit, x = E.x0 + wi * E.slot + 8, bw = E.slot - 16;
+    /* Every bar is the same data and every bar matters to the six-week
+       reading, so none of them is dimmed. The darker label and the tick say
+       "this is the week open in the week view": a position, not a selection.
+       There is nothing to deselect, so nothing should look selected-off. */
+    bars.appendChild(svgEl('rect', {x, y:E.zeroY - h, width:bw, height:h, rx:3, class:'bar'}));
+
+    const t = svgEl('text', {x:x + bw/2, y:E.zeroY + 18});
+    /* labelled with the week's start date, not an offset: "-3" makes the
+       reader do arithmetic to find out which week they are looking at */
+    t.textContent = WEEKS[wi].range.split(' – ')[0];
+    if (wi === week){
+      t.setAttribute('class', 'here');
+      labs.appendChild(svgEl('rect', {x:x + bw/2 - 9, y:E.zeroY + 25,
+        width:18, height:2.5, rx:1.25, class:'bar'}));
+    }
+    labs.appendChild(t);
+
+    const hit = svgEl('rect', {x:E.x0 + wi*E.slot, y:E.y0 - 6, width:E.slot,
+      height:E.zeroY - E.y0 + 30, class:'hit', tabindex:0, role:'button',
+      'aria-label': WEEKS[wi].range + ', ' + n + ' movement sessions. Opens this week.'});
+    const go = () => { week = wi; aSel = null; setScale('week'); };
+    hit.addEventListener('click', go);
+    hit.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); }
+    });
+    hits.appendChild(hit);
+  });
+
+  const counts = WEEKS.map((w, wi) => weekData(wi).sessions);
+  writeReadout(el('roMove'), 'Six weeks',
+    counts.reduce((a, b) => a + b, 0) + ' movement sessions logged', false);
+  el('mStatements').innerHTML = stmt(
+    'You logged between ' + Math.min(...counts) + ' and ' + Math.max(...counts) +
+    ' movement sessions in a week.',
+    'From 6 weeks of the record.');
+}
+
+/* ═══════════ period navigation ═══════════
+   Selection is a day index, so stepping weeks holds the same weekday, which is
+   the two-day comparison in embryo. */
+function stepWeek(dir){
+  week = Math.max(0, Math.min(WEEKS.length - 1, week + dir));
+  render();
+}
+function jumpToThisWeek(){ week = CURRENT_WEEK; render(); }
+
+/* ═══════════ scale, switches, drawer ═══════════ */
+function setScale(s){
+  scale = s;
+  el('tab-week').setAttribute('aria-selected', String(s === 'week'));
+  el('tab-six').setAttribute('aria-selected', String(s === 'six'));
+  el('v-week').hidden = s !== 'week';
+  el('v-six').hidden  = s !== 'six';
+  render();
+}
+function toggleBlank(){
+  blank = !blank;
+  el('blankSw').setAttribute('aria-checked', String(blank));
+  render();
+}
+function toggleWhy(){
+  const open = el('whyNote').hidden;
+  el('whyNote').hidden = !open;
+  el('whyBtn').setAttribute('aria-expanded', String(open));
+}
+function toggleSparse(){
+  sparse = !sparse;
+  week = CURRENT_WEEK; aSel = null;
+  el('sparseBtn').classList.toggle('on', sparse);
+  render();
+}
+function openDrawer(){
+  el('drawerWrap').removeAttribute('inert');
+  el('drawer').classList.add('open');
+  el('scrim').classList.add('open');
+  el('menuBtn').setAttribute('aria-expanded', 'true');
+  el('drawer').querySelector('.icon-btn').focus();
+}
+function closeDrawer(){
+  if (!el('drawer').classList.contains('open')) return;
+  el('drawer').classList.remove('open');
+  el('drawerWrap').setAttribute('inert', '');
+  el('scrim').classList.remove('open');
+  el('menuBtn').setAttribute('aria-expanded', 'false');
+  el('menuBtn').focus();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+/* ═══════════ render ═══════════ */
+function render(){
+  const days = weekDays(), logged = days.filter(d => d.doses).length;
+  el('wRange').textContent = weekData(week).range;
+  const back = CURRENT_WEEK - week;
+  el('wWhen').textContent = back === 0 ? 'This week'
+    : back === 1 ? 'Last week' : back + ' weeks ago';
+  el('prevW').disabled = week === 0;
+  el('nextW').disabled = week === CURRENT_WEEK;
+  el('wJump').hidden = week === CURRENT_WEEK;
+  el('wCoverage').textContent = blank
+    ? logged + ' of 7 days have entries'
+    : 'Counting the ' + logged + (logged === 1 ? ' day' : ' days') + ' with entries';
+
+  if (scale === 'week'){ drawA(); weekStatements(); }
+  else { drawB6(); paintB6(); drawE(); }
+}
+render();
+</script>
+</body>
+</html>

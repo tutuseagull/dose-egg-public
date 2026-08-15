@@ -68,6 +68,7 @@
   --meta-gap:5px;       /* icon → value inside a metadata pair. Optical, not scale. */
   --text-meta:.875rem;  /* metadata, chips, timestamps — 14px floor */
 
+  --drawer-w:320px;     /* menu panel width cap — same family as --shell-w */
   --shell-w:420px;      /* review-frame width — the toast is sized against this */
 }
 @media (prefers-reduced-motion:reduce){
@@ -313,6 +314,37 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .fab i{font-size:28px}
 .fab:hover{background:var(--accent-hover)}
 .fab:active{transform:scale(.94)}
+
+/* ── menu drawer ──
+   Rows do not navigate yet. The drawer is here to test what the menu holds and
+   whether the labels read right, not the routing between screens.
+   The wrapper is a fixed, shell-width band so on a desktop monitor the panel
+   slides out from the phone frame's edge rather than the window's. */
+.drawer-wrap{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);
+             width:100%;max-width:var(--shell-w);z-index:60;pointer-events:none}
+.drawer{position:absolute;top:0;bottom:0;left:0;width:min(84%,var(--drawer-w));
+        background:var(--surface-card);border-right:1px solid var(--border-subtle);
+        transform:translateX(-100%);transition:transform var(--motion-base) var(--ease-out);
+        pointer-events:auto;display:flex;flex-direction:column;padding:var(--space-4) 0}
+.drawer.open{transform:translateX(0)}
+.drawer-head{display:flex;align-items:center;
+             padding:0 var(--space-2) var(--space-4) var(--gutter)}
+.drawer-head .brand{font-family:var(--font-serif);font-size:var(--text-heading);flex:1}
+.navrow{display:flex;align-items:center;gap:var(--space-3);
+        min-height:var(--target-routine);padding:var(--space-2) var(--gutter);
+        color:var(--text-primary);font-size:var(--text-body)}
+.navrow i{font-size:22px;color:var(--mark);flex:0 0 auto;width:var(--space-6);
+          text-align:center}
+.navrow .lab{flex:1;line-height:var(--leading-tight)}
+.navrow .sub{display:block;font-size:var(--text-meta);color:var(--text-muted);
+             font-weight:400;margin-top:var(--space-1)}
+/* where you are is a marker, not a colour swap — same rule the charts use */
+.navrow.here{font-weight:600}
+.navrow.here::after{content:"";width:var(--space-1);height:var(--space-6);
+                    border-radius:var(--radius-full);background:var(--accent);flex:0 0 auto}
+.drawer-foot{margin-top:auto;padding:var(--space-4) var(--gutter) 0;
+             border-top:1px solid var(--border-subtle);color:var(--text-muted);
+             font-size:var(--text-meta);line-height:var(--leading-body)}
 
 /* ── sheets ── */
 .scrim{position:fixed;inset:0;background:rgba(26,25,22,.34);opacity:0;pointer-events:none;
@@ -764,7 +796,8 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
   </div>
 
   <div class="top">
-    <button class="icon-btn" aria-label="Menu"><i class="ph ph-list"></i></button>
+    <button class="icon-btn" id="menuBtn" onclick="openDrawer()"
+            aria-label="Menu" aria-expanded="false"><i class="ph ph-list"></i></button>
     <button class="icon-btn" aria-label="More"><i class="ph ph-dots-three"></i></button>
   </div>
 
@@ -783,7 +816,32 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
   </button>
 </div>
 
-<div class="scrim" id="scrim" onclick="closeSheets()"></div>
+<div class="scrim" id="scrim" onclick="dismissOverlay()"></div>
+
+<!-- ══ Menu drawer ══
+     Rows are not wired to their screens yet, on purpose: this is here to test
+     what the menu holds and how the labels read, not the routing. -->
+<div class="drawer-wrap" id="drawerWrap" inert>
+  <nav class="drawer" id="drawer" aria-label="Main menu">
+    <div class="drawer-head">
+      <span class="brand">DoseEgg</span>
+      <button class="icon-btn" onclick="closeDrawer()" aria-label="Close menu">
+        <i class="ph ph-x"></i></button>
+    </div>
+    <div class="navrow here"><i class="ph ph-list-dashes"></i>
+      <span class="lab">Timeline<span class="sub">Today, and the days behind it</span></span></div>
+    <div class="navrow"><i class="ph ph-chart-scatter"></i>
+      <span class="lab">Look Back<span class="sub">What the record can say so far</span></span></div>
+    <div class="navrow"><i class="ph ph-first-aid-kit"></i>
+      <span class="lab">Medicine Cabinet<span class="sub">What you take, and when</span></span></div>
+    <div class="navrow"><i class="ph ph-gear"></i>
+      <span class="lab">Settings<span class="sub">Text size, AI, your data</span></span></div>
+    <div class="drawer-foot">
+      Rows are not wired to their screens yet. This menu is here to test what it
+      holds and how the labels read.
+    </div>
+  </nav>
+</div>
 
 <!-- ══ Quick Log sheet ══ -->
 <div class="sheet" id="sheet-log" role="dialog" aria-label="Add to today" tabindex="-1">
@@ -2249,7 +2307,30 @@ function closeSheets(){
   active = null; openField = null; editingLabel = false; pickerStep = null; openMini = null;
   if (lastFocus && lastFocus.focus) lastFocus.focus();
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(); });
+/* ── menu drawer ──
+   Guarded so it is safe to call from anywhere: closeDrawer() on a closed drawer
+   does nothing, which is what lets one dismisser serve both overlays without
+   stealing focus from a sheet that was the thing actually open. */
+function openDrawer(){
+  el('drawerWrap').removeAttribute('inert');
+  el('drawer').classList.add('open');
+  el('scrim').classList.add('open');
+  el('menuBtn').setAttribute('aria-expanded', 'true');
+  el('drawer').querySelector('.icon-btn').focus();
+}
+function closeDrawer(){
+  if (!el('drawer').classList.contains('open')) return;
+  el('drawer').classList.remove('open');
+  el('drawerWrap').setAttribute('inert', '');
+  el('scrim').classList.remove('open');
+  el('menuBtn').setAttribute('aria-expanded', 'false');
+  el('menuBtn').focus();
+}
+/* one scrim, two things that can be under it */
+function dismissOverlay(){
+  if (el('drawer').classList.contains('open')) closeDrawer(); else closeSheets();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') dismissOverlay(); });
 
 /* ── temporary tuning controls — remove before this becomes real ── */
 function toggleTuner(){ el('tuner').classList.toggle('open'); }
