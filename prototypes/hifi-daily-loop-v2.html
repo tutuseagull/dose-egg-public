@@ -104,8 +104,14 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 /* ── demo bar (dev only) ── */
 .demo-bar{display:flex;gap:var(--space-2);padding:var(--space-2) var(--space-3);
           background:var(--paper-800);align-items:center;flex-wrap:wrap}
+/* `margin-right:auto` used to shove the buttons to the right edge. With
+   flex-wrap on, that opened a hole between the label and the first button
+   whenever the row was too narrow to hold everything — the gap grew as the
+   remaining buttons wrapped away. Everything packs left now and wraps as one
+   run, which is what a row of dev chrome should do. */
 .demo-bar .db{font-size:11px;letter-spacing:.06em;text-transform:uppercase;
-              color:var(--paper-400);margin-right:auto;font-weight:500}
+              color:var(--paper-400);font-weight:500;
+              padding-right:var(--space-1)}
 .demo-btn{font-size:12px;font-weight:500;color:var(--paper-100);
           background:rgba(255,255,255,.12);padding:5px 10px;border-radius:var(--radius-full);
           display:flex;align-items:center;min-height:32px;text-decoration:none}
@@ -708,7 +714,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 
   <div class="demo-bar">
     <a class="demo-btn home" href="../index.html">← Home</a>
-    <span class="db">Hi-fi · Today · v2</span>
+    <span class="db">Hi-fi · Timeline · v2</span>
     <button class="demo-btn" onclick="demoAddDose()">+ due dose</button>
     <button class="demo-btn" onclick="demoEmpty()">empty</button>
     <button class="demo-btn" onclick="toggleTuner()">tune ▾</button>
