@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DoseEgg — Drawing a quiet day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,300;6..72,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper-0:#FFF;--paper-50:#F9F8F5;--paper-100:#F2F1EC;--paper-200:#E8E6DF;
+  --paper-300:#D9D6CC;--paper-500:#8D8A7D;--paper-600:#6E6B5F;--paper-700:#46443C;--paper-900:#1A1916;
+  --ink-500:#1F4A52;--ink-600:#163940;
+  --mark:#4E6B84;--mark-note:#8C7B6A;
+  --font-serif:'Newsreader',Georgia,serif;--font-sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;padding:24px 18px 96px;background:var(--paper-50);color:var(--paper-900);
+     font-family:var(--font-sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:460px;margin:0 auto}
+a.back{display:inline-block;font-size:12px;font-weight:600;color:var(--paper-600);
+  text-decoration:none;border:1px solid var(--paper-200);border-radius:20px;
+  padding:4px 12px;margin-bottom:18px;background:var(--paper-0)}
+h1{font-family:var(--font-serif);font-size:28px;font-weight:400;line-height:1.2;margin:0 0 6px}
+h2{font-family:var(--font-serif);font-size:22px;font-weight:400;margin:48px 0 4px;
+   padding-bottom:10px;border-bottom:1px solid var(--paper-200)}
+h3{font-size:15px;font-weight:600;margin:26px 0 6px}
+p{margin:0 0 12px;color:var(--paper-700);font-size:16px}
+.lede{color:var(--paper-600)}
+.q{font-family:var(--font-serif);font-size:19px;color:var(--paper-900);margin:0 0 12px;line-height:1.4}
+.label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--paper-600);font-weight:500}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.85em;background:var(--paper-200);
+     padding:2px 5px;border-radius:5px}
+ul{margin:0 0 14px;padding-left:20px}
+li{margin-bottom:7px;color:var(--paper-700);font-size:16px}
+.note{background:var(--paper-100);border-left:3px solid var(--ink-500);border-radius:0 10px 10px 0;
+      padding:14px;margin:16px 0;font-size:15px;color:var(--paper-700)}
+.note b{color:var(--paper-900)}
+.note.warn{border-left-color:var(--mark-note);background:rgba(140,123,106,.07)}
+.card{background:var(--paper-0);border:1px solid var(--paper-200);border-radius:14px;
+      padding:16px;margin:16px 0}
+
+/* ── controls ── */
+.controls{position:sticky;top:0;z-index:20;background:var(--paper-50);
+  padding:10px 0 12px;margin:0 0 8px;border-bottom:1px solid var(--paper-200)}
+.opts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.opt{flex:1 1 auto;min-height:44px;padding:6px 10px;border-radius:9px;
+  border:1px solid var(--paper-300);background:var(--paper-0);color:var(--paper-700);
+  font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;line-height:1.25}
+.opt small{display:block;font-weight:400;font-size:11px;color:var(--paper-500)}
+.opt[aria-pressed="true"]{background:var(--ink-500);border-color:var(--ink-500);color:#fff}
+.opt[aria-pressed="true"] small{color:rgba(255,255,255,.75)}
+.toggles{display:flex;gap:6px}
+.tg{flex:1;min-height:40px;border-radius:9px;border:1px solid var(--paper-300);
+  background:var(--paper-0);color:var(--paper-700);font-family:inherit;font-size:12px;
+  font-weight:600;cursor:pointer}
+.tg[aria-pressed="true"]{background:var(--paper-700);border-color:var(--paper-700);color:#fff}
+
+/* rough proxy for reduced contrast sensitivity — NOT a real simulation */
+#stage.squint{filter:contrast(.42) blur(.5px);opacity:.95}
+
+svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0 4px;font-size:13px;color:var(--paper-600)}
+.legend i{display:inline-block;width:15px;height:15px;vertical-align:-3px;margin-right:5px}
+.verdict{font-size:14px;color:var(--paper-600);margin-top:10px;padding-top:10px;
+  border-top:1px solid var(--paper-200)}
+.verdict b{color:var(--paper-900)}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--paper-200);
+  font-size:12px;color:var(--paper-500)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back" href="index.html">← Home</a>
+
+<h1>Drawing a quiet day</h1>
+<p class="lede">Five ways to render three states — <code>logged</code>, <code>quiet</code>, <code>unknown</code> — in the three places they have to survive. Open on a phone. Tap an option to swap all three charts at once.</p>
+
+<div class="note">
+  <b>The problem, in Tutu's words.</b> A quiet day is a real, valid record — someone was
+  there and said the day was ordinary. But an empty circle reads as <em>missing</em>, and
+  missing is what <code>unknown</code> already means. Two different facts, both drawn as absence.
+</div>
+
+<h2>The reframe</h2>
+<p class="q">The axis isn't <em>eventful vs uneventful</em>. It's <em>spoken vs unspoken</em>.</p>
+<p>Our current grammar accidentally encodes "how much happened," which slides toward
+"how bad was it." The honest axis is <b>how much the record can speak for</b> — and on that
+axis a quiet day is <em>fully spoken</em>. It should be as visually solid as a logged one.</p>
+<p>Which gives the rule, and it's rule 5 from the portfolio list applied one level down:
+<b>presence encodes testimony, content encodes what happened.</b> Someone spoke, so the
+mark exists. What they said is a property of the mark, not of whether it's drawn.</p>
+<div class="note warn">
+  <b>The trap on the other side.</b> If <code>quiet</code> gets drawn as <em>more</em> than logged —
+  brighter, warmer, a check — we've built the report card. It should be equal in weight
+  and different in kind. Neither reward nor deficit.
+</div>
+
+<h2>The five</h2>
+<p>Each option decides how the three states differ. Watch what happens under
+<b>low contrast</b> — that's where most of them die.</p>
+
+<div class="controls">
+  <div class="opts" id="opts"></div>
+  <div class="toggles">
+    <button class="tg" id="tgSquint" aria-pressed="false">Low contrast</button>
+    <button class="tg" id="tgBig" aria-pressed="false">Bigger marks</button>
+  </div>
+</div>
+
+<div id="stage">
+
+  <h3>1 · Coverage grid — six weeks, one square per day</h3>
+  <p class="lede" style="font-size:14px">The hardest context. Forty-two marks at 20px, read at a glance.</p>
+  <div class="card"><svg id="svgGrid" viewBox="0 0 400 230" role="img" aria-label="Coverage grid"></svg></div>
+
+  <h3>2 · Day rows — one week, time of day across</h3>
+  <p class="lede" style="font-size:14px">Here a quiet day is a whole empty row. The row itself has to say something.</p>
+  <div class="card"><svg id="svgRows" viewBox="0 0 400 210" role="img" aria-label="Day rows"></svg></div>
+
+  <h3>3 · Timeline — three consecutive days</h3>
+  <p class="lede" style="font-size:14px">Scrolling back through the record. A quiet day still needs to occupy space.</p>
+  <div class="card"><svg id="svgTL" viewBox="0 0 400 260" role="img" aria-label="Timeline"></svg></div>
+
+  <div class="legend" id="legend"></div>
+</div>
+
+<div class="card" id="verdictCard">
+  <div class="label">What this option says</div>
+  <div class="verdict" id="verdict"></div>
+</div>
+
+
+<h2>Where I'd land</h2>
+<p><b>Option 4 — ground and figure</b>, with a piece of option 3 borrowed.</p>
+<p>Coverage becomes a property of the <em>canvas</em>, not of the mark. A day the record
+covers gets a tinted ground; a day it doesn't gets no ground and a dashed edge. Events
+are marks drawn <em>on</em> that ground. Then <code>quiet</code> needs no special mark at all —
+it's simply a covered day with nothing on it, which is exactly what it means.</p>
+<p>That has three properties the others don't:</p>
+<ul>
+  <li><b>It never competes with the data.</b> Coverage sits behind, events sit in front. Adding a
+  fourth state later doesn't cost us a fourth mark shape.</li>
+  <li><b>It survives low contrast</b>, because a filled area is far more robust to contrast loss
+  than a 1.5px outline or a weight difference between two small dots.</li>
+  <li><b>It says the right sentence.</b> "This part of the picture is covered" is a statement about
+  the record. A hollow dot is a statement about the day.</li>
+</ul>
+<p>The borrowed piece: in the <em>grid</em> specifically, where cells are tiny and there's no
+figure/ground room, a <b>solid short tick</b> for quiet is more legible than an untouched
+tinted cell. Different shape beats different weight at 20px.</p>
+<div class="note warn">
+  <b>The one I'd argue against is option 5.</b> Making <code>unknown</code> nearly invisible is
+  tempting — it's the least informative state, so give it the least ink. But a gap you
+  can't see is a lie by omission, and the whole point of the coverage grid is that the
+  holes are visible. Unknown has to stay legible even though it's saying nothing.
+</div>
+
+<h2>Still open</h2>
+<ul>
+  <li><b>Does a quiet day need a time?</b> An entry has a timestamp. "Today was ordinary" is a
+  claim about a whole day, or an afternoon. If it's day-scoped it's a different object
+  from every other entry, which the schema has to know.</li>
+  <li><b>Can a day be both?</b> Quiet morning, rough afternoon. If quiet is day-scoped, no.
+  If it's period-scoped, the grid cell needs to hold a mixed state and we're back to
+  four marks.</li>
+  <li><b>Retroactive quiet.</b> Marking last Tuesday ordinary from memory is weaker evidence
+  than marking today ordinary. Same problem as an assumed dose — and we already solved
+  that one with a distinct mark, so there's precedent either way.</li>
+  <li><b>The word.</b> "Quiet" is our internal name. Test it: quiet may read as lonely.
+  Candidates to try on P01 and the domain lead — <em>an ordinary day · nothing to report ·
+  a steady day · uneventful</em>. Per the OFF-period vocabulary research, offer more
+  than one and let people keep their own.</li>
+</ul>
+
+<footer>DoseEgg · Look Back · Drawing a quiet day · August 2026<br>
+Low-contrast toggle is a rough CSS proxy, not a validated vision simulation. Verify on device.</footer>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   Six weeks of sample days. state: 2 = logged, 1 = quiet, 0 = unknown.
+   Deterministic — no random, so the picture is the same every open.
+   ═══════════════════════════════════════════════════════════════ */
+const STATES = [
+  2,2,1,2,0,2,1,  2,1,2,2,2,0,0,  2,2,2,1,2,2,1,
+  0,0,1,2,2,2,2,  2,1,2,0,2,1,2,  2,2,1,2,2,2,0
+];
+/* dose times for the last week (index 35..41), null rows come from state */
+const WEEKDAYS = ['M','T','W','T','F','S','S'];
+const WEEKROW = [
+  {doses:[7.2,12.4,17.6]}, {doses:[7.0,12.1,17.2]}, {doses:[]},
+  {doses:[7.6,13.1,18.0]}, {doses:[7.1,12.3,17.4]}, {doses:[8.4,13.6,18.2]}, {doses:[]}
+];
+const WEEKSTATE = [2,2,1,2,2,2,0];
+
+const OPTIONS = [
+  { key:'weight', name:'1 · Weight',  sub:'same shape, less ink',
+    verdict:'<b>Quiet is a paler version of logged.</b> Cheapest to build and the first thing anyone reaches for. It is also the one that fails hardest under low contrast: a pale fill and a dashed outline converge into the same grey smudge, so the two states you most need to tell apart become the two that look alike. It also implies a scale — logged is <em>more</em>, quiet is <em>less</em> — which is the eventful-vs-uneventful axis we just rejected.'},
+  { key:'rail', name:'2 · Rail',      sub:'the day’s baseline',
+    verdict:'<b>The rail carries testimony; marks carry events.</b> A solid rail means the day is accounted for, whether or not anything sits on it. Conceptually the cleanest fit for the reframe, and it reads beautifully in the row chart. Its problem is the grid, where a 20px cell has no room for a rail that isn’t just a border by another name.'},
+  { key:'tick', name:'3 · Tick',      sub:'a different shape',
+    verdict:'<b>Quiet is a short solid bar, not a hollow dot.</b> A different <em>shape</em>, not a different weight, which is why it survives contrast loss where option 1 does not. It borrows the typographic convention of a dash in a table cell: recorded, and the value is nothing. Risk is that a dash can read as "not applicable" rather than "nothing to report" — worth putting in front of people rather than arguing about.'},
+  { key:'ground', name:'4 · Ground',  sub:'coverage is the canvas',
+    verdict:'<b>Coverage lives behind the data, not in it.</b> A tinted ground means the record covers this stretch; marks on top are what happened. Quiet needs no mark at all — it is simply covered ground with nothing on it, which is precisely what it means. Robust at low contrast because a filled area loses far less than a 1.5px outline. The cost: on a busy day the ground has to stay quiet enough not to muddy the marks.'},
+  { key:'invert', name:'5 · Inverted', sub:'unknown gets least ink',
+    verdict:'<b>Flips the hierarchy: logged is filled, quiet is outlined, unknown is nearly nothing.</b> Worth building to see, because it tests the instinct that an outline reads as "empty" rather than "missing" — here the outline is the <em>positive</em> state. But it makes gaps almost invisible, and the coverage grid exists specifically so the holes can be seen. I think this one is instructive and wrong.'}
+];
+
+let opt = 'ground', big = false;
+
+/* ── tiny SVG helper ── */
+const NS='http://www.w3.org/2000/svg';
+function el(tag, attrs, parent){
+  const n=document.createElementNS(NS,tag);
+  for(const k in attrs) n.setAttribute(k, attrs[k]);
+  if(parent) parent.appendChild(n);
+  return n;
+}
+function clear(svg){ while(svg.firstChild) svg.removeChild(svg.firstChild); }
+
+const C = {
+  mark:'#4E6B84', ground:'#DDE4EA', groundSoft:'#E9EEF1',
+  edge:'#D9D6CC', pale:'#BFCBD6', text:'#8D8A7D', paper:'#FFF'
+};
+
+/* ═══ the whole design decision lives here ═══
+   Draws one day cell of side `s` at (x,y) for state 0/1/2. */
+function drawCell(g, x, y, s, state){
+  const r = 4;
+  if(opt==='weight'){
+    if(state===2) el('rect',{x,y,width:s,height:s,rx:r,fill:C.mark},g);
+    else if(state===1) el('rect',{x,y,width:s,height:s,rx:r,fill:C.pale,opacity:.55},g);
+    else el('rect',{x:x+.75,y:y+.75,width:s-1.5,height:s-1.5,rx:r,fill:'none',
+      stroke:C.edge,'stroke-width':1.5,'stroke-dasharray':'3 3'},g);
+  }
+  else if(opt==='rail'){
+    const ry = y+s-1.5;
+    if(state===2){
+      el('rect',{x,y,width:s,height:s,rx:r,fill:'none'},g);
+      el('line',{x1:x,y1:ry,x2:x+s,y2:ry,stroke:C.mark,'stroke-width':2.5},g);
+      el('circle',{cx:x+s/2,cy:y+s/2-2,r:Math.max(3,s*0.18),fill:C.mark},g);
+    } else if(state===1){
+      el('line',{x1:x,y1:ry,x2:x+s,y2:ry,stroke:C.mark,'stroke-width':2.5},g);
+    } else {
+      el('line',{x1:x,y1:ry,x2:x+s,y2:ry,stroke:C.edge,'stroke-width':2.5,
+        'stroke-dasharray':'3 3'},g);
+    }
+  }
+  else if(opt==='tick'){
+    if(state===2) el('rect',{x,y,width:s,height:s,rx:r,fill:C.mark},g);
+    else if(state===1) el('rect',{x:x+s*0.2,y:y+s/2-1.5,width:s*0.6,height:3,rx:1.5,fill:C.mark},g);
+    else el('rect',{x:x+.75,y:y+.75,width:s-1.5,height:s-1.5,rx:r,fill:'none',
+      stroke:C.edge,'stroke-width':1.5,'stroke-dasharray':'3 3'},g);
+  }
+  else if(opt==='ground'){
+    if(state===0){
+      el('rect',{x:x+.75,y:y+.75,width:s-1.5,height:s-1.5,rx:r,fill:'none',
+        stroke:C.edge,'stroke-width':1.5,'stroke-dasharray':'3 3'},g);
+    } else {
+      el('rect',{x,y,width:s,height:s,rx:r,fill:C.ground},g);
+      if(state===2) el('circle',{cx:x+s/2,cy:y+s/2,r:Math.max(3.5,s*0.22),fill:C.mark},g);
+      else el('rect',{x:x+s*0.24,y:y+s/2-1.25,width:s*0.52,height:2.5,rx:1.25,
+        fill:C.mark,opacity:.55},g);
+    }
+  }
+  else { /* invert */
+    if(state===2) el('rect',{x,y,width:s,height:s,rx:r,fill:C.mark},g);
+    else if(state===1) el('rect',{x:x+.75,y:y+.75,width:s-1.5,height:s-1.5,rx:r,fill:'none',
+      stroke:C.mark,'stroke-width':1.75},g);
+    else el('line',{x1:x+s*0.3,y1:y+s-1,x2:x+s*0.7,y2:y+s-1,stroke:C.edge,'stroke-width':1.5},g);
+  }
+}
+
+/* ═══ 1 · coverage grid ═══ */
+function drawGrid(){
+  const svg=document.getElementById('svgGrid'); clear(svg);
+  const g=el('g',{},svg);
+  const s = big ? 26 : 20, gap = big ? 8 : 7, left = 34, top = 26;
+  WEEKDAYS.forEach((d,i)=>{
+    const t=el('text',{x:left+i*(s+gap)+s/2,y:16,'text-anchor':'middle',
+      'font-size':11,fill:C.text,'font-family':'Inter,system-ui'},g);
+    t.textContent=d;
+  });
+  for(let w=0;w<6;w++){
+    const t=el('text',{x:left-10,y:top+w*(s+gap)+s/2+4,'text-anchor':'end',
+      'font-size':10,fill:C.text,'font-family':'Inter,system-ui'},g);
+    t.textContent = ['Jul 6','Jul 13','Jul 20','Jul 27','Aug 3','Aug 10'][w].split(' ')[1];
+    for(let d=0;d<7;d++){
+      drawCell(g, left+d*(s+gap), top+w*(s+gap), s, STATES[w*7+d]);
+    }
+  }
+}
+
+/* ═══ 2 · day rows ═══ */
+function drawRows(){
+  const svg=document.getElementById('svgRows'); clear(svg);
+  const g=el('g',{},svg);
+  const left=42, right=390, top=28, rowH=25;
+  const H0=6, H1=21;                       // 6am → 9pm
+  const X = h => left + (h-H0)/(H1-H0) * (right-left);
+
+  [7,12,17].forEach(h=>{
+    el('line',{x1:X(h),y1:top-8,x2:X(h),y2:top+7*rowH-4,stroke:'#EFEDE7','stroke-width':1},g);
+    const t=el('text',{x:X(h),y:top-13,'text-anchor':'middle','font-size':10,fill:C.text,
+      'font-family':'Inter,system-ui'},g);
+    t.textContent = h<12? h+'am' : (h===12?'12pm':(h-12)+'pm');
+  });
+
+  WEEKROW.forEach((row,i)=>{
+    const y = top + i*rowH, cy = y + rowH/2 - 2, st = WEEKSTATE[i];
+    const t=el('text',{x:left-10,y:cy+4,'text-anchor':'end','font-size':11,fill:C.text,
+      'font-family':'Inter,system-ui'},g);
+    t.textContent = WEEKDAYS[i];
+
+    const rW = right-left, rX = left;
+    if(opt==='weight'){
+      if(st===0) el('line',{x1:rX,y1:cy,x2:right,y2:cy,stroke:C.edge,'stroke-width':1.5,
+        'stroke-dasharray':'4 4'},g);
+      else if(st===1) el('line',{x1:rX,y1:cy,x2:right,y2:cy,stroke:C.pale,'stroke-width':1.5,
+        opacity:.6},g);
+      else el('line',{x1:rX,y1:cy,x2:right,y2:cy,stroke:'#EFEDE7','stroke-width':1.5},g);
+    }
+    else if(opt==='rail'){
+      el('line',{x1:rX,y1:cy,x2:right,y2:cy,
+        stroke: st===0? C.edge : C.mark,
+        'stroke-width': st===0? 1.5 : 2,
+        opacity: st===0? 1 : (st===1? .7 : .35),
+        'stroke-dasharray': st===0? '4 4':'none'},g);
+    }
+    else if(opt==='tick'){
+      el('line',{x1:rX,y1:cy,x2:right,y2:cy,stroke: st===0?C.edge:'#EFEDE7','stroke-width':1.5,
+        'stroke-dasharray': st===0?'4 4':'none'},g);
+      if(st===1) el('rect',{x:rX+rW/2-11,y:cy-1.75,width:22,height:3.5,rx:1.75,fill:C.mark},g);
+    }
+    else if(opt==='ground'){
+      if(st===0){
+        el('rect',{x:rX,y:y+2,width:rW,height:rowH-7,rx:5,fill:'none',stroke:C.edge,
+          'stroke-width':1.25,'stroke-dasharray':'4 4'},g);
+      } else {
+        el('rect',{x:rX,y:y+2,width:rW,height:rowH-7,rx:5,fill:C.groundSoft},g);
+        el('line',{x1:rX,y1:cy,x2:right,y2:cy,stroke:'#D6DEE4','stroke-width':1},g);
+      }
+    }
+    else { /* invert */
+      if(st===0) el('line',{x1:rX,y1:cy,x2:right,y2:cy,stroke:'#F1EFE9','stroke-width':1},g);
+      else el('line',{x1:rX,y1:cy,x2:right,y2:cy,stroke:C.mark,'stroke-width':1.25,
+        opacity: st===1? .9 : .3},g);
+    }
+
+    if(st===2) row.doses.forEach(h=>{
+      el('circle',{cx:X(h),cy:cy,r: big?6:4.75,fill:C.mark,stroke:'#FFF','stroke-width':1.5},g);
+    });
+  });
+}
+
+/* ═══ 3 · timeline ═══ */
+function drawTL(){
+  const svg=document.getElementById('svgTL'); clear(svg);
+  const g=el('g',{},svg);
+  const days=[
+    {label:'Wed  Aug 12', st:2, items:['Levodopa · 7:10','Walk · 20 min','Wearing off · 4:40']},
+    {label:'Thu  Aug 13', st:1, items:[]},
+    {label:'Fri  Aug 14', st:0, items:[]}
+  ];
+  let y=14;
+  days.forEach(d=>{
+    const h = d.st===2 ? 96 : 52;
+    const x=16, w=368;
+
+    if(opt==='ground'){
+      if(d.st===0) el('rect',{x,y,width:w,height:h,rx:10,fill:'none',stroke:C.edge,
+        'stroke-width':1.25,'stroke-dasharray':'4 4'},g);
+      else el('rect',{x,y,width:w,height:h,rx:10,fill:C.groundSoft},g);
+    } else if(opt==='rail'){
+      el('line',{x1:x+10,y1:y+6,x2:x+10,y2:y+h-6,
+        stroke: d.st===0?C.edge:C.mark,'stroke-width':2.5,
+        opacity: d.st===0?1:(d.st===1?.7:.35),
+        'stroke-dasharray': d.st===0?'4 4':'none'},g);
+    } else if(opt==='invert'){
+      if(d.st===1) el('rect',{x,y,width:w,height:h,rx:10,fill:'none',stroke:C.mark,
+        'stroke-width':1.5},g);
+      else if(d.st===2) el('rect',{x,y,width:w,height:h,rx:10,fill:C.groundSoft},g);
+    } else {
+      el('line',{x1:x,y1:y+h-1,x2:x+w,y2:y+h-1,stroke:'#EFEDE7','stroke-width':1},g);
+    }
+
+    const t=el('text',{x:x+22,y:y+20,'font-size':12,'font-weight':600,fill:'#46443C',
+      'font-family':'Inter,system-ui'},g);
+    t.textContent=d.label;
+
+    if(d.st===2){
+      d.items.forEach((it,i)=>{
+        el('circle',{cx:x+26,cy:y+40+i*18,r:4,fill:C.mark},g);
+        const q=el('text',{x:x+38,y:y+44+i*18,'font-size':12,fill:'#6E6B5F',
+          'font-family':'Inter,system-ui'},g);
+        q.textContent=it;
+      });
+    } else if(d.st===1){
+      if(opt==='tick') el('rect',{x:x+22,y:y+34,width:22,height:3.5,rx:1.75,fill:C.mark},g);
+      else if(opt==='weight') el('circle',{cx:x+26,cy:y+36,r:4,fill:C.pale,opacity:.6},g);
+      const q=el('text',{x: opt==='tick'? x+52 : x+38, y:y+40,'font-size':12,
+        fill:'#8D8A7D','font-family':'Inter,system-ui','font-style':'italic'},g);
+      q.textContent='An ordinary day';
+    } else {
+      const q=el('text',{x:x+22,y:y+40,'font-size':12,fill:'#A8A395',
+        'font-family':'Inter,system-ui','font-style':'italic'},g);
+      q.textContent='No entries';
+    }
+    y += h + 10;
+  });
+}
+
+/* ═══ legend ═══ */
+function drawLegend(){
+  const box=document.getElementById('legend'); box.innerHTML='';
+  [[2,'logged'],[1,'quiet'],[0,'unknown']].forEach(([st,name])=>{
+    const span=document.createElement('span');
+    const svg=document.createElementNS(NS,'svg');
+    svg.setAttribute('viewBox','0 0 20 20');
+    svg.setAttribute('width','18'); svg.setAttribute('height','18');
+    svg.style.verticalAlign='-4px'; svg.style.marginRight='6px'; svg.style.display='inline-block';
+    const g=el('g',{},svg);
+    drawCell(g,1,1,18,st);
+    span.appendChild(svg);
+    span.appendChild(document.createTextNode(name));
+    box.appendChild(span);
+  });
+}
+
+function render(){
+  drawGrid(); drawRows(); drawTL(); drawLegend();
+  const o=OPTIONS.find(o=>o.key===opt);
+  document.getElementById('verdict').innerHTML=o.verdict;
+  [...document.querySelectorAll('.opt')].forEach(b=>
+    b.setAttribute('aria-pressed', String(b.dataset.k===opt)));
+}
+
+const optsBox=document.getElementById('opts');
+OPTIONS.forEach(o=>{
+  const b=document.createElement('button');
+  b.className='opt'; b.dataset.k=o.key; b.setAttribute('aria-pressed','false');
+  b.innerHTML = o.name + '<small>' + o.sub + '</small>';
+  b.onclick=()=>{ opt=o.key; render(); };
+  optsBox.appendChild(b);
+});
+
+document.getElementById('tgSquint').onclick=e=>{
+  const on = e.currentTarget.getAttribute('aria-pressed')==='true';
+  e.currentTarget.setAttribute('aria-pressed', String(!on));
+  document.getElementById('stage').classList.toggle('squint', !on);
+};
+document.getElementById('tgBig').onclick=e=>{
+  const on = e.currentTarget.getAttribute('aria-pressed')==='true';
+  e.currentTarget.setAttribute('aria-pressed', String(!on));
+  big=!on; render();
+};
+
+render();
+</script>
+</body>
+</html>
