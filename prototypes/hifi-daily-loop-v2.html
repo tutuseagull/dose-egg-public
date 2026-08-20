@@ -1463,10 +1463,21 @@ let logStep = null;          // null = categories · otherwise the chosen type
    Now: every type is a tile, and the one instance that survives is the crisis
    button. Two idioms, and the rule for which is which is stateable in a
    sentence — a tile opens a kind of record, the button IS a record. */
+/* ORDERED BY WHEN, NOT BY HOW OFTEN. The question that decides a row is "how
+   bad is it if this is hard to reach at the moment I need it?"
+     TOP    discovery. Reached calmly and deliberately, and the two nobody
+            expects a medication journal to have — the top row is where a new
+            user's eye lands, so it does the introducing.
+     BOTTOM speed. The reflexes, reached on the worst days, sitting directly
+            above the crisis button so the whole lower half of the sheet is the
+            "when things are hard" zone.
+   Measured at 390x844: the top row's centre is 408px above the screen bottom,
+   the bottom row's is 158px. That is a hand shift, not a nuance, and it costs
+   most on exactly the days it is needed most. */
 const TILES = [
   ['sleep','ph-moon','Sleep'],        ['note','ph-camera','Photo'],
-  ['dose','ph-pill','Medication'],    ['symptom','ph-waveform','How I feel'],
-  ['meal','ph-fork-knife','Food'],    ['activity','ph-footprints','Activity']
+  ['meal','ph-fork-knife','Food'],    ['activity','ph-footprints','Activity'],
+  ['dose','ph-pill','Medication'],    ['symptom','ph-waveform','How I feel']
 ];
 const q = t => JSON.stringify(t).replace(/"/g,'&quot;');
 
