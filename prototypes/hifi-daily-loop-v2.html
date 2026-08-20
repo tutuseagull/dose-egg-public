@@ -407,16 +407,13 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--target-gap)}
 .tile{display:flex;flex-direction:column;align-items:flex-start;gap:var(--space-3);
       padding:var(--space-4);background:var(--surface-page);border:1px solid var(--border-subtle);
-      border-radius:var(--radius-md);min-height:96px;text-align:left;
+      border-radius:var(--radius-md);min-height:var(--target-critical);text-align:left;
       transition:background var(--motion-fast),border-color var(--motion-fast)}
 .tile:hover{background:var(--surface-raised);border-color:var(--border-interactive)}
 .tile-ico{width:38px;height:38px;border-radius:var(--radius-full);display:flex;
           align-items:center;justify-content:center;flex:0 0 auto}
 .tile-ico i{font-size:20px;color:#fff}
 .tile-name{font-size:var(--text-small);font-weight:500}
-/* Full width and row-shaped: same tile, visibly a different rhythm. */
-.tile.wide{grid-column:1 / -1;flex-direction:row;align-items:center;
-      min-height:var(--target-critical);gap:var(--space-3)}
 .strip{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-min);
        padding:var(--space-3) var(--space-4);background:var(--surface-page);
        border:1px dashed var(--border-interactive);border-radius:var(--radius-md);width:100%;
@@ -969,6 +966,12 @@ const SLEEP_FIELDS = { 'Nap': { choices:[20,30,45,60] } };
    dose: lead with whatever the app does not yet know.
    Vocabulary follows glossary.html — patient words (kicked in, wearing off),
    not clinical synonyms. */
+/* A type whose commonest entry has ONE obvious name skips the picker entirely:
+   the tile lands you on a named entry, and the exception is a tap on the pencil.
+   Different from prediction — this is not learned, it is what the type is. Sleep
+   qualifies because "Sleep" is not a placeholder the way "Activity" is; a night
+   is what you are almost always logging, and Nap is the exception. */
+const DEFAULT_LABEL = { sleep:'Sleep' };
 const NEW_LABEL = { sleep:'Sleep', dose:'Medication', activity:'Activity', meal:'Food',
                     symptom:'How I feel', note:'Photo' };
 const SUGGEST = {
@@ -1100,9 +1103,12 @@ function metaPairs(e){
       out.push([f.icon, `${f.label}: ${e.fields[f.grams]} g`]); return;
     }
     if (!(e.fields && e.fields[f.key])) return;
-    /* a known interval reads better as a span than as a bare length */
+    /* The rail row already prints the START outside the card, so a span printed
+       here said the same number twice — the same redundancy the page header had.
+       Name the OTHER end instead, in the words of the thing being logged: a walk
+       ends, a night is one you wake from. */
     if (f.temporal) out.push([f.icon,
-      `${fromMin(startMin(e))}–${fromMin(endMin(e))} · ${fmtDur(e.fields[f.key])}`]);
+      `${e.type === 'sleep' ? 'Woke' : 'Ended'} ${fromMin(endMin(e))} · ${fmtDur(e.fields[f.key])}`]);
     else {
       const val = e.fields[f.key];
       const txt = Array.isArray(val) ? val.join(', ') : val;
@@ -1447,16 +1453,21 @@ function dayLabelText(i){
    record. */
 let logStep = null;          // null = categories · otherwise the chosen type
 
-/* The 2x2 grid is what happens DURING a day. Sleep runs the full width beneath
-   it because it is the once-a-day one: you log it in the morning, for a window
-   you were unconscious for, and it is the only entry here that spans midnight.
-   Still a tile, not a new component — same family, different cadence. */
+/* ONE grid, one idiom, ordered by how often it is reached.
+   RESTRUCTURED 2026-08-15. The sheet had grown to eight targets in four visual
+   idioms — a dashed strip, four tiles, a wide tile, two pills — and Tutu called
+   it cluttered. The count was not the problem; the mixing was. Five of those
+   items were TYPE DOORS and three were PRE-NAMED INSTANCES (Photo, Froze in
+   place, Low energy are not types, they are one entry with the label already
+   filled), and nothing on screen said which was which.
+   Now: every type is a tile, and the one instance that survives is the crisis
+   button. Two idioms, and the rule for which is which is stateable in a
+   sentence — a tile opens a kind of record, the button IS a record. */
 const TILES = [
-  ['dose','ph-pill','Medication'], ['activity','ph-footprints','Activity'],
-  ['meal','ph-fork-knife','Food & protein'], ['symptom','ph-waveform','How I feel'],
-  ['sleep','ph-moon','Sleep & naps']
+  ['dose','ph-pill','Medication'],    ['symptom','ph-waveform','How I feel'],
+  ['meal','ph-fork-knife','Food'],    ['activity','ph-footprints','Activity'],
+  ['sleep','ph-moon','Sleep'],        ['note','ph-camera','Photo']
 ];
-const WIDE_TILE = 'sleep';
 const q = t => JSON.stringify(t).replace(/"/g,'&quot;');
 
 /* ── what this user actually logs ────────────────────────────────────────
@@ -1499,14 +1510,11 @@ function renderLogSheet(){
   let h = '';
   if (!logStep){
     h += '<h2>Add to today</h2>';
-    /* Photo names itself, so it stays one tap to the shutter. Two doors to a
-       camera (here and inside Food) is a deliberate bet, not an oversight:
-       they lead to different records. Usage decides whether both survive. */
-    h += `<button class="strip" onclick="pickPhoto('note')">
-      <span><span class="strip-name">Photo</span> <span class="sub">· take one or pick from your album</span></span>
-    </button>`;
+    /* Photo is a tile now rather than a strip of its own. It keeps the thing
+       that mattered — one tap to the shutter — and loses the special shape that
+       was making it read as a different kind of thing. */
     h += '<div class="grid">' + TILES.map(([t,ico,name]) =>
-      `<button class="tile${t===WIDE_TILE?' wide':''}" onclick="openCategory('${t}')">
+      `<button class="tile" onclick="${t === 'note' ? "pickPhoto('note')" : `openCategory('${t}')`}">
         <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ${ico}"></i></span>
         <span class="tile-name">${name}</span></button>`).join('') + '</div>';
   } else {
@@ -1528,10 +1536,16 @@ function renderLogSheet(){
                         t => `logNamed('${logStep}',${q(t)})`,
                         `logNamed('${logStep}', searchQ.trim())`, 'search-log');
   }
-  /* The crisis row is reachable from both steps — it is never a detour. */
+  /* Reachable from both steps — it is never a detour.
+     "Low energy" left this row 2026-08-15. The row earns its critical-size
+     targets by being for low-capacity moments, and freezing is time-critical in
+     a way tiredness is not. Two buttons, one urgent and one ordinary, and the
+     row stops reading as the emergency one. Low energy is two taps away under
+     How I feel, where frequency ranking puts it at the top of the list anyway.
+     Worth testing: if it turns out to be the most-logged entry by a distance,
+     the answer is a second row, not a diluted first one. */
   h += `<div class="quick-row">
       <button class="quick" onclick="quickLog(this,'Froze in place','symptom')">Froze in place</button>
-      <button class="quick" onclick="quickLog(this,'Low energy','symptom')">Low energy</button>
     </div>`;
   el('log-body').innerHTML = h;
 }
@@ -1547,7 +1561,7 @@ function openCategory(t){
      On a two-item list it saves one tap and costs a correction whenever it is
      wrong — and Sleep proved it immediately: log one nap and the next night
      arrives called "Nap". Two options, no guess. */
-  const guess = labelChoices(t).length > 2 ? rankLabels(t)[0] : null;
+  const guess = DEFAULT_LABEL[t] || (labelChoices(t).length > 2 ? rankLabels(t)[0] : null);
   if (!guess){ logStep = t; renderLogSheet(); return; }
   closeSheets();
   const e = { time:nowTime(), recorded:nowTime(), text:guess, type:t, basis:'asserted' };
@@ -1818,10 +1832,15 @@ function timeSectionHTML(e){
 
   /* "Ended · Today · 19:00" — the qualifiers stay collapsed until tapped.
      Both lists are 2 items, below STEP_THRESHOLD, so they open inline. */
+  /* "Started / Ended" is right for a walk and wrong for a night — nobody ends a
+     sleep. Same control, the type's own words. */
+  const AW = e.type === 'sleep'
+    ? { start:['Asleep','Fell asleep at'], end:['Woke','Woke at'] }
+    : { start:['Started','Started at'],    end:['Ended','Ended at'] };
   let mini = '<div class="minirow">';
   if (anchored){
     mini += `<button class="minibtn" onclick="toggleMini('anchor')">
-      <span>${e.anchor === 'start' ? 'Started' : 'Ended'}</span>
+      <span>${AW[e.anchor === 'start' ? 'start' : 'end'][0]}</span>
       <i class="ph ph-caret-down"></i></button><span class="minisep">·</span>`;
   }
   /* Pencil, not caret: this one opens a step now. */
@@ -1830,7 +1849,7 @@ function timeSectionHTML(e){
   mini += '</div>';
 
   if (openMini === 'anchor')
-    mini += '<div class="chips">' + [['start','Started at'],['end','Ended at']].map(([v,l]) =>
+    mini += '<div class="chips">' + [['start',AW.start[1]],['end',AW.end[1]]].map(([v,l]) =>
       `<button class="chip pick${(e.anchor||'end')===v?' on':''}" onclick="setAnchor('${v}')">${l}</button>`
     ).join('') + '</div>';
 
