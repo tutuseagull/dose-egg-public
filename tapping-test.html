@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DoseEgg — Tapping test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,300;6..72,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper-0:#FFF;--paper-50:#F9F8F5;--paper-100:#F2F1EC;--paper-200:#E8E6DF;
+  --paper-300:#D9D6CC;--paper-500:#8D8A7D;--paper-600:#6E6B5F;--paper-700:#46443C;--paper-900:#1A1916;
+  --ink-500:#1F4A52;--ink-600:#163940;
+  --mark:#4E6B84;--mark-note:#8C7B6A;
+  --font-serif:'Newsreader',Georgia,serif;--font-sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;padding:24px 18px 96px;background:var(--paper-50);color:var(--paper-900);
+     font-family:var(--font-sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;
+     -webkit-user-select:none;user-select:none}
+.wrap{max-width:460px;margin:0 auto}
+a.back{display:inline-block;font-size:12px;font-weight:600;color:var(--paper-600);
+  text-decoration:none;border:1px solid var(--paper-200);border-radius:20px;
+  padding:4px 12px;margin-bottom:18px;background:var(--paper-0)}
+h1{font-family:var(--font-serif);font-size:28px;font-weight:400;line-height:1.2;margin:0 0 6px}
+h2{font-family:var(--font-serif);font-size:22px;font-weight:400;margin:46px 0 4px;
+   padding-bottom:10px;border-bottom:1px solid var(--paper-200)}
+h3{font-size:15px;font-weight:600;margin:24px 0 6px}
+p{margin:0 0 12px;color:var(--paper-700);font-size:16px}
+.lede{color:var(--paper-600)}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.85em;background:var(--paper-200);
+     padding:2px 5px;border-radius:5px}
+ul,ol{margin:0 0 14px;padding-left:20px}
+li{margin-bottom:7px;color:var(--paper-700);font-size:16px}
+.note{background:var(--paper-100);border-left:3px solid var(--ink-500);border-radius:0 10px 10px 0;
+      padding:14px;margin:16px 0;font-size:15px;color:var(--paper-700)}
+.note b{color:var(--paper-900)}
+.note.warn{border-left-color:var(--mark-note);background:rgba(140,123,106,.07)}
+.card{background:var(--paper-0);border:1px solid var(--paper-200);border-radius:14px;
+      padding:16px;margin:14px 0}
+
+.mock{background:var(--paper-0);border:1px solid var(--paper-200);border-radius:16px;
+  padding:16px;margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.mock .mtitle{font-size:16px;font-weight:600;margin-bottom:3px}
+.mock .msub{font-size:14px;color:var(--paper-600);margin-bottom:14px}
+.mock .mrow{display:flex;gap:8px}
+.mbtn{flex:1;min-height:48px;border-radius:11px;border:1px solid var(--paper-300);
+  background:var(--paper-0);color:var(--paper-900);font-family:inherit;font-size:15px;
+  font-weight:600;cursor:default}
+.mbtn.primary{background:var(--ink-500);border-color:var(--ink-500);color:#fff}
+.mstate{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--paper-500);
+  font-weight:600;margin:18px 0 2px}
+
+/* ── instrument ── */
+.handrow{display:flex;gap:8px;margin-bottom:10px}
+.hand{flex:1;min-height:52px;border-radius:11px;border:1px solid var(--paper-300);
+  background:var(--paper-0);color:var(--paper-700);font-family:inherit;font-size:15px;
+  font-weight:600;cursor:pointer}
+.hand[aria-pressed="true"]{background:var(--ink-500);border-color:var(--ink-500);color:#fff}
+.hand .done{display:block;font-size:11px;font-weight:500;opacity:.75}
+.big{width:100%;min-height:60px;border-radius:13px;border:0;background:var(--ink-500);
+  color:#fff;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer;margin:6px 0}
+.big:disabled{background:var(--paper-300);color:var(--paper-600)}
+.big.sec{background:var(--paper-0);color:var(--paper-900);border:1px solid var(--paper-300)}
+.status{font-size:14px;color:var(--paper-600);min-height:22px;margin:8px 0}
+
+#pad{position:relative;width:100%;aspect-ratio:1/0.78;background:var(--paper-100);
+  border-radius:16px;margin:12px 0;touch-action:none;overflow:hidden}
+.target{position:absolute;top:50%;width:38%;aspect-ratio:1;transform:translateY(-50%);
+  border-radius:50%;background:var(--paper-0);border:2px solid var(--paper-300);
+  display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--paper-500);
+  font-weight:600}
+#tgtL{left:5%} #tgtR{right:5%}
+.target.next{border-color:var(--ink-500);background:rgba(31,74,82,.08);color:var(--ink-500)}
+.target.hit{background:var(--ink-500);border-color:var(--ink-500);color:#fff}
+#padMsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-serif);font-size:40px;color:var(--ink-500);pointer-events:none}
+#tapCount{position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:13px;
+  color:var(--paper-500);pointer-events:none}
+
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 4px}
+.metric{background:var(--paper-100);border-radius:10px;padding:10px 12px}
+.metric .mk{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--paper-500);font-weight:600}
+.metric .mv{font-family:ui-monospace,Menlo,monospace;font-size:19px;color:var(--paper-900)}
+.metric .mv small{font-size:12px;color:var(--paper-500)}
+.verdictbox{border-radius:10px;padding:12px 14px;margin:12px 0;font-size:15px;line-height:1.5;
+  background:var(--paper-100);border:1px solid var(--paper-200);color:var(--paper-700)}
+.verdictbox b{color:var(--paper-900)}
+svg{display:block;width:100%;height:auto;background:var(--paper-0);border-radius:10px}
+.axcap{font-size:11px;color:var(--paper-500);text-align:center;margin:2px 0 12px}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--paper-200);
+  font-size:12px;color:var(--paper-500)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back" href="index.html">← Home</a>
+
+<h1>Tapping test</h1>
+<p class="lede">Alternating finger tapping, fifteen seconds a hand. Measures speed, rhythm, the <b>decrement</b> across the trial, and <b>hesitations</b> — the upper-limb relative of freezing. Pure touch events: no motion permission, no https requirement, works on any phone. <b>Open on a phone.</b></p>
+
+<div class="note">
+  <b>Why this one, and not more tremor.</b> This is the digital form of UPDRS item 3.4, and it
+  reaches things tremor does not: bradykinesia, rhythm breakdown, and the sequence effect, where
+  movement gets progressively smaller and slower the longer you keep going. Those track with a
+  freezing-dominant presentation far better than tremor does. It is also the cheapest instrument
+  in the whole set to build and the most reliable to measure.
+</div>
+
+
+<h2>The instrument</h2>
+<p class="lede">Tap the two circles alternately with one index finger, as fast and as evenly as you can. Do one hand, then the other. Rest your forearm.</p>
+
+<div class="card">
+  <div class="handrow">
+    <button class="hand" id="handL" aria-pressed="true">Left hand<span class="done" id="doneL">not recorded</span></button>
+    <button class="hand" id="handR" aria-pressed="false">Right hand<span class="done" id="doneR">not recorded</span></button>
+  </div>
+
+  <div id="pad">
+    <div class="target" id="tgtL">1</div>
+    <div class="target" id="tgtR">2</div>
+    <div id="padMsg">ready</div>
+    <div id="tapCount"></div>
+  </div>
+
+  <button class="big" id="btnStart">Start 15 seconds</button>
+  <button class="big sec" id="btnReset">Clear both hands</button>
+  <div class="status" id="status">Pick a hand, then start.</div>
+</div>
+
+<div id="results" style="display:none">
+  <div class="verdictbox" id="verdict"></div>
+
+  <div class="metrics">
+    <div class="metric"><div class="mk">Rate</div><div class="mv" id="mRate">–</div></div>
+    <div class="metric"><div class="mk">Rhythm variability</div><div class="mv" id="mCV">–</div></div>
+    <div class="metric"><div class="mk">Decrement</div><div class="mv" id="mDec">–</div></div>
+    <div class="metric"><div class="mk">Hesitations</div><div class="mv" id="mHes">–</div></div>
+    <div class="metric"><div class="mk">Accuracy</div><div class="mv" id="mAcc">–</div></div>
+    <div class="metric"><div class="mk">Taps</div><div class="mv" id="mN">–</div></div>
+  </div>
+
+  <h3>Every interval, in order</h3>
+  <svg id="svgInt" viewBox="0 0 400 170" role="img" aria-label="Inter-tap intervals"></svg>
+  <div class="axcap">one dot per tap · the sloped line is the fitted decrement</div>
+
+  <div id="asymBox" style="display:none">
+    <h3>Left against right</h3>
+    <svg id="svgAsym" viewBox="0 0 400 120" role="img" aria-label="Hand comparison"></svg>
+    <div class="axcap">rate, in taps per second</div>
+    <div class="verdictbox" id="asymText"></div>
+  </div>
+</div>
+
+<div class="note warn">
+  <b>The trend line above would not appear in the product.</b> Our own chart rules forbid
+  trendlines, arrows and deltas, because the annotation layer is where the harm lives. It is drawn
+  here because this page is a lab instrument for us, not a surface for a patient. Worth keeping
+  the distinction visible rather than letting it blur.
+</div>
+
+
+<h2>What each number is</h2>
+<ul>
+  <li><b>Rate</b> — taps per second. The blunt bradykinesia measure.</li>
+  <li><b>Rhythm variability</b> — the coefficient of variation of the gaps between taps. Irregular timing is a PD signature independent of being slow, and someone can be fast and irregular.</li>
+  <li><b>Decrement</b> — the fitted slope of interval against tap number, in milliseconds lost per tap, plus the change from the first third of the trial to the last. This is the sequence effect. A healthy hand holds roughly steady; a parkinsonian hand fades.</li>
+  <li><b>Hesitations</b> — gaps longer than twice the median. These are the halts, and they are the closest thing on a touchscreen to freezing.</li>
+  <li><b>Accuracy</b> — mean distance from target centre as a fraction of the target radius. A dysmetria proxy, and the weakest of the six.</li>
+</ul>
+
+<div class="note warn">
+  <b>What we cannot measure, and it matters.</b> UPDRS 3.4 grades <em>amplitude</em> decrement, the
+  thumb and index finger opening less and less. On a screen the distance between targets is fixed,
+  so we only see the <em>temporal</em> decrement. Related, not the same thing, and any write-up has to
+  say so rather than borrow the clinical scale's authority.
+</div>
+
+
+<h2>Where it would live</h2>
+<p>Same skeleton as the tremor test. The person says something, then the phone offers to corroborate it. Never the reverse.</p>
+
+<div class="mstate">1 · after tapping “Stiff / slow” or “Wearing off”</div>
+<div class="mock">
+  <div class="mtitle">Want to record it?</div>
+  <div class="msub">A short tapping test, one hand then the other. About a minute.</div>
+  <div class="mrow">
+    <button class="mbtn primary">Record it</button>
+    <button class="mbtn">Not now</button>
+  </div>
+</div>
+
+<div class="mstate">2 · done</div>
+<div class="mock">
+  <div class="mtitle">Recorded</div>
+  <div class="msub">Saved with your 2:15 entry.</div>
+</div>
+
+<div class="note warn">
+  <b>This one is closer to a report card than the tremor test, and that is a real risk.</b>
+  Tremor happens to you. Tapping is something you <em>perform</em>, so it can be done well or badly,
+  and a person will feel graded whether or not we show a grade. Two consequences. The result state
+  shows no number, same as before. And we must never show the person their own tapping history over
+  time, because a declining line on a progressive condition is the single most harmful chart we
+  could draw.
+</div>
+
+<div class="note warn">
+  <b>The practice effect will fool us before it fools anyone else.</b> People get better at the task
+  itself over the first several sessions. That improvement is learning, not health, and it looks
+  exactly like a symptom improving. Any comparison across time has to discard early trials or it is
+  measuring familiarity with a phone game.
+</div>
+
+
+<h2>What to try</h2>
+<ul>
+  <li><b>Both hands.</b> Asymmetry is the interesting part. PD is asymmetric at onset, so a gap between hands is more informative than either hand alone.</li>
+  <li><b>Deliberately fade.</b> Start fast and let yourself slow down. Watch the decrement number move. That proves the metric responds to the thing it claims to measure.</li>
+  <li><b>Deliberately stall.</b> Pause for a second mid-trial. That is a hesitation, and it should be counted.</li>
+  <li><b>The question for the domain lead.</b> Not whether the numbers look right, but whether a minute of tapping is something she would actually do on a stiff day, and whether being asked to perform feels different from being asked to report.</li>
+</ul>
+
+<footer>DoseEgg · Sensing · Tapping test · August 2026<br>
+Research instrument. Not a medical device, and nothing here diagnoses or grades anything.</footer>
+
+</div>
+
+<script>
+const DUR = 15000;
+const trials = { L:null, R:null };
+let hand = 'L', taps = [], running = false, expect = 0, t0 = 0, tick = null;
+
+const $ = id => document.getElementById(id);
+const pad = $('pad'), tgt = [$('tgtL'), $('tgtR')];
+
+function setHand(h){
+  if(running) return;
+  hand = h;
+  $('handL').setAttribute('aria-pressed', String(h==='L'));
+  $('handR').setAttribute('aria-pressed', String(h==='R'));
+  $('status').textContent = 'Ready for the ' + (h==='L'?'left':'right') + ' hand.';
+  if(trials[h]) show(trials[h]);
+}
+$('handL').onclick = ()=>setHand('L');
+$('handR').onclick = ()=>setHand('R');
+
+function paintNext(){
+  tgt.forEach((t,i)=>{ t.classList.toggle('next', running && i===expect); t.classList.remove('hit'); });
+}
+
+pad.addEventListener('pointerdown', e=>{
+  if(!running) return;
+  e.preventDefault();
+  const r = pad.getBoundingClientRect();
+  const x = e.clientX - r.left, y = e.clientY - r.top;
+  let which = -1, best = Infinity, cx=0, cy=0, rad=1;
+  tgt.forEach((t,i)=>{
+    const tr = t.getBoundingClientRect();
+    const ccx = tr.left - r.left + tr.width/2, ccy = tr.top - r.top + tr.height/2;
+    const d = Math.hypot(x-ccx, y-ccy);
+    if(d < best){ best=d; which=i; cx=ccx; cy=ccy; rad=tr.width/2; }
+  });
+  const inside = best <= rad;
+  const correct = inside && which === expect;
+  taps.push({ t: performance.now()-t0, target: which, correct, inside, dist: best/rad });
+  if(correct){
+    tgt[which].classList.add('hit');
+    setTimeout(()=>tgt[which].classList.remove('hit'), 70);
+    expect = 1-expect;
+    paintNext();
+  }
+  $('tapCount').textContent = taps.filter(t=>t.correct).length + ' taps';
+}, {passive:false});
+
+$('btnStart').onclick = ()=>{
+  if(running) return;
+  let n = 3;
+  $('padMsg').textContent = n;
+  $('btnStart').disabled = true;
+  $('results').style.display='none';
+  const cd = setInterval(()=>{
+    n--;
+    if(n>0){ $('padMsg').textContent = n; }
+    else { clearInterval(cd); begin(); }
+  }, 700);
+};
+
+function begin(){
+  running = true; taps = []; expect = 0; t0 = performance.now();
+  $('padMsg').textContent = '';
+  $('tapCount').textContent = '0 taps';
+  $('status').textContent = 'Go. Alternate as fast and as evenly as you can.';
+  paintNext();
+  tick = setInterval(()=>{
+    const left = Math.ceil((DUR - (performance.now()-t0))/1000);
+    if(left <= 3 && left > 0) $('padMsg').textContent = left;
+    if(performance.now()-t0 >= DUR) finish();
+  }, 80);
+}
+
+function finish(){
+  clearInterval(tick);
+  running = false;
+  $('btnStart').disabled = false;
+  $('padMsg').textContent = 'done';
+  paintNext();
+  const r = compute(taps);
+  if(!r){ $('status').textContent = 'Too few taps to read. Try again.'; return; }
+  trials[hand] = r;
+  $(hand==='L'?'doneL':'doneR').textContent = r.rate.toFixed(1) + ' taps/s';
+  $('status').textContent = 'Recorded for the ' + (hand==='L'?'left':'right') + ' hand.';
+  show(r);
+}
+
+$('btnReset').onclick = ()=>{
+  trials.L = trials.R = null;
+  $('doneL').textContent = $('doneR').textContent = 'not recorded';
+  $('results').style.display = 'none';
+  $('padMsg').textContent = 'ready';
+  $('tapCount').textContent = '';
+  $('status').textContent = 'Cleared. Pick a hand, then start.';
+};
+
+/* ── metrics ── */
+function compute(all){
+  const good = all.filter(t=>t.correct);
+  if(good.length < 8) return null;
+  const iv = [];
+  for(let i=1;i<good.length;i++) iv.push(good[i].t - good[i-1].t);
+  const mean = iv.reduce((a,b)=>a+b,0)/iv.length;
+  const sd = Math.sqrt(iv.reduce((a,b)=>a+(b-mean)*(b-mean),0)/iv.length);
+  const sorted = [...iv].sort((a,b)=>a-b);
+  const median = sorted[Math.floor(sorted.length/2)];
+
+  /* least squares slope of interval against index */
+  const n = iv.length;
+  let sx=0, sy=0, sxy=0, sxx=0;
+  iv.forEach((v,i)=>{ sx+=i; sy+=v; sxy+=i*v; sxx+=i*i; });
+  const slope = (n*sxy - sx*sy) / (n*sxx - sx*sx || 1);
+  const icept = (sy - slope*sx)/n;
+
+  const third = Math.max(1, Math.floor(n/3));
+  const first = iv.slice(0,third).reduce((a,b)=>a+b,0)/third;
+  const last  = iv.slice(-third).reduce((a,b)=>a+b,0)/third;
+  const fade = ((last-first)/first)*100;
+
+  const hes = iv.filter(v => v > 2*median).length;
+  const acc = good.reduce((a,t)=>a+t.dist,0)/good.length;
+  const errs = all.length - good.length;
+
+  return { n:good.length, rate: good.length/(DUR/1000), iv, mean, sd,
+           cv: (sd/mean)*100, slope, icept, fade, hes, acc, errs, median };
+}
+
+function show(r){
+  $('mRate').innerHTML = r.rate.toFixed(2) + ' <small>taps/s</small>';
+  $('mCV').innerHTML   = r.cv.toFixed(0) + ' <small>% CV</small>';
+  $('mDec').innerHTML  = (r.slope>=0?'+':'') + r.slope.toFixed(1) + ' <small>ms/tap</small>';
+  $('mHes').innerHTML  = r.hes + ' <small>halts</small>';
+  $('mAcc').innerHTML  = (r.acc*100).toFixed(0) + ' <small>% of radius</small>';
+  $('mN').innerHTML    = r.n + ' <small>+' + r.errs + ' missed</small>';
+
+  const bits = [];
+  bits.push('<b>' + r.rate.toFixed(1) + ' taps a second</b>, ' + r.n + ' clean taps.');
+  if(r.cv > 35) bits.push('Rhythm is <b>markedly irregular</b> at ' + r.cv.toFixed(0) + '% variability.');
+  else if(r.cv > 20) bits.push('Rhythm is somewhat uneven, ' + r.cv.toFixed(0) + '% variability.');
+  else bits.push('Rhythm is steady, ' + r.cv.toFixed(0) + '% variability.');
+  if(r.fade > 15) bits.push('Taps slowed <b>' + r.fade.toFixed(0) + '%</b> from the first third to the last, which is the sequence effect this test exists to catch.');
+  else if(r.fade < -10) bits.push('Taps sped up ' + Math.abs(r.fade).toFixed(0) + '% across the trial, so this reads as warming up rather than fading.');
+  else bits.push('Speed held roughly steady across the trial.');
+  if(r.hes > 0) bits.push('<b>' + r.hes + ' halt' + (r.hes>1?'s':'') + '</b> longer than twice the median gap.');
+  $('verdict').innerHTML = bits.join(' ');
+
+  drawIntervals(r);
+  $('results').style.display='block';
+
+  if(trials.L && trials.R){ drawAsym(); $('asymBox').style.display='block'; }
+  else $('asymBox').style.display='none';
+}
+
+/* ── charts ── */
+const NS='http://www.w3.org/2000/svg';
+function mk(t,a,p){ const n=document.createElementNS(NS,t); for(const k in a) n.setAttribute(k,a[k]); p.appendChild(n); return n; }
+function clr(s){ while(s.firstChild) s.removeChild(s.firstChild); }
+
+function drawIntervals(r){
+  const svg=$('svgInt'); clr(svg);
+  const L=42,R=390,T=14,B=142;
+  const n=r.iv.length;
+  const mx=Math.max(...r.iv)*1.1, mn=0;
+  const X=i=>L+(i/(n-1||1))*(R-L), Y=v=>B-((v-mn)/(mx-mn))*(B-T);
+
+  mk('line',{x1:L,y1:B,x2:R,y2:B,stroke:'#D9D6CC','stroke-width':1},svg);
+  [0, Math.round(mx/2), Math.round(mx)].forEach(v=>{
+    const t=mk('text',{x:L-8,y:Y(v)+4,'text-anchor':'end','font-size':10,fill:'#8D8A7D',
+      'font-family':'Inter,system-ui'},svg); t.textContent=v;
+  });
+
+  mk('line',{x1:L,y1:B-((2*r.median)/mx)*(B-T),x2:R,y2:B-((2*r.median)/mx)*(B-T),
+    stroke:'#8C7B6A','stroke-width':1,'stroke-dasharray':'4 4',opacity:.7},svg);
+
+  mk('line',{x1:X(0),y1:Y(r.icept),x2:X(n-1),y2:Y(r.icept+r.slope*(n-1)),
+    stroke:'#8C7B6A','stroke-width':2},svg);
+
+  r.iv.forEach((v,i)=>{
+    const halt = v > 2*r.median;
+    mk('circle',{cx:X(i),cy:Y(v),r: halt?5:3.4,
+      fill: halt?'#8C7B6A':'#4E6B84', opacity: halt?1:.85},svg);
+  });
+  const t=mk('text',{x:R,y:B-((2*r.median)/mx)*(B-T)-6,'text-anchor':'end','font-size':10,
+    fill:'#8C7B6A','font-family':'Inter,system-ui'},svg);
+  t.textContent='halt threshold';
+  const t2=mk('text',{x:L,y:B+16,'font-size':10,fill:'#8D8A7D','font-family':'Inter,system-ui'},svg);
+  t2.textContent='ms between taps →';
+}
+
+function drawAsym(){
+  const svg=$('svgAsym'); clr(svg);
+  const L=54,R=380,T=16,B=92;
+  const a=trials.L.rate, b=trials.R.rate, mx=Math.max(a,b)*1.15;
+  const W=v=>(v/mx)*(R-L);
+  [['Left',a,T+8],['Right',b,T+42]].forEach(([lab,v,y])=>{
+    const t=mk('text',{x:L-10,y:y+16,'text-anchor':'end','font-size':12,fill:'#6E6B5F',
+      'font-family':'Inter,system-ui'},svg); t.textContent=lab;
+    mk('rect',{x:L,y,width:Math.max(2,W(v)),height:22,rx:4,fill:'#4E6B84'},svg);
+    const n=mk('text',{x:L+W(v)+8,y:y+16,'font-size':12,fill:'#46443C',
+      'font-family':'ui-monospace,Menlo,monospace'},svg); n.textContent=v.toFixed(2);
+  });
+  const diff = Math.abs(a-b)/Math.max(a,b)*100;
+  const slower = a<b ? 'left' : 'right';
+  $('asymText').innerHTML = diff < 8
+    ? 'The two hands are within ' + diff.toFixed(0) + '%, which is inside ordinary handedness.'
+    : '<b>The ' + slower + ' hand is ' + diff.toFixed(0) + '% slower.</b> Asymmetry is worth noting, though handedness accounts for some of it and one trial each is not enough to separate the two.';
+}
+
+setHand('L');
+</script>
+</body>
+</html>
