@@ -414,6 +414,9 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
           align-items:center;justify-content:center;flex:0 0 auto}
 .tile-ico i{font-size:20px;color:#fff}
 .tile-name{font-size:var(--text-small);font-weight:500}
+/* Full width and row-shaped: same tile, visibly a different rhythm. */
+.tile.wide{grid-column:1 / -1;flex-direction:row;align-items:center;
+      min-height:var(--target-critical);gap:var(--space-3)}
 .strip{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-min);
        padding:var(--space-3) var(--space-4);background:var(--surface-page);
        border:1px dashed var(--border-interactive);border-radius:var(--radius-md);width:100%;
@@ -872,9 +875,9 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
    fields = editable context, keyed by CONTEXT below
    meta   = derived/computed display pairs the user cannot edit here
    note   = free text  [C-12: stored raw so phrases can be tagged later] */
-const ICON = { dose:'ph-pill', symptom:'ph-waveform', activity:'ph-footprints',
+const ICON = { sleep:'ph-moon', dose:'ph-pill', symptom:'ph-waveform', activity:'ph-footprints',
                meal:'ph-fork-knife', note:'ph-note-pencil' };
-const TYPE_NAME = { dose:'Medication', symptom:'How I feel', activity:'Activity',
+const TYPE_NAME = { sleep:'Sleep', dose:'Medication', symptom:'How I feel', activity:'Activity',
                     meal:'Food', note:'Note' };
 const MARK = 'var(--mark)';   /* one colour for every type — the icon does the work */
 
@@ -890,7 +893,13 @@ let DAYS = [
     { time:'09:40', text:'Meds kicked in', type:'symptom', basis:'asserted',
       meta:[['ph-clock','85 min after dose']] },
     { time:'08:15', text:'Levodopa 100mg', type:'dose', basis:'asserted',
-      fields:{ meal:'With food' } }
+      fields:{ meal:'With food' } },
+    /* Crosses midnight on purpose: a 07:10 wake minus 7h25 starts at 23:45, so
+       its START is earlier than anything else today and it sits at the foot of
+       the rail. That is the case the interval model has to survive without
+       learning about midnight, and it does. */
+    { time:'07:10', text:'Sleep', type:'sleep', basis:'asserted', anchor:'end',
+      fields:{ dur:445 } }
   ]},
   { ago:1, live:false, list:[
     { time:'14:10', text:'Levodopa 100mg', type:'dose', basis:'asserted',
@@ -934,8 +943,25 @@ const CONTEXT = {
   symptom:  [ { key:'body',    label:'Where',    icon:'ph-person', multi:true,
                 choices:['Left arm','Right arm','Left leg','Right leg',
                          'Head or neck','Whole body'] } ],
+  /* Sleep reuses the interval machinery rather than getting its own: anchor at
+     the END, because you log a night when you wake from it, and the start is
+     derived. That is what lets a night cross midnight without any special case
+     — a 07:10 wake minus 7h25 lands at -15 minutes, which reads back as 23:45
+     and sorts below everything else on the day. The rail stays honest and no
+     code had to learn about midnight.
+     What this does NOT model is the night as an object. Two segments are two
+     entries, and "my night is in two pieces" is something Analyze should DERIVE
+     from a short gap between them, not something the person assembles at 7am.
+     [research-private/p01-sleep-and-social-notes.md] */
+  sleep:    [ { key:'dur', label:'How long', icon:'ph-moon', temporal:true,
+                kind:'duration', hm:true, choices:[360,420,480] } ],
   note:     []
 };
+
+/* A nap is not a short night. Same field, different sense of "how long", so the
+   shortcuts change with the label — the same per-label override the symptom
+   follow-ups already use. */
+const SLEEP_FIELDS = { 'Nap': { choices:[20,30,45,60] } };
 
 /* What a new entry is called, per type. The tiles create an entry with the
    generic label and open the sheet on it, so the label is the first thing you
@@ -943,7 +969,7 @@ const CONTEXT = {
    dose: lead with whatever the app does not yet know.
    Vocabulary follows glossary.html — patient words (kicked in, wearing off),
    not clinical synonyms. */
-const NEW_LABEL = { dose:'Medication', activity:'Activity', meal:'Food',
+const NEW_LABEL = { sleep:'Sleep', dose:'Medication', activity:'Activity', meal:'Food',
                     symptom:'How I feel', note:'Photo' };
 const SUGGEST = {
   dose:     ['Levodopa 100mg','Levodopa 150mg','Entacapone','Amantadine'],
@@ -957,8 +983,20 @@ const SUGGEST = {
      The real list comes from the onboarding activity library in TASKS.md;
      anything typed here becomes a permanent option for that user anyway. */
   activity: ['Walk','Boxing','Tai chi','Dance','Cycling','Swimming','Stretching',
-             'Yoga','Physical therapy','Housework','Gardening','Errands','Rest'],
+             'Yoga','Physical therapy','Housework','Gardening','Errands','Rest',
+             /* Social belongs here: it is bounded, it has a start and an end, and
+                it is something you did. P01 reports her endurance running longer
+                on days spent around people — if that is real it will only show up
+                in a trend if the day carries it, and right now nothing does.
+                Deliberately three plain labels rather than one "Social", which
+                would be a category wearing an entry's clothes — the same reason
+                "Exercise" was dropped. */
+             'Saw friends','Family time','Out with people'],
   meal:     ['Breakfast','Lunch','Dinner','Snack'],
+  /* Two labels, and they are not the same event. A night is the thing a doctor
+     asks about; a nap is a repair someone made to a day. Keeping them apart
+     also keeps the duration shortcuts honest — see SLEEP_FIELDS. */
+  sleep:    ['Sleep','Nap'],
   /* "Meds kicked in" / "Meds wearing off" — parallel on purpose. Without the
      prefix the pair reads inconsistently in a list, and bare "Wearing off"
      collides with ordinary tiredness, which is a different entry entirely.
@@ -999,6 +1037,10 @@ const SYMPTOM_DEFAULT = { key:'notice', label:'What you notice',
 /* CONTEXT is keyed by type; this adds the per-event layer on top. */
 function fieldsFor(e){
   const base = CONTEXT[e.type] || [];
+  if (e.type === 'sleep'){
+    const o = SLEEP_FIELDS[e.text];
+    return o ? base.map(f => ({ ...f, ...o })) : base;
+  }
   if (e.type !== 'symptom') return base;
   const extra = SYMPTOM_FIELDS[e.text] || SYMPTOM_DEFAULT;
   return [{ ...extra, icon:'ph-waveform', multi:true }].concat(base);
@@ -1405,10 +1447,16 @@ function dayLabelText(i){
    record. */
 let logStep = null;          // null = categories · otherwise the chosen type
 
+/* The 2x2 grid is what happens DURING a day. Sleep runs the full width beneath
+   it because it is the once-a-day one: you log it in the morning, for a window
+   you were unconscious for, and it is the only entry here that spans midnight.
+   Still a tile, not a new component — same family, different cadence. */
 const TILES = [
   ['dose','ph-pill','Medication'], ['activity','ph-footprints','Activity'],
-  ['meal','ph-fork-knife','Food & protein'], ['symptom','ph-waveform','How I feel']
+  ['meal','ph-fork-knife','Food & protein'], ['symptom','ph-waveform','How I feel'],
+  ['sleep','ph-moon','Sleep & naps']
 ];
+const WIDE_TILE = 'sleep';
 const q = t => JSON.stringify(t).replace(/"/g,'&quot;');
 
 /* ── what this user actually logs ────────────────────────────────────────
@@ -1458,7 +1506,7 @@ function renderLogSheet(){
       <span><span class="strip-name">Photo</span> <span class="sub">· take one or pick from your album</span></span>
     </button>`;
     h += '<div class="grid">' + TILES.map(([t,ico,name]) =>
-      `<button class="tile" onclick="openCategory('${t}')">
+      `<button class="tile${t===WIDE_TILE?' wide':''}" onclick="openCategory('${t}')">
         <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ${ico}"></i></span>
         <span class="tile-name">${name}</span></button>`).join('') + '</div>';
   } else {
@@ -1495,7 +1543,11 @@ function renderLogSheet(){
    Without history: the chooser, because there is nothing honest to propose. */
 function openCategory(t){
   searchQ = '';
-  const guess = rankLabels(t)[0];
+  /* Prediction earns its place on a long list, where it saves real scrolling.
+     On a two-item list it saves one tap and costs a correction whenever it is
+     wrong — and Sleep proved it immediately: log one nap and the next night
+     arrives called "Nap". Two options, no guess. */
+  const guess = labelChoices(t).length > 2 ? rankLabels(t)[0] : null;
   if (!guess){ logStep = t; renderLogSheet(); return; }
   closeSheets();
   const e = { time:nowTime(), recorded:nowTime(), text:guess, type:t, basis:'asserted' };
@@ -1819,7 +1871,7 @@ function timeSectionHTML(e){
    shortcuts ranked by what this user actually logs, and one door to the rest.
    Previously it was a lone "Add" chip in a different visual idiom. */
 function durationSectionHTML(e){
-  const f = (CONTEXT[e.type] || []).find(x => x.temporal);
+  const f = fieldsFor(e).find(x => x.temporal);   /* fieldsFor, so Nap's shortcuts win */
   if (!f) return '';
   const v = e.fields && e.fields[f.key];
   /* WHICH three: by how often this user picks them. IN WHAT ORDER: by size.
@@ -1887,7 +1939,11 @@ function searchRowsHTML(type, current, pickExpr, addExpr, inputId){
        and magnitude arranged it.
        Items repeat across the bands on purpose — the lower list is the complete
        one, so anything missing from it would read as missing entirely. */
-    const mine = rankLabels(type).slice(0, 6);
+    /* A band of favourites is a shortcut past scrolling. A list that fits on
+       screen has nothing to scroll past, so the band stops being a shortcut and
+       starts being a duplicate — with Sleep it printed "Nap" twice above a
+       two-item list. Bands only once the list is long enough to need them. */
+    const mine = all.length > 6 ? rankLabels(type).slice(0, 6) : [];
     if (mine.length){
       h += '<div class="rowgroup">Yours</div>' + mine.map(row).join('');
       h += '<div class="rowgroup">All</div>';
@@ -1968,11 +2024,27 @@ function renderPickerStep(){
         ).join('') + '</div></div>';
   } else if (field.kind === 'duration'){
     const cur = (e.fields && e.fields[field.key]) || '';
-    h += `<div class="numrow">
-        <input class="numin" id="num-in" inputmode="numeric" maxlength="3" value="${cur}"
-               aria-label="${esc(field.label)} in minutes" oninput="onNumField('${field.key}',this)">
-        <span class="numunit">minutes</span>
-      </div>`;
+    /* Minutes are the right unit for a walk and the wrong one for a night —
+       nobody says they slept 445 minutes. Same two-box shape as the time step,
+       so it is already a familiar control by the time anyone reaches it. */
+    if (field.hm){
+      const H = cur ? Math.floor(cur / 60) : '';
+      const M = cur ? cur % 60 : '';
+      h += `<div class="timefields">
+          <input class="tf" id="hm-h" inputmode="numeric" maxlength="2" value="${H}"
+                 aria-label="Hours" oninput="onHMField('${field.key}',this)">
+          <span class="tf-sep">h</span>
+          <input class="tf" id="hm-m" inputmode="numeric" maxlength="2" value="${M}"
+                 aria-label="Minutes" oninput="onHMField('${field.key}',this)">
+          <span class="tf-sep">m</span>
+        </div>`;
+    } else {
+      h += `<div class="numrow">
+          <input class="numin" id="num-in" inputmode="numeric" maxlength="3" value="${cur}"
+                 aria-label="${esc(field.label)} in minutes" oninput="onNumField('${field.key}',this)">
+          <span class="numunit">minutes</span>
+        </div>`;
+    }
     h += '<div class="chips">' + [...field.choices].sort((a,b)=>a-b).map(m =>
         `<button class="chip pick${m===cur?' on':''}" onclick="pickField('${field.key}',${m})">${fmtDur(m)}</button>`
       ).join('') + '</div>';
@@ -1986,6 +2058,7 @@ function renderPickerStep(){
   /* Land on the hour with the keypad already up. Opening a step to type and
      then having to tap the field is the step charging for itself. */
   if (kind === 'time'){ const hh = el('tf-h'); if (hh){ hh.focus(); hh.select(); } }
+  const hm = el('hm-h'); if (hm){ hm.focus(); hm.select(); }
 }
 /* The same box appears on two surfaces. Both stay in the DOM once rendered, so
    they need DISTINCT ids — sharing one is invalid HTML and el() would silently
@@ -2019,6 +2092,19 @@ function pickGrams(key, n){
   delete e.fields[key]; e.fields[f.grams] = n;
   pickerStep = null; openField = null;
   renderDetail(); renderTimeline();
+}
+/* Both boxes write one number. Reads the pair every keystroke rather than
+   tracking which box changed, because half of a duration is not a duration. */
+function onHMField(key, node){
+  const digits = node.value.replace(/\D/g,'').slice(0,2);
+  if (digits !== node.value) node.value = digits;
+  const e = active.e; e.fields = e.fields || {}; ownIt(key);
+  const hh = parseInt((el('hm-h') || {}).value || '0', 10) || 0;
+  const mm = Math.min(59, parseInt((el('hm-m') || {}).value || '0', 10) || 0);
+  const total = hh * 60 + mm;
+  if (!total) delete e.fields[key]; else e.fields[key] = total;
+  sortDay(DAYS[active.day]); renderTimeline();
+  if (node.id === 'hm-h' && digits.length === 2){ const m = el('hm-m'); if (m){ m.focus(); m.select(); } }
 }
 function onNumField(key, node){
   const digits = node.value.replace(/\D/g,'').slice(0,3);
