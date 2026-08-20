@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DoseEgg — Tremor test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,300;6..72,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper-0:#FFF;--paper-50:#F9F8F5;--paper-100:#F2F1EC;--paper-200:#E8E6DF;
+  --paper-300:#D9D6CC;--paper-500:#8D8A7D;--paper-600:#6E6B5F;--paper-700:#46443C;--paper-900:#1A1916;
+  --ink-500:#1F4A52;--ink-600:#163940;
+  --mark:#4E6B84;--mark-note:#8C7B6A;
+  --font-serif:'Newsreader',Georgia,serif;--font-sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;padding:24px 18px 96px;background:var(--paper-50);color:var(--paper-900);
+     font-family:var(--font-sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:460px;margin:0 auto}
+a.back{display:inline-block;font-size:12px;font-weight:600;color:var(--paper-600);
+  text-decoration:none;border:1px solid var(--paper-200);border-radius:20px;
+  padding:4px 12px;margin-bottom:18px;background:var(--paper-0)}
+h1{font-family:var(--font-serif);font-size:28px;font-weight:400;line-height:1.2;margin:0 0 6px}
+h2{font-family:var(--font-serif);font-size:22px;font-weight:400;margin:46px 0 4px;
+   padding-bottom:10px;border-bottom:1px solid var(--paper-200)}
+h3{font-size:15px;font-weight:600;margin:24px 0 6px}
+p{margin:0 0 12px;color:var(--paper-700);font-size:16px}
+.lede{color:var(--paper-600)}
+.label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--paper-600);font-weight:500}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.85em;background:var(--paper-200);
+     padding:2px 5px;border-radius:5px}
+ul{margin:0 0 14px;padding-left:20px}
+li{margin-bottom:7px;color:var(--paper-700);font-size:16px}
+.note{background:var(--paper-100);border-left:3px solid var(--ink-500);border-radius:0 10px 10px 0;
+      padding:14px;margin:16px 0;font-size:15px;color:var(--paper-700)}
+.note b{color:var(--paper-900)}
+.note.warn{border-left-color:var(--mark-note);background:rgba(140,123,106,.07)}
+.card{background:var(--paper-0);border:1px solid var(--paper-200);border-radius:14px;
+      padding:16px;margin:14px 0}
+
+/* ── mock product states ── */
+.mock{background:var(--paper-0);border:1px solid var(--paper-200);border-radius:16px;
+  padding:16px;margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.mock .mtitle{font-size:16px;font-weight:600;margin-bottom:3px}
+.mock .msub{font-size:14px;color:var(--paper-600);margin-bottom:14px}
+.mock .mrow{display:flex;gap:8px}
+.mbtn{flex:1;min-height:48px;border-radius:11px;border:1px solid var(--paper-300);
+  background:var(--paper-0);color:var(--paper-900);font-family:inherit;font-size:15px;
+  font-weight:600;cursor:default}
+.mbtn.primary{background:var(--ink-500);border-color:var(--ink-500);color:#fff}
+.mstate{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--paper-500);
+  font-weight:600;margin:18px 0 2px}
+
+/* ── instrument ── */
+.big{width:100%;min-height:60px;border-radius:13px;border:0;background:var(--ink-500);
+  color:#fff;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer;margin:6px 0}
+.big:disabled{background:var(--paper-300);color:var(--paper-600)}
+.big.sec{background:var(--paper-0);color:var(--paper-900);border:1px solid var(--paper-300)}
+.status{font-size:14px;color:var(--paper-600);min-height:22px;margin:8px 0}
+.count{font-family:var(--font-serif);font-size:56px;line-height:1;text-align:center;
+  margin:14px 0 6px;color:var(--ink-500)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 4px}
+.metric{background:var(--paper-100);border-radius:10px;padding:10px 12px}
+.metric .mk{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--paper-500);font-weight:600}
+.metric .mv{font-family:ui-monospace,Menlo,monospace;font-size:19px;color:var(--paper-900)}
+.metric .mv small{font-size:12px;color:var(--paper-500)}
+.verdictbox{border-radius:10px;padding:12px 14px;margin:12px 0;font-size:15px;line-height:1.5}
+.v-ok{background:rgba(31,74,82,.07);border:1px solid rgba(31,74,82,.2);color:var(--paper-900)}
+.v-none{background:var(--paper-100);border:1px solid var(--paper-200);color:var(--paper-700)}
+.v-bad{background:rgba(140,123,106,.09);border:1px solid rgba(140,123,106,.28);color:var(--paper-700)}
+svg{display:block;width:100%;height:auto;background:var(--paper-0);border-radius:10px}
+.axcap{font-size:11px;color:var(--paper-500);text-align:center;margin:2px 0 12px}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--paper-200);
+  font-size:12px;color:var(--paper-500)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back" href="index.html">← Home</a>
+
+<h1>Tremor test</h1>
+<p class="lede">A working instrument, not a mockup. Twenty seconds of accelerometer, resampled, windowed, FFT, and the power that lands in the 3 to 7 Hz band where Parkinsonian resting tremor lives. No plugin, no entitlement, no watch. <b>Open this on a phone.</b></p>
+
+<div class="note">
+  <b>The design decision this is testing.</b> Not "can the app detect tremor and ask about it" —
+  that inverts the relationship and interrupts people because they are unwell. This is the other
+  direction: <b>the person says they are shaking, and the phone offers to corroborate it.</b>
+  The question here is only whether the signal is real enough to be worth offering.
+</div>
+
+
+<h2>The flow</h2>
+<p>Four states. Note what is missing from the last one.</p>
+
+<div class="mstate">1 · after tapping “Shaking” in How I feel</div>
+<div class="mock">
+  <div class="mtitle">Want to record it?</div>
+  <div class="msub">Hold the phone still for 20 seconds and it will save a reading alongside this entry.</div>
+  <div class="mrow">
+    <button class="mbtn primary">Record it</button>
+    <button class="mbtn">Not now</button>
+  </div>
+</div>
+
+<div class="mstate">2 · measuring</div>
+<div class="mock">
+  <div class="mtitle">Hold still</div>
+  <div class="msub">Rest your hand in your lap. Do not grip.</div>
+  <div class="count" style="font-size:44px;margin:6px 0 0">14</div>
+</div>
+
+<div class="mstate">3 · done</div>
+<div class="mock">
+  <div class="mtitle">Recorded</div>
+  <div class="msub">Saved with your 3:42 entry.</div>
+</div>
+
+<div class="mstate">4 · too much movement</div>
+<div class="mock">
+  <div class="mtitle">Could not get a clean reading</div>
+  <div class="msub">There was too much movement to measure. You can try again when your hand is resting, or skip it.</div>
+  <div class="mrow">
+    <button class="mbtn primary">Try again</button>
+    <button class="mbtn">Skip</button>
+  </div>
+</div>
+
+<div class="note warn">
+  <b>State 3 shows no number, and that is deliberate.</b> A tremor score in the app is a
+  measurement that invites a verdict, and the person can already feel their own hand. The
+  number goes to the doctor artifact, where a measurement that is <em>not</em> self-reported is
+  exactly what makes the record credible. If we ever surface it to the patient, the argument
+  has to be made separately and it has to be better than “we had the number anyway.”
+</div>
+<div class="note warn">
+  <b>State 4 is the quality gate, and it matters more than it looks.</b> cloudUPDRS is the only
+  tool in the market research that scores its own trials for reliability and <em>discards</em> the bad
+  ones rather than analysing them. Every consumer app treats all user input as equally valid.
+  A brain-fogged evening or a moving car produces genuinely bad data, and a reading we know is
+  unreliable is worse than no reading in a record a neurologist will read.
+</div>
+
+
+<h2>The instrument</h2>
+<p class="lede">iOS needs a tap to grant motion access, and it only works over https. On desktop there is no sensor, so use Simulate to see the pipeline run on a synthetic 5.2 Hz signal.</p>
+
+<div class="card">
+  <button class="big" id="btnStart">Start a 20 second reading</button>
+  <button class="big sec" id="btnSim">Simulate a 5.2 Hz tremor</button>
+  <div class="status" id="status">Ready.</div>
+  <div class="count" id="count" style="display:none">20</div>
+</div>
+
+<div id="results" style="display:none">
+  <div class="verdictbox" id="verdict"></div>
+
+  <div class="metrics">
+    <div class="metric"><div class="mk">Peak in 2–12 Hz</div><div class="mv" id="mPeak">–</div></div>
+    <div class="metric"><div class="mk">Power in 3–7 Hz</div><div class="mv" id="mBand">–</div></div>
+    <div class="metric"><div class="mk">Sample rate</div><div class="mv" id="mFs">–</div></div>
+    <div class="metric"><div class="mk">Motion energy</div><div class="mv" id="mEnergy">–</div></div>
+  </div>
+
+  <h3>Spectrum</h3>
+  <svg id="svgSpec" viewBox="0 0 400 170" role="img" aria-label="Power spectrum"></svg>
+  <div class="axcap">0 to 15 Hz · the 3 to 7 Hz band is shaded</div>
+
+  <h3>Signal, last 5 seconds</h3>
+  <svg id="svgWave" viewBox="0 0 400 110" role="img" aria-label="Acceleration waveform"></svg>
+  <div class="axcap">summed axes, gravity removed, mean subtracted</div>
+</div>
+
+
+<h2>How it works, and the three things that will bite</h2>
+<ol>
+  <li><b>Sample timing is not uniform.</b> <code>devicemotion</code> fires best effort and the interval
+  drifts, so the raw series is resampled onto a fixed 50 Hz grid by linear interpolation before
+  anything else happens. Skip this and the frequency axis is meaningless. This is the single most
+  common mistake in web accelerometer code.</li>
+  <li><b>Do not use vector magnitude.</b> Taking <code>sqrt(x²+y²+z²)</code> feels natural and is wrong:
+  rectifying a single-axis oscillation doubles its apparent frequency, so a 5 Hz tremor reads as
+  10 Hz. This computes a spectrum per axis and sums the three, which is rotation invariant and
+  preserves frequency.</li>
+  <li><b>Posture is part of the instrument.</b> Resting tremor means resting. "Hold it in your lap,
+  do not grip" is not friendly copy, it is the measurement protocol, and it is exactly the kind of
+  instruction that gets followed differently on a bad day.</li>
+</ol>
+<p>Chain: collect at whatever rate iOS gives, prefer <code>e.acceleration</code> (gravity already
+removed) and fall back to <code>accelerationIncludingGravity</code> with the mean subtracted, resample to
+50 Hz, take 1024 samples (20.5 s, bin width 0.049 Hz), detrend, Hann window, radix-2 FFT per axis,
+sum the power spectra, then read the peak in 2 to 12 Hz and the fraction of power inside 3 to 7 Hz.</p>
+
+<div class="note">
+  <b>What a result does and does not mean.</b> A clean 3 to 7 Hz peak is consistent with
+  Parkinsonian resting tremor. It is not a diagnosis, it does not grade severity, and it cannot
+  tell essential tremor from PD tremor. What it is good for is being an <em>objective timestamp</em>
+  next to a subjective one, which is the thing a twelve minute appointment does not otherwise have.
+</div>
+
+<h2>What to try</h2>
+<ul>
+  <li><b>Baseline.</b> Rest the phone in your lap, hand relaxed, and run it. This is what "no tremor" looks like.</li>
+  <li><b>Deliberate.</b> Shake your hand gently at roughly five times a second. The peak should land near 5 Hz. That validates the whole pipeline without needing a tremor.</li>
+  <li><b>The failure case.</b> Run it while walking, or scrolling with your other thumb. This is what the quality gate has to catch.</li>
+  <li><b>The real question for P01.</b> Not "does it work" but <em>would you take this on a bad day</em>. If the answer is no, it is a good days only instrument and belongs in the export or nowhere.</li>
+</ul>
+
+<footer>DoseEgg · Sensing · Tremor test · August 2026<br>
+Research instrument. Not a medical device, and nothing here diagnoses or grades anything.</footer>
+
+</div>
+
+<script>
+const FS = 50, N = 1024, CAPTURE_MS = 20500;
+let samples = [], t0 = 0, timer = null, running = false;
+
+const $ = id => document.getElementById(id);
+const setStatus = s => { $('status').textContent = s; };
+
+/* ── radix-2 iterative FFT, in place, returns magnitude² ── */
+function fftPower(re){
+  const n = re.length, im = new Float64Array(n);
+  for(let i=1, j=0; i<n; i++){
+    let bit = n >> 1;
+    for(; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if(i < j){ const tr=re[i]; re[i]=re[j]; re[j]=tr; }
+  }
+  for(let len=2; len<=n; len<<=1){
+    const ang = -2*Math.PI/len, wr = Math.cos(ang), wi = Math.sin(ang);
+    for(let i=0; i<n; i+=len){
+      let cr = 1, ci = 0;
+      for(let k=0; k<len/2; k++){
+        const ur=re[i+k], ui=im[i+k];
+        const vr=re[i+k+len/2]*cr - im[i+k+len/2]*ci;
+        const vi=re[i+k+len/2]*ci + im[i+k+len/2]*cr;
+        re[i+k]=ur+vr; im[i+k]=ui+vi;
+        re[i+k+len/2]=ur-vr; im[i+k+len/2]=ui-vi;
+        const ncr = cr*wr - ci*wi; ci = cr*wi + ci*wr; cr = ncr;
+      }
+    }
+  }
+  const half = n>>1, p = new Float64Array(half);
+  for(let i=0;i<half;i++) p[i] = re[i]*re[i] + im[i]*im[i];
+  return p;
+}
+
+/* ── resample an irregular series onto a uniform grid ── */
+function resample(ts, vs, fs, n, endT){
+  const out = new Float64Array(n), dt = 1000/fs, startT = endT - (n-1)*dt;
+  let j = 0;
+  for(let i=0;i<n;i++){
+    const t = startT + i*dt;
+    while(j < ts.length-2 && ts[j+1] < t) j++;
+    const t1=ts[j], t2=ts[j+1], v1=vs[j], v2=vs[j+1];
+    out[i] = (t2===t1) ? v1 : v1 + (v2-v1)*(t-t1)/(t2-t1);
+  }
+  return out;
+}
+
+function hann(a){
+  const n=a.length, o=new Float64Array(n);
+  let mean=0; for(let i=0;i<n;i++) mean+=a[i]; mean/=n;
+  for(let i=0;i<n;i++) o[i] = (a[i]-mean) * 0.5*(1-Math.cos(2*Math.PI*i/(n-1)));
+  return o;
+}
+
+function analyse(){
+  if(samples.length < 100){
+    setStatus('Not enough samples came through. The sensor may be blocked.');
+    return;
+  }
+  const ts = samples.map(s=>s.t);
+  const endT = ts[ts.length-1];
+  const spans = ts.length>1 ? (endT-ts[0])/(ts.length-1) : 20;
+  const rawFs = 1000/spans;
+
+  const axes = ['x','y','z'].map(k => resample(ts, samples.map(s=>s[k]), FS, N, endT));
+
+  let energy = 0;
+  axes.forEach(a=>{ let m=0; for(let i=0;i<N;i++) m+=a[i]; m/=N;
+                    for(let i=0;i<N;i++) energy += (a[i]-m)*(a[i]-m); });
+  energy = Math.sqrt(energy/N);
+
+  const half = N>>1, sum = new Float64Array(half);
+  axes.forEach(a=>{ const p = fftPower(hann(a)); for(let i=0;i<half;i++) sum[i]+=p[i]; });
+
+  const binHz = FS/N;
+  const at = hz => Math.round(hz/binHz);
+  let peakI = at(2), peakV = -1;
+  for(let i=at(2); i<=at(12); i++) if(sum[i]>peakV){ peakV=sum[i]; peakI=i; }
+  let band=0, total=0;
+  for(let i=at(0.5); i<=at(15); i++){ total += sum[i]; if(i>=at(3) && i<=at(7)) band += sum[i]; }
+  const ratio = total>0 ? band/total : 0;
+  const peakHz = peakI*binHz;
+
+  $('mPeak').innerHTML = peakHz.toFixed(2) + ' <small>Hz</small>';
+  $('mBand').innerHTML = (ratio*100).toFixed(0) + ' <small>%</small>';
+  $('mFs').innerHTML = rawFs.toFixed(0) + ' <small>Hz raw</small>';
+  $('mEnergy').innerHTML = energy.toFixed(3) + ' <small>m/s²</small>';
+
+  const v = $('verdict');
+  if(energy > 0.9){
+    v.className = 'verdictbox v-bad';
+    v.innerHTML = '<b>Too much movement to read.</b> Motion energy is well above a resting hand, so anything in the tremor band is swamped. This is the case the quality gate exists for.';
+  } else if(energy < 0.006){
+    v.className = 'verdictbox v-none';
+    v.innerHTML = '<b>Almost no movement at all.</b> The phone was probably on a table rather than in contact with a hand. Nothing to read either way.';
+  } else if(ratio > 0.35 && peakHz >= 3 && peakHz <= 7){
+    v.className = 'verdictbox v-ok';
+    v.innerHTML = '<b>Clear oscillation at ' + peakHz.toFixed(1) + ' Hz.</b> That is inside the band where Parkinsonian resting tremor sits, and it carries ' + (ratio*100).toFixed(0) + '% of the total power. Consistent with tremor. Not a diagnosis, and it says nothing about severity.';
+  } else if(ratio > 0.18) {
+    v.className = 'verdictbox v-none';
+    v.innerHTML = 'Some energy in the tremor band, peaking at ' + peakHz.toFixed(1) + ' Hz, but it is not dominant. Ambiguous. In a real instrument this is the reading you would want a second trial for.';
+  } else {
+    v.className = 'verdictbox v-none';
+    v.innerHTML = '<b>No dominant rhythm in the tremor band.</b> The peak sits at ' + peakHz.toFixed(1) + ' Hz with only ' + (ratio*100).toFixed(0) + '% of the power in 3 to 7 Hz.';
+  }
+
+  drawSpectrum(sum, binHz);
+  drawWave(axes);
+  $('results').style.display = 'block';
+  setStatus('Done. ' + samples.length + ' samples collected.');
+}
+
+const NS='http://www.w3.org/2000/svg';
+function mk(tag, attrs, parent){
+  const n=document.createElementNS(NS,tag);
+  for(const k in attrs) n.setAttribute(k, attrs[k]);
+  parent.appendChild(n); return n;
+}
+function clr(svg){ while(svg.firstChild) svg.removeChild(svg.firstChild); }
+
+function drawSpectrum(sum, binHz){
+  const svg=$('svgSpec'); clr(svg);
+  const L=34,R=392,T=12,B=142, maxHz=15;
+  const X = hz => L + (hz/maxHz)*(R-L);
+  const nb = Math.round(maxHz/binHz);
+  let mx=0; for(let i=1;i<=nb;i++) if(sum[i]>mx) mx=sum[i];
+  if(mx<=0) mx=1;
+
+  mk('rect',{x:X(3),y:T,width:X(7)-X(3),height:B-T,fill:'#4E6B84',opacity:.09},svg);
+  mk('line',{x1:L,y1:B,x2:R,y2:B,stroke:'#D9D6CC','stroke-width':1},svg);
+
+  let d='';
+  for(let i=1;i<=nb;i++){
+    const x=X(i*binHz), y=B-(sum[i]/mx)*(B-T);
+    d += (i===1?'M':'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
+  }
+  mk('path',{d, fill:'none', stroke:'#4E6B84','stroke-width':1.5,
+    'stroke-linejoin':'round'},svg);
+
+  [0,3,5,7,10,15].forEach(h=>{
+    const t=mk('text',{x:X(h),y:B+16,'text-anchor':'middle','font-size':10,fill:'#8D8A7D',
+      'font-family':'Inter,system-ui'},svg);
+    t.textContent=h;
+  });
+  const t2=mk('text',{x:(X(3)+X(7))/2,y:T+12,'text-anchor':'middle','font-size':10,
+    fill:'#4E6B84','font-family':'Inter,system-ui','font-weight':600},svg);
+  t2.textContent='tremor band';
+}
+
+function drawWave(axes){
+  const svg=$('svgWave'); clr(svg);
+  const L=8,R=392,T=8,B=102, n=FS*5, start=N-n;
+  const comb=new Float64Array(n);
+  for(let i=0;i<n;i++) comb[i]=axes[0][start+i]+axes[1][start+i]+axes[2][start+i];
+  let m=0; for(let i=0;i<n;i++) m+=comb[i]; m/=n;
+  let mx=1e-6; for(let i=0;i<n;i++) mx=Math.max(mx, Math.abs(comb[i]-m));
+  const mid=(T+B)/2;
+  mk('line',{x1:L,y1:mid,x2:R,y2:mid,stroke:'#E8E6DF','stroke-width':1},svg);
+  let d='';
+  for(let i=0;i<n;i++){
+    const x=L+(i/(n-1))*(R-L), y=mid-((comb[i]-m)/mx)*((B-T)/2-2);
+    d += (i===0?'M':'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
+  }
+  mk('path',{d, fill:'none', stroke:'#4E6B84','stroke-width':1.2},svg);
+}
+
+/* ── capture ── */
+function onMotion(e){
+  const a = e.acceleration && e.acceleration.x !== null ? e.acceleration
+          : e.accelerationIncludingGravity;
+  if(!a) return;
+  samples.push({ t: performance.now(), x: a.x||0, y: a.y||0, z: a.z||0 });
+}
+
+async function start(){
+  if(running) return;
+  if(typeof DeviceMotionEvent === 'undefined'){
+    setStatus('This browser has no motion sensor. Use Simulate.'); return;
+  }
+  if(typeof DeviceMotionEvent.requestPermission === 'function'){
+    let state;
+    try { state = await DeviceMotionEvent.requestPermission(); }
+    catch(err){ setStatus('Permission request failed. Needs https and a real tap.'); return; }
+    if(state !== 'granted'){
+      setStatus('Motion access denied. Reset it in Settings, Safari, Motion and Orientation Access.');
+      return;
+    }
+  }
+  running = true; samples = []; t0 = performance.now();
+  $('btnStart').disabled = true; $('btnSim').disabled = true;
+  $('results').style.display='none';
+  $('count').style.display='block';
+  setStatus('Hold still. Rest your hand in your lap, do not grip.');
+  window.addEventListener('devicemotion', onMotion);
+
+  timer = setInterval(()=>{
+    const left = Math.ceil((CAPTURE_MS - (performance.now()-t0))/1000);
+    $('count').textContent = Math.max(0,left);
+    if(performance.now()-t0 >= CAPTURE_MS) stop();
+  }, 100);
+}
+
+function stop(){
+  clearInterval(timer);
+  window.removeEventListener('devicemotion', onMotion);
+  running = false;
+  $('btnStart').disabled=false; $('btnSim').disabled=false;
+  $('count').style.display='none';
+  setStatus('Analysing ' + samples.length + ' samples.');
+  setTimeout(analyse, 30);
+}
+
+function simulate(){
+  samples = [];
+  const now = performance.now(), n = 1300, jitter = () => (Math.random()-0.5)*4;
+  for(let i=0;i<n;i++){
+    const t = now - (n-i)*16.4 + jitter();
+    const s = Math.sin(2*Math.PI*5.2*(t/1000));
+    samples.push({ t,
+      x: 0.055*s + (Math.random()-0.5)*0.02,
+      y: 0.030*s + (Math.random()-0.5)*0.02,
+      z: 0.012*s + (Math.random()-0.5)*0.02 });
+  }
+  setStatus('Simulated signal: 5.2 Hz plus noise, irregular sample timing.');
+  setTimeout(analyse, 30);
+}
+
+$('btnStart').addEventListener('click', start);
+$('btnSim').addEventListener('click', simulate);
+</script>
+</body>
+</html>
