@@ -175,6 +175,35 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .c-more i{font-size:18px}
 .c-more:hover{background:var(--surface-raised)}
 
+/* ── slot sheet + grouped row (v3, D-16) ── */
+.egroup{display:block;font-size:var(--text-label);color:var(--text-muted);margin-top:2px}
+.slot-time{background:var(--surface-raised);border:1px solid var(--border-subtle);
+           border-radius:var(--radius-md);padding:var(--space-4)}
+.slot-time .st-now{font-size:var(--text-title);font-weight:600;line-height:1}
+.slot-time .st-cap{font-size:var(--text-label);color:var(--text-muted);margin-top:2px}
+.nudges{display:flex;gap:var(--target-gap);margin-top:var(--space-3)}
+.nudge{flex:1;min-height:var(--target-routine);border-radius:var(--radius-md);
+       border:1px solid var(--border-interactive);background:var(--surface-card);
+       font-family:inherit;font-size:var(--text-small);font-weight:500;color:var(--text-primary)}
+.nudge:hover{background:var(--surface-sunken)}
+.medrow{display:flex;align-items:center;gap:var(--space-3);width:100%;
+        min-height:var(--target-routine);padding:var(--space-3) var(--space-4);
+        border:1px solid var(--border-subtle);border-radius:var(--radius-md);
+        background:var(--surface-card);text-align:left;font-family:inherit;
+        font-size:var(--text-small);color:var(--text-primary)}
+.medrow + .medrow{margin-top:var(--target-gap)}
+.medrow .mname{flex:1;font-weight:500}
+.medrow .mrole{font-size:var(--text-meta);letter-spacing:.06em;text-transform:uppercase;
+               color:var(--text-muted);flex:0 0 auto}
+.medrow .mstate{font-size:var(--text-label);color:var(--accent);font-weight:600;flex:0 0 auto}
+.medrow.off{background:var(--surface-page);border-style:dashed}
+.medrow.off .mname{color:var(--text-muted);text-decoration:line-through}
+.medrow.off .mstate{color:var(--text-muted)}
+.slot-done{width:100%;min-height:var(--target-critical);border-radius:var(--radius-md);
+           background:var(--accent);color:var(--on-accent);border:0;font-family:inherit;
+           font-size:var(--text-small);font-weight:600}
+.slot-hint{font-size:var(--text-label);color:var(--text-muted)}
+
 /* ── lock screen ────────────────────────────────────────────────────────
    v3. The confirmation card is the right OBJECT on the wrong SURFACE. Every
    product that solved sub-three-second dose confirmation did the same four
@@ -787,6 +816,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
     <span class="db">Hi-fi · Timeline · v3</span>
     <button class="demo-btn" onclick="openLock()">lock screen</button>
     <button class="demo-btn" onclick="demoAddDose()">+ due dose</button>
+    <button class="demo-btn" onclick="demoBigSlot()">12-med slot</button>
     <button class="demo-btn" onclick="demoEmpty()">empty</button>
     <button class="demo-btn" onclick="toggleTuner()">tune ▾</button>
     <button class="demo-btn" onclick="location.reload()">reset</button>
@@ -915,6 +945,12 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
      than the library path is worth. -->
 <input type="file" id="photo-in" accept="image/*" hidden
        aria-hidden="true" tabindex="-1" onchange="onPhotoPicked(this)">
+
+<!-- ══ Slot sheet (v3) — the third path, and where a grouped row opens ══ -->
+<div class="sheet tall" id="sheet-slot" role="dialog" aria-label="Adjust this dose" tabindex="-1">
+  <div class="pull"></div>
+  <div id="slot-body"></div>
+</div>
 
 <!-- ══ Entry detail sheet (v2) — contents rendered from state ══ -->
 <div class="sheet tall" id="sheet-detail" role="dialog" aria-label="Entry detail" tabindex="-1">
@@ -1127,7 +1163,29 @@ const BASIS_ORDER = ['asserted','declined','assumed'];
    multiplies the only proactive ask we allow ourselves. [Flow Benchmark F2]
    It also gives D-15 a cleaner model: "resolved by its sibling" is just the slot
    closing. */
-let currentSlot = { sched:'10:30', meds:['Levodopa 100mg','Entacapone 200mg'] };  // one card max, never stacks
+let currentSlot = { sched:'10:30', anchor:'Levodopa 100mg',
+                    addons:['Entacapone 200mg'] };   // one card max, never stacks
+
+/* D-16. A slot is an ANCHOR plus optional ADD-ONS, not a flat set. The anchor
+   carries the schedule and is why the slot exists; add-ons attach to it, are
+   chosen by purpose, and get dropped deliberately. Dropping an add-on leaves a
+   coherent event; dropping the anchor does not. "Add-on" is P01's word and her
+   doctor's; the clinical term is adjunct, and the export is the one surface
+   where that is the right word.
+   ROLE, NOT DRUG: which medication plays the add-on differs per person and per
+   slot, so nothing here is hard-coded to a drug name. */
+const slotMeds = sl => [sl.anchor, ...sl.addons];
+const roleOf   = (sl, name) => name === sl.anchor ? 'anchor' : 'addon';
+
+/* N-scaling [D-16]. N=1 names the drug. N=3 lists them. N=12 cannot be listed at
+   all - the iOS notification body is two to four lines, so this degrades rather
+   than wraps. Designing for two and discovering the rest is how the pattern
+   breaks at exactly the users carrying the heaviest load. */
+function medSummary(list, max = 3){
+  return list.length <= max
+    ? list.join(' · ')
+    : `${list.slice(0,2).join(' · ')} and ${list.length - 2} more`;
+}
 let active = null;          // {e, day} — the entry open in the detail sheet
 let basisOpen = false;      // is the basis chooser expanded
 let openField = null;       // which context field is showing its choices
@@ -1269,14 +1327,65 @@ function entryHTML(e, di, i){
   </button>`;
 }
 /* returns the rail's INNER html — the caller wraps it, so nothing is string-surgeried */
+/* One ask, one row, N records [D-16]. The row is a VIEW, not a stored object -
+   same slot, same resolved time, same basis collapse into one line. Correct any
+   one of the three and the group breaks by itself, which is what keeps it
+   self-maintaining. Same decision as sleep segments: "these belong together" is
+   derived from the data, never assembled by the person.
+   Note that taken and skipped land in DIFFERENT groups, because basis is part of
+   the key. "Took these two, skipped that one" reads as two rows, which is the
+   honest picture rather than a merged one. */
+function groupRail(list){
+  /* Grouped by KEY, not by adjacency. Twelve entries sharing one timestamp have no
+     guaranteed order after the sort, so a consecutive-runs version split the taken
+     and skipped sets into interleaved fragments. Each group renders at the
+     position of its first member, which keeps the rail in occurred-at order. */
+  const out = [], byKey = new Map();
+  list.forEach((e, i) => {
+    const key = (e.type === 'dose' && !e.removed && e.slot)
+              ? `${e.slot}|${e.time}|${e.basis}` : null;
+    if (key && byKey.has(key)){ byKey.get(key).items.push({ e, i }); return; }
+    const g = { key, items: [{ e, i }] };
+    if (key) byKey.set(key, g);
+    out.push(g);
+  });
+  return out;
+}
+function groupHTML(g, di){
+  /* The anchor leads the row. Sort order among entries sharing one timestamp is
+     arbitrary, so without this the headline is whichever drug happened to land
+     first - which for P01 would routinely put the add-on above the levodopa and
+     invert the thing the slot is actually about. */
+  const ordered = [...g.items].sort((a,b) =>
+      ((a.e.role === 'anchor' ? 0 : 1) - (b.e.role === 'anchor' ? 0 : 1))
+      || ((a.e.ord ?? 0) - (b.e.ord ?? 0)));
+  const names = ordered.map(x => x.e.text);
+  const e = ordered[0].e;
+  const note = e.basis === 'assumed'  ? '<span class="enote">Not confirmed</span>'
+             : e.basis === 'declined' ? '<span class="enote">Reported not taken</span>' : '';
+  const idxs = g.items.map(x => x.i).join(',');
+  return `<button class="entry" onclick="tapGroup(${di},[${idxs}])">
+    ${markHTML(e)}
+    <span class="etime">${fromMin(startMin(e))}</span>
+    <span class="ecard">
+      <span class="etext">${esc(names[0])}</span>
+      <span class="egroup">${esc(medSummary(names.slice(1), 2))}</span>
+      ${note}
+      <span class="chev"><i class="ph ph-caret-right"></i></span>
+    </span>
+  </button>`;
+}
 function railInner(day, di){
   let h = '';
-  day.list.forEach((e,i) => {
-    if (i > 0){                               /* gaps read downward: newest first */
-      const g = gapLabel(fromMin(startMin(day.list[i-1])), fromMin(startMin(e)));
-      if (g) h += `<div class="gap"><span>${g}</span></div>`;
+  const groups = groupRail(day.list);
+  groups.forEach((g, gi) => {
+    if (gi > 0){                              /* gaps read downward: newest first */
+      const prevE = groups[gi-1].items[groups[gi-1].items.length-1].e;
+      const gap = gapLabel(fromMin(startMin(prevE)), fromMin(startMin(g.items[0].e)));
+      if (gap) h += `<div class="gap"><span>${gap}</span></div>`;
     }
-    h += entryHTML(e, di, i);
+    h += g.items.length > 1 ? groupHTML(g, di)
+                            : entryHTML(g.items[0].e, di, g.items[0].i);
   });
   return h;
 }
@@ -1311,11 +1420,13 @@ function renderCard(){
   if (!currentSlot){ a.innerHTML=''; return; }
   /* COPY CHANGE v2: v1's middle button said "Edit", which didn't tell you whether
      pressing it counted as a yes. It now sits below as its own path and says so. */
-  const multi = currentSlot.meds.length > 1;
+  const meds = slotMeds(currentSlot), n = meds.length;
+  const q = n === 1 ? `Did you take ${esc(meds[0].split(' ')[0])}?`
+          : n <= 3  ? 'Did you take these?'
+                    : `Did you take your ${currentSlot.sched} medication?`;
   a.innerHTML = `<div class="confirm">
-    <div class="confirm-q">${multi ? 'Did you take these?'
-                                   : `Did you take ${esc(currentSlot.meds[0].split(' ')[0])}?`}</div>
-    ${multi ? `<div class="confirm-list">${currentSlot.meds.map(esc).join(' · ')}</div>` : ''}
+    <div class="confirm-q">${q}</div>
+    ${n > 1 ? `<div class="confirm-list">${esc(medSummary(meds))}</div>` : ''}
     <div class="confirm-meta">Scheduled ${currentSlot.sched} · now ${nowTime()}</div>
     <div class="c-actions">
       <button class="c-btn primary" onclick="cardYes()">Yes</button>
@@ -2407,9 +2518,10 @@ function undoRemove(di, i){ delete DAYS[di].list[i].removed; renderTimeline(); }
    the record a clinician reads is per drug - the BATCHING IS IN THE ASK, not in
    the data. */
 function resolveSlot(basis){
-  currentSlot.meds.forEach(m =>
-    addEntry({ time:currentSlot.sched, recorded:nowTime(),
-               text:m, type:'dose', basis }, 0));
+  const sl = currentSlot;
+  slotMeds(sl).forEach((m, ord) =>
+    addEntry({ time:sl.sched, recorded:nowTime(), text:m, type:'dose', basis,
+               slot:sl.sched, role:roleOf(sl, m), ord }, 0));
   currentSlot = null; renderCard();
 }
 function cardYes(){ resolveSlot('asserted'); }
@@ -2422,20 +2534,88 @@ function cardNo(){
    SCHEDULED time (not now) — that is the fact being corrected — and the sheet
    opens on it. Two taps have already produced a complete, valid record; the
    sheet is where depth becomes available, never where it becomes required. */
-/* UNBUILT: partial resolution - took one of the two, skipped the other. It is a
-   real case and the slot model is what makes it expressible, but it needs a
-   per-drug surface inside the sheet and that is a v3.1 problem. For now the whole
-   slot lands and the first entry opens for correction. */
-function cardAdjust(){
-  const first = { time:currentSlot.sched, recorded:nowTime(),
-                  text:currentSlot.meds[0], type:'dose', basis:'asserted' };
-  addEntry(first, 0);
-  currentSlot.meds.slice(1).forEach(m =>
-    addEntry({ time:currentSlot.sched, recorded:nowTime(),
-               text:m, type:'dose', basis:'asserted' }, 0));
-  currentSlot = null; renderCard();
-  openDetail(first, 0);
+/* The third path is ONE sheet, never a sequence [D-16]. Time sits at the top and
+   applies to everything, because time drift moves the whole handful. Composition
+   is per drug, because that is the axis that actually varies. Asking "and the
+   other one?" per drug is O(N) - fine at two, unusable at twelve. */
+function cardAdjust(){ openSlotSheet(currentSlot, null); }
+
+/* ═════════ slot sheet ═════════
+   Two doors, one surface: the third path on the card, and tapping a grouped row.
+   Both are the same question - what actually happened at this slot - so they get
+   the same sheet rather than two that drift apart. */
+let slotEdit = null;
+
+function openSlotSheet(sl, existing){
+  if (existing){
+    const day = DAYS[existing.di], ents = existing.idxs.map(i => day.list[i]);
+    slotEdit = { sched: ents[0].slot, time: ents[0].time, fromCard: false,
+                 di: existing.di, ents,
+                 rows: [...ents].sort((a,b) => (a.ord ?? 0) - (b.ord ?? 0))
+                          .map(e => ({ name:e.text, role:e.role || 'addon',
+                                       ord:e.ord, taken: e.basis !== 'declined' })) };
+  } else {
+    slotEdit = { sched: sl.sched, time: nowTime(), fromCard: true, di: 0, ents: null,
+                 rows: slotMeds(sl).map(m => ({ name:m, role:roleOf(sl, m), taken:true })) };
+  }
+  renderSlotSheet();
+  openSheet('sheet-slot');
 }
+
+function renderSlotSheet(){
+  const s = slotEdit, n = s.rows.length;
+  const kept = s.rows.filter(r => r.taken).length;
+  el('slot-body').innerHTML = `
+    <div class="log-head"><h2>Your ${esc(s.sched)} medication</h2></div>
+
+    <div class="slot-time">
+      <div class="st-now">${esc(s.time)}</div>
+      <div class="st-cap">Scheduled ${esc(s.sched)}${n > 1 ? ' · applies to all ' + n : ''}</div>
+      <div class="nudges">
+        <button class="nudge" onclick="slotNudge(-60)">&minus;1h</button>
+        <button class="nudge" onclick="slotNudge(-15)">&minus;15m</button>
+        <button class="nudge" onclick="slotNudge(15)">+15m</button>
+        <button class="nudge" onclick="slotNudge(60)">+1h</button>
+      </div>
+    </div>
+
+    <div>
+      ${s.rows.map((r,i) => `
+        <button class="medrow${r.taken ? '' : ' off'}" onclick="slotToggle(${i})">
+          <span class="mname">${esc(r.name)}</span>
+          <span class="mrole">${r.role === 'anchor' ? '' : 'add-on'}</span>
+          <span class="mstate">${r.taken ? 'Taken' : 'Skipped'}</span>
+        </button>`).join('')}
+      <p class="slot-hint">Tap a line to drop it, tap again to put it back. Dropping is
+        recorded as a choice rather than a gap, so the record can tell it apart from a
+        slot that never had one.</p>
+    </div>
+
+    <button class="slot-done" onclick="slotDone()">Done${kept < n ? ` · ${kept} of ${n} taken` : ''}</button>`;
+}
+
+function slotNudge(mins){
+  slotEdit.time = fromMin(toMin(slotEdit.time) + mins);
+  renderSlotSheet();
+}
+function slotToggle(i){ slotEdit.rows[i].taken = !slotEdit.rows[i].taken; renderSlotSheet(); }
+
+function slotDone(){
+  const s = slotEdit;
+  if (s.ents){                       /* editing an existing group: drop, then rewrite */
+    DAYS[s.di].list = DAYS[s.di].list.filter(e => !s.ents.includes(e));
+  }
+  s.rows.forEach((r, ord) =>
+    addEntry({ time:s.time, recorded:nowTime(), text:r.name, type:'dose',
+               basis: r.taken ? 'asserted' : 'declined',
+               slot:s.sched, role:r.role, ord: r.ord != null ? r.ord : ord }, s.di));
+  if (s.fromCard){ currentSlot = null; renderCard(); }
+  slotEdit = null;
+  closeSheets();
+  renderTimeline();
+}
+
+function tapGroup(di, idxs){ openSlotSheet(null, { di, idxs }); }
 
 /* ═════════ lock screen ═════════
    Answering here writes the same entries the in-app card would, and never opens
@@ -2447,8 +2627,10 @@ function openLock(){
   const d = new Date();
   el('lock-date').textContent =
     `${DAYS_LONG[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
-  el('notif-t').textContent = `Your ${currentSlot.sched} medication`;
-  el('notif-b').textContent = currentSlot.meds.join(', ');
+  const meds = slotMeds(currentSlot);
+  el('notif-t').textContent = `Your ${currentSlot.sched} medication`
+                            + (meds.length > 3 ? ` · ${meds.length} items` : '');
+  el('notif-b').textContent = medSummary(meds);
   el('lock').classList.add('open');
 }
 function closeLock(){ el('lock').classList.remove('open'); }
@@ -2461,16 +2643,26 @@ function lockAnswer(basis){
 /* a new dose falling due quietly collapses the unanswered one into the timeline as 'assumed' */
 function demoAddDose(){
   if (currentSlot){
-    currentSlot.meds.forEach(m =>
-      DAYS[0].list.push({ time:currentSlot.sched, recorded:nowTime(),
-                          text:m, type:'dose', basis:'assumed' }));
+    const old = currentSlot;
+    slotMeds(old).forEach((m, ord) =>
+      DAYS[0].list.push({ time:old.sched, recorded:nowTime(), text:m, type:'dose',
+                          basis:'assumed', slot:old.sched, role:roleOf(old, m), ord }));
     sortDay(DAYS[0]);
     renderTimeline();
   }
   const t = ['14:00','17:30','21:00'];
   currentSlot = { sched:t[Math.floor(Math.random()*3)],
-                  meds:['Levodopa 100mg','Entacapone 200mg'] };
+                  anchor:'Levodopa 100mg', addons:['Entacapone 200mg'] };
   renderCard();
+}
+/* The 47-medication case P01 described is not hypothetical, so the card and the
+   notification have to be seen at that size rather than reasoned about. */
+function demoBigSlot(){
+  currentSlot = { sched:'08:00', anchor:'Levodopa 100mg', addons:[
+    'Entacapone 200mg','Amantadine 100mg','Rasagiline 1mg','Pramipexole 0.25mg',
+    'Clonazepam 0.5mg','Vitamin D 1000IU','Calcium 500mg','Melatonin 3mg',
+    'Omeprazole 20mg','Sertraline 50mg','Docusate 100mg'] };
+  renderCard(); renderTimeline();
 }
 function demoEmpty(){ DAYS.forEach(d => d.list = []); currentSlot = null;
                       renderCard(); renderTimeline(); }
@@ -2508,7 +2700,7 @@ function quickLog(btn, text, type){
 }
 
 /* ═════════ sheets ═════════ */
-const SHEETS = ['sheet-log','sheet-detail'];
+const SHEETS = ['sheet-log','sheet-detail','sheet-slot'];
 /* `inert` on the sheets that are not open. A closed sheet is only translated
    off-screen, so without this its buttons stay tabbable and its text stays in
    the accessibility tree — a keyboard or screen-reader user can land inside a
