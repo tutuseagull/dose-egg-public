@@ -177,11 +177,16 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 
 /* ── slot sheet + grouped row (v3, D-16) ── */
 .egroup{display:block;font-size:var(--text-label);color:var(--text-muted);margin-top:2px}
-.slot-time{background:var(--surface-raised);border:1px solid var(--border-subtle);
+/* Matches #log-body: --space-6 BETWEEN groups, set once as the flex gap, and
+   children carry no vertical margins. Omitting this was why the sheet read tight -
+   it had no group rhythm at all, just stacked boxes. */
+#slot-body{display:flex;flex-direction:column;gap:var(--space-6)}
+.slot-time{display:flex;flex-direction:column;gap:var(--space-3);
+           background:var(--surface-raised);border:1px solid var(--border-subtle);
            border-radius:var(--radius-md);padding:var(--space-4)}
-.slot-time .st-now{font-size:var(--text-title);font-weight:600;line-height:1}
-.slot-time .st-cap{font-size:var(--text-label);color:var(--text-muted);margin-top:2px}
-.nudges{display:flex;gap:var(--target-gap);margin-top:var(--space-3)}
+.slot-time .st-cap{font-size:var(--text-label);color:var(--text-muted)}
+.slot-time .timefields{margin:0}
+.nudges{display:flex;gap:var(--target-gap)}
 .nudge{flex:1;min-height:var(--target-routine);border-radius:var(--radius-md);
        border:1px solid var(--border-interactive);background:var(--surface-card);
        font-family:inherit;font-size:var(--text-small);font-weight:500;color:var(--text-primary)}
@@ -2555,7 +2560,12 @@ function openSlotSheet(sl, existing){
                           .map(e => ({ name:e.text, role:e.role || 'addon',
                                        ord:e.ord, taken: e.basis !== 'declined' })) };
   } else {
-    slotEdit = { sched: sl.sched, time: nowTime(), fromCard: true, di: 0, ents: null,
+    /* Opens at the SCHEDULED time, not now. v2 had already settled this on the
+       single-entry path and I regressed it. "Yes, but not as scheduled" means the
+       person is confirming they took it, and the fact under correction is WHEN.
+       Defaulting to now silently asserts they took it this second, which is the
+       app's guess wearing the person's answer [portfolio rule 7]. */
+    slotEdit = { sched: sl.sched, time: sl.sched, fromCard: true, di: 0, ents: null,
                  rows: slotMeds(sl).map(m => ({ name:m, role:roleOf(sl, m), taken:true })) };
   }
   renderSlotSheet();
@@ -2569,13 +2579,27 @@ function renderSlotSheet(){
     <div class="log-head"><h2>Your ${esc(s.sched)} medication</h2></div>
 
     <div class="slot-time">
-      <div class="st-now">${esc(s.time)}</div>
+      <div class="timefields">
+        <input class="tf" id="slot-h" inputmode="numeric" maxlength="2"
+               value="${esc(s.time.slice(0,2))}" aria-label="Hour"
+               oninput="slotTimeField('h',this)">
+        <span class="tf-sep">:</span>
+        <input class="tf" id="slot-m" inputmode="numeric" maxlength="2"
+               value="${esc(s.time.slice(3))}" aria-label="Minute"
+               oninput="slotTimeField('m',this)">
+      </div>
       <div class="st-cap">Scheduled ${esc(s.sched)}${n > 1 ? ' · applies to all ' + n : ''}</div>
+      <!-- All three tiers on screen at once, nothing behind an escalation: type it,
+           nudge it, or jump to now. "Now" earns its place BECAUSE the default is the
+           scheduled time, which makes "I took it late, just now" the single most
+           likely correction, and it should cost one tap.
+           No -1h: from a scheduled anchor the realistic drift is later, not an hour
+           earlier, and -15m already covers taking it slightly early. -->
       <div class="nudges">
-        <button class="nudge" onclick="slotNudge(-60)">&minus;1h</button>
         <button class="nudge" onclick="slotNudge(-15)">&minus;15m</button>
         <button class="nudge" onclick="slotNudge(15)">+15m</button>
         <button class="nudge" onclick="slotNudge(60)">+1h</button>
+        <button class="nudge" onclick="slotSetNow()">Now</button>
       </div>
     </div>
 
@@ -2586,9 +2610,7 @@ function renderSlotSheet(){
           <span class="mrole">${r.role === 'anchor' ? '' : 'add-on'}</span>
           <span class="mstate">${r.taken ? 'Taken' : 'Skipped'}</span>
         </button>`).join('')}
-      <p class="slot-hint">Tap a line to drop it, tap again to put it back. Dropping is
-        recorded as a choice rather than a gap, so the record can tell it apart from a
-        slot that never had one.</p>
+      <p class="slot-hint">Tap a line to drop it, tap again to put it back.</p>
     </div>
 
     <button class="slot-done" onclick="slotDone()">Done${kept < n ? ` · ${kept} of ${n} taken` : ''}</button>`;
@@ -2598,8 +2620,27 @@ function slotNudge(mins){
   slotEdit.time = fromMin(toMin(slotEdit.time) + mins);
   renderSlotSheet();
 }
+function slotSetNow(){ slotEdit.time = nowTime(); renderSlotSheet(); }
+/* Writes straight to state as you type - no Set button, same contract as the
+   detail sheet's time fields, because a Set button on a live field promises a
+   save that already happened. Deliberately does NOT re-render, which would yank
+   the caret mid-entry; only the Done label needs refreshing. */
+function slotTimeField(which, inp){
+  const v = inp.value.replace(/\D/g,'').slice(0,2);
+  if (inp.value !== v) inp.value = v;
+  if (v.length < 2) return;
+  const n = Math.min(parseInt(v,10) || 0, which === 'h' ? 23 : 59);
+  const [H,M] = slotEdit.time.split(':');
+  slotEdit.time = which === 'h' ? `${String(n).padStart(2,'0')}:${M}`
+                                : `${H}:${String(n).padStart(2,'0')}`;
+}
 function slotToggle(i){ slotEdit.rows[i].taken = !slotEdit.rows[i].taken; renderSlotSheet(); }
 
+/* A dropped med is written as basis:'declined', not left out. That is what lets
+   the record tell "took the levodopa, skipped the add-on" apart from "this slot
+   never had an add-on" - the same logged/quiet/unknown distinction, one level
+   down [D-16]. The user is not told any of this: a hint explaining our schema is
+   the app talking about itself. */
 function slotDone(){
   const s = slotEdit;
   if (s.ents){                       /* editing an existing group: drop, then rewrite */
