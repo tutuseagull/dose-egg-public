@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DoseEgg — One week, one axis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,300;6..72,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper-0:#FFF;--paper-50:#F9F8F5;--paper-100:#F2F1EC;--paper-200:#E8E6DF;
+  --paper-300:#D9D6CC;--paper-500:#8D8A7D;--paper-600:#6E6B5F;--paper-700:#46443C;--paper-900:#1A1916;
+  --ink-500:#1F4A52;--ink-600:#163940;
+  --mark:#4E6B84;--mark-note:#8C7B6A;
+  --font-serif:'Newsreader',Georgia,serif;--font-sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;padding:24px 18px 96px;background:var(--paper-50);color:var(--paper-900);
+     font-family:var(--font-sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:460px;margin:0 auto}
+a.back{display:inline-block;font-size:12px;font-weight:600;color:var(--paper-600);
+  text-decoration:none;border:1px solid var(--paper-200);border-radius:20px;
+  padding:4px 12px;margin-bottom:18px;background:var(--paper-0)}
+h1{font-family:var(--font-serif);font-size:28px;font-weight:400;line-height:1.2;margin:0 0 6px}
+h2{font-family:var(--font-serif);font-size:22px;font-weight:400;margin:48px 0 4px;
+   padding-bottom:10px;border-bottom:1px solid var(--paper-200)}
+h3{font-size:15px;font-weight:600;margin:26px 0 6px}
+p{margin:0 0 12px;color:var(--paper-700);font-size:16px}
+.lede{color:var(--paper-600)}
+.q{font-family:var(--font-serif);font-size:19px;color:var(--paper-900);margin:0 0 12px;line-height:1.4}
+.label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--paper-600);font-weight:500}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.85em;background:var(--paper-200);
+     padding:2px 5px;border-radius:5px}
+ul{margin:0 0 14px;padding-left:20px}
+li{margin-bottom:7px;color:var(--paper-700);font-size:16px}
+.note{background:var(--paper-100);border-left:3px solid var(--ink-500);border-radius:0 10px 10px 0;
+      padding:14px;margin:16px 0;font-size:15px;color:var(--paper-700)}
+.note b{color:var(--paper-900)}
+.note.warn{border-left-color:var(--mark-note);background:rgba(140,123,106,.07)}
+.card{background:var(--paper-0);border:1px solid var(--paper-200);border-radius:14px;
+      padding:16px;margin:16px 0}
+.controls{position:sticky;top:0;z-index:20;background:var(--paper-50);
+  padding:10px 0 12px;margin:0 0 8px;border-bottom:1px solid var(--paper-200)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px}
+.tg{flex:1 1 58px;min-height:44px;padding:4px 6px;border-radius:9px;
+  border:1px solid var(--paper-300);background:var(--paper-0);color:var(--paper-700);
+  font-family:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.tg small{display:block;font-weight:400;font-size:10px;color:var(--paper-500);line-height:1.3}
+.tg[aria-pressed="true"]{background:var(--paper-700);border-color:var(--paper-700);color:#fff}
+.tg[aria-pressed="true"] small{color:rgba(255,255,255,.7)}
+#stage.squint{filter:contrast(.42) blur(.5px);opacity:.95}
+svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:10px 16px;margin:14px 0 0;font-size:12.5px;color:var(--paper-600)}
+.legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+/* svg{width:100%} above would stretch every swatch to the row width — the
+   legend needs its own rule, and it needs flex:none or flexbox grows it anyway */
+.legend svg{width:26px;height:14px;flex:none}
+.read{font-size:13px;color:var(--paper-600);margin:10px 0 0;padding-top:10px;
+  border-top:1px solid var(--paper-200)}
+.read b{color:var(--paper-900)}
+.cov{font-size:13px;color:var(--paper-600);margin:8px 0 0;
+  border-left:2px solid var(--paper-300);padding-left:10px}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--paper-200);
+  font-size:12px;color:var(--paper-500)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back" href="index.html">← Home</a>
+
+<h1>One week, one axis</h1>
+<p class="lede">We had been designing each logging category its own picture. This is the
+other thing: <b>every dimension on the same time axis</b>, so the correlations are visible
+rather than asserted. One week only — the scale where detail is affordable.</p>
+
+<div class="note">
+  <b>Tutu, 2026-08-27.</b> "It makes sense for each logging category to have its own
+  visualization and summary, but what could be more interesting is to visualize all
+  dimensions based on the same time axis, so the user can actually see the correlations…
+  we are helping the user connect the dots." And: <b>"let the chart tell the story"</b> —
+  fewer statements, not more.
+</div>
+
+<h2>The week</h2>
+<p class="lede" style="font-size:14px">Tap any day. The target is the whole row; where you
+land sets the hour the day view would open at.</p>
+
+<div class="controls">
+  <div class="toggles">
+    <button class="tg" id="tgSquint" aria-pressed="false">Low contrast<small>rough proxy</small></button>
+    <button class="tg" id="tgFeel" aria-pressed="true">Rough spans<small>as ground</small></button>
+    <button class="tg" id="tgSleep" aria-pressed="true">Sleep<small>band</small></button>
+    <button class="tg" id="tgMeal" aria-pressed="true">Meals<small>protein weight</small></button>
+  </div>
+</div>
+
+<div id="stage">
+  <div class="card">
+    <svg id="svgWeek" viewBox="0 0 400 460" role="img" aria-label="One week, all dimensions on one time axis"></svg>
+    <div class="legend" id="legend"></div>
+    <p class="read" id="read"></p>
+    <p class="cov" id="cov"></p>
+  </div>
+</div>
+
+<h2>What the chart is doing</h2>
+
+<h3>Feeling is the ground, not a lane</h3>
+<p>A rough patch is a <em>period</em>, not an event — so it is drawn as a soft span behind
+the whole day, crossing every other lane. That is the same figure/ground move we landed on
+for coverage, one level down, and it is what makes the correlation legible: you don't
+compare a "feeling row" against a "dose row", you see the dose sitting inside the rough
+patch or outside it.</p>
+
+<h3>Sleep is a band, anchored at its end</h3>
+<p>Sleep crosses midnight, so it belongs to the day you <em>woke</em> on. The band enters
+from the left edge and fades, meaning "this started before the window" — the duration is
+stated rather than measured off the axis, because measuring a clipped bar is a lie.</p>
+
+<h3>Add-ons are a treatment, not a second mark</h3>
+<p>Per D-16 a slot is one ask, so it should be one mark. An add-on shows as a <b>ring</b>
+around the dose dot. If the anchor was taken and the add-on wasn't, the ring is
+<b>broken</b> — which is a positive fact, not an absence, exactly as the entry schema
+requires.</p>
+
+<h3>The statement is secondary</h3>
+<p>One quiet line under the chart, and the coverage line under that. The chart is doing
+the work; the sentence only names what you are already looking at.</p>
+
+<div class="note warn">
+  <b>What I can't settle here.</b> Three things need real data or a real person.
+  <b>One:</b> whether four lanes is already too many on a 320pt phone — meals is the
+  first candidate to drop, since protein matters to <em>timing</em> and timing is visible in
+  the dose lane anyway. <b>Two:</b> whether the rough-span ground reads as an <em>observation</em>
+  or as a <em>verdict on the day</em> — the same trap as the report card, one level down.
+  <b>Three:</b> whether people read the vertical alignment at all without being told; the
+  whole design assumes they scan down a time column, and that is an assumption, not a
+  finding.
+</div>
+
+<h2>Still open</h2>
+<ul>
+  <li><b>Activity has no lane.</b> Walks, exercise, drumming — currently they would have to
+  live in the meal lane as generic events, which muddles it. Either a fifth lane, or events
+  and meals merge into one "what you did" lane with different marks.</li>
+  <li><b>What happens at six weeks.</b> This view does not scale — twenty-eight lanes will
+  not fit. The six-week scale keeps its own picture (the coverage grid), and the two are
+  linked by C-17's ladder rather than being the same chart zoomed.</li>
+  <li><b>The unknown day.</b> Wednesday here has nothing at all. It is drawn as a ruled but
+  empty row, which is the same grammar as the coverage grid's unknown — worth checking that
+  the two read as the same state.</li>
+</ul>
+
+<footer>DoseEgg · Look Back · One week, one axis · September 2026<br>
+Sample data is deterministic and invented. Low-contrast toggle is a rough CSS proxy, not a
+validated vision simulation.</footer>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   Seven days, invented but not random — the same picture every open.
+   Times are decimal hours. Sleep is [start, end] where start may be
+   negative (i.e. before the window) and the day OWNS its wake.
+   ═══════════════════════════════════════════════════════════════════ */
+const DAYS = [
+  { d:'Mon', date:'Aug 10', state:2,
+    sleep:[23.17-24, 6.67],
+    doses:[{t:7.17,addon:'taken'},{t:12.33,addon:'taken'},{t:17.5,addon:null}],
+    meals:[{t:7.67,p:1},{t:12.0,p:2},{t:18.5,p:1}],
+    rough:[] },
+  { d:'Tue', date:'Aug 11', state:2,
+    sleep:[24.83-24, 6.33],
+    doses:[{t:7.0,addon:'taken'},{t:12.17,addon:'skipped'},{t:17.17,addon:null}],
+    meals:[{t:7.5,p:1},{t:12.5,p:3},{t:18.75,p:2}],
+    rough:[[13.5,16.5]] },
+  { d:'Wed', date:'Aug 12', state:0,
+    sleep:null, doses:[], meals:[], rough:[] },
+  { d:'Thu', date:'Aug 13', state:1,
+    sleep:[22.83-24, 7.17],
+    doses:[{t:7.5,addon:'taken'},{t:13.0,addon:'taken'},{t:18.0,addon:null}],
+    meals:[{t:8.0,p:1},{t:13.25,p:2},{t:19.0,p:1}],
+    rough:[] },
+  { d:'Fri', date:'Aug 14', state:2,
+    sleep:[23.67-24, 6.83],
+    doses:[{t:7.08,addon:'taken'},{t:12.25,addon:'taken'},{t:17.33,addon:null}],
+    meals:[{t:7.5,p:1},{t:12.08,p:3},{t:18.5,p:2}],
+    rough:[[14.0,15.5]] },
+  { d:'Sat', date:'Aug 15', state:2,
+    sleep:[25.33-24, 8.5],
+    doses:[{t:8.67,addon:'taken'},{t:13.67,addon:'taken'},{t:18.67,addon:null}],
+    meals:[{t:9.0,p:1},{t:13.5,p:2},{t:19.5,p:2}],
+    rough:[[10.75,12.5]] },
+  { d:'Sun', date:'Aug 16', state:2,
+    sleep:[23.0-24, 7.67],
+    doses:[{t:7.83,addon:'taken'},{t:12.83,addon:'taken'},{t:17.83,addon:null}],
+    meals:[{t:8.25,p:1},{t:13.0,p:1},{t:18.75,p:1}],
+    rough:[] }
+];
+
+const C = {
+  mark:'#4E6B84', markSoft:'#8FA6B8',
+  sleep:'#C4D2DC', sleepSoft:'#DDE6EC',
+  meal:'#BFAE99', mealSoft:'#DCD2C6',
+  rough:'#8C7B6A',
+  edge:'#D9D6CC', text:'#8D8A7D', paper:'#FFF', rule:'#EFEDE7'
+};
+
+const H0 = 5, H1 = 25;                    // 5am to 1am next day
+let showFeel = true, showSleep = true, showMeal = true;
+let selDay = null, selHour = null;
+
+const NS='http://www.w3.org/2000/svg';
+function el(tag, attrs, parent){
+  const n=document.createElementNS(NS,tag);
+  for(const k in attrs) n.setAttribute(k, attrs[k]);
+  if(parent) parent.appendChild(n);
+  return n;
+}
+function clear(svg){ while(svg.firstChild) svg.removeChild(svg.firstChild); }
+
+/* 1 user unit = 1 CSS pixel, so every number this page states about a target
+   is the number on the glass. (Learned the hard way in quiet-mark-test.) */
+function plotWidth(){
+  const svg = document.getElementById('svgWeek');
+  const w = svg.getBoundingClientRect().width;
+  return Math.max(260, Math.round(w || (svg.parentElement.clientWidth - 32)));
+}
+
+function fmt(h){
+  h = ((h % 24) + 24) % 24;
+  const hh = Math.floor(h), mm = Math.round((h - hh) * 60);
+  const ap = hh < 12 ? 'am' : 'pm';
+  const h12 = hh % 12 === 0 ? 12 : hh % 12;
+  return `${h12}:${String(mm).padStart(2,'0')}${ap}`;
+}
+function dur(a,b){
+  const t = b - a, hh = Math.floor(t), mm = Math.round((t-hh)*60);
+  return mm ? `${hh}h ${mm}m` : `${hh}h`;
+}
+
+/* ── lane geometry ──
+   Feeling is not a lane. It is the GROUND behind the whole group, because a
+   rough patch is a period and periods belong behind the data, not beside it.
+   That is the coverage figure/ground move applied one level down. */
+const LANE = { sleepY:2, sleepH:7, doseY:14, doseR:5.5, mealY:29, mealH:8 };
+const GROUP_H = 40, GROUP_GAP = 9, TOP = 30;
+
+function draw(){
+  const svg = document.getElementById('svgWeek'); clear(svg);
+  const g = el('g',{},svg);
+  const W = plotWidth();
+  const left = 36, right = W - 8;
+  const X = h => left + (h - H0)/(H1 - H0) * (right - left);
+  const pitch = GROUP_H + GROUP_GAP;
+  const H = TOP + 7*pitch + 6;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  /* hour rules, drawn once behind everything - the column you scan down */
+  [6,12,18,24].forEach(h=>{
+    el('line',{x1:X(h),y1:TOP-10,x2:X(h),y2:TOP+7*pitch-GROUP_GAP,
+      stroke:C.rule,'stroke-width':1},g);
+    const t=el('text',{x:X(h),y:TOP-16,'text-anchor':'middle','font-size':10,
+      fill:C.text,'font-family':'Inter,system-ui'},g);
+    t.textContent = h===24 ? '12am' : (h===12 ? '12pm' : (h<12 ? h+'am' : (h-12)+'pm'));
+  });
+
+  DAYS.forEach((day, i) => {
+    const y = TOP + i*pitch;
+    const dim = (selDay !== null && selDay !== i);
+    const grp = el('g', dim ? {opacity:.25} : {}, g);
+
+    /* ── ground: the rough spans, behind every lane ── */
+    if(showFeel) day.rough.forEach(([a,b])=>{
+      el('rect',{x:X(a), y:y-1, width:X(b)-X(a), height:GROUP_H+2, rx:4,
+        fill:C.rough, opacity:.16},grp);
+    });
+
+    /* ── day label ── */
+    const lb=el('text',{x:left-9,y:y+GROUP_H/2+4,'text-anchor':'end','font-size':11,
+      'font-weight':600,fill:day.state===0?C.edge:C.text,
+      'font-family':'Inter,system-ui'},grp);
+    lb.textContent = day.d;
+
+    /* ── unknown day: ruled but unwritten, same grammar as the coverage grid ── */
+    if(day.state === 0){
+      el('line',{x1:left,y1:y+GROUP_H/2,x2:right,y2:y+GROUP_H/2,
+        stroke:C.edge,'stroke-width':1.25,'stroke-dasharray':'2 4'},grp);
+      addHit(g, left, y, right-left, GROUP_H, GROUP_GAP, i, X);
+      return;
+    }
+
+    /* ── sleep: a band that owns its wake ── */
+    if(showSleep && day.sleep){
+      const [a,b] = day.sleep;
+      const clipped = a < H0;
+      const x0 = X(Math.max(a, H0)), x1 = X(b);
+      const r = el('rect',{x:x0, y:y+LANE.sleepY, width:Math.max(2,x1-x0),
+        height:LANE.sleepH, rx:LANE.sleepH/2, fill:C.sleep},grp);
+      if(clipped){
+        /* fade in from the left edge: this began before the window, and a
+           clipped bar you can measure off the axis is a lie */
+        const id = 'fadeL'+i;
+        const defs = el('defs',{},grp);
+        const lg = el('linearGradient',{id, x1:'0', x2:'1'},defs);
+        el('stop',{offset:'0', 'stop-color':C.sleep, 'stop-opacity':'0'},lg);
+        el('stop',{offset:'0.28','stop-color':C.sleep, 'stop-opacity':'1'},lg);
+        r.setAttribute('fill', `url(#${id})`);
+      }
+      const t=el('text',{x:x1+5, y:y+LANE.sleepY+LANE.sleepH, 'font-size':9.5,
+        fill:C.text,'font-family':'Inter,system-ui'},grp);
+      t.textContent = dur(a,b);
+    }
+
+    /* ── doses: one mark per SLOT, add-on as a ring ── */
+    day.doses.forEach(ds=>{
+      const cx = X(ds.t), cy = y + LANE.doseY + LANE.doseR;
+      if(ds.addon){
+        el('circle',{cx, cy, r:LANE.doseR+3.5, fill:'none', stroke:C.mark,
+          'stroke-width':1.5,
+          'stroke-dasharray': ds.addon==='skipped' ? '3 3' : 'none',
+          opacity: ds.addon==='skipped' ? .85 : .55},grp);
+      }
+      el('circle',{cx, cy, r:LANE.doseR, fill:C.mark},grp);
+    });
+
+    /* ── meals: protein as weight, 3 levels (D-12) ── */
+    if(showMeal) day.meals.forEach(m=>{
+      const h = 3 + m.p*1.8, cx = X(m.t);
+      el('rect',{x:cx-5, y:y+LANE.mealY+(LANE.mealH-h)/2, width:10, height:h, rx:h/2,
+        fill:C.meal, opacity:.35 + m.p*0.2},grp);
+    });
+
+    addHit(g, left, y, right-left, GROUP_H, GROUP_GAP, i, X);
+  });
+
+  /* ── the fine hint: a guide at the hour the finger landed on ──
+     pointer-events:none is not cosmetic. This is drawn after every hit rect,
+     so without it a stroked line sits ON TOP of the target and a tap landing
+     on the guide does nothing — the exact dead tap C-17 exists to prevent,
+     and invisible in review because it is one or two pixels wide. */
+  if(selDay !== null && selHour !== null){
+    const yy = TOP + selDay*pitch;
+    const gl = el('line',{x1:X(selHour), y1:yy-3, x2:X(selHour), y2:yy+GROUP_H+3,
+      stroke:C.mark,'stroke-width':1.5,opacity:.7},g);
+    gl.style.pointerEvents = 'none';
+  }
+
+  drawLegend(); report();
+}
+
+/* C-17: the target is the DAY at this zoom, and it is the full row plus its
+   gutter. The marks stay mark-sized. Coarse target, fine hint. */
+function addHit(g, x, y, w, h, gap, i, X){
+  const hit = el('rect',{x, y:y-gap/2, width:w, height:h+gap, fill:'transparent'},g);
+  hit.style.cursor = 'pointer';
+  hit.addEventListener('click', ev => {
+    const bb = hit.getBoundingClientRect();
+    const f  = (ev.clientX - bb.left) / bb.width;
+    const hr = H0 + f * (H1 - H0);
+    if(selDay === i){ selDay = null; selHour = null; }
+    else { selDay = i; selHour = hr; }
+    draw();
+  });
+}
+
+function swatch(draw_, w){
+  const s=document.createElementNS(NS,'svg');
+  s.setAttribute('viewBox',`0 0 ${w||22} 14`); s.setAttribute('width', w||22);
+  s.setAttribute('height','14'); s.style.display='inline-block';
+  draw_(el('g',{},s)); return s;
+}
+function drawLegend(){
+  const box=document.getElementById('legend'); box.innerHTML='';
+  const items = [
+    ['Dose', g=>el('circle',{cx:11,cy:7,r:5.5,fill:C.mark},g)],
+    ['+ add-on', g=>{el('circle',{cx:11,cy:7,r:5.5,fill:C.mark},g);
+      el('circle',{cx:11,cy:7,r:9,fill:'none',stroke:C.mark,'stroke-width':1.5,opacity:.55},g);}],
+    ['add-on skipped', g=>{el('circle',{cx:11,cy:7,r:5.5,fill:C.mark},g);
+      el('circle',{cx:11,cy:7,r:9,fill:'none',stroke:C.mark,'stroke-width':1.5,
+        'stroke-dasharray':'3 3',opacity:.85},g);}]
+  ];
+  if(showSleep) items.push(['Sleep', g=>el('rect',{x:1,y:4,width:20,height:6,rx:3,fill:C.sleep},g)]);
+  if(showMeal)  items.push(['Meal · protein', g=>{
+      [1,2,3].forEach((p,k)=>{const h=3+p*1.8;
+        el('rect',{x:2+k*7,y:7-h/2,width:5,height:h,rx:h/2,fill:C.meal,opacity:.35+p*0.2},g);});}]);
+  if(showFeel)  items.push(['A rough stretch', g=>el('rect',{x:1,y:2,width:20,height:10,rx:3,
+      fill:C.rough,opacity:.16},g)]);
+  items.forEach(([name, d])=>{
+    const sp=document.createElement('span');
+    sp.appendChild(swatch(d, 24));
+    sp.appendChild(document.createTextNode(name));
+    box.appendChild(sp);
+  });
+}
+
+function report(){
+  const read = document.getElementById('read');
+  const cov  = document.getElementById('cov');
+  const known = DAYS.filter(d=>d.state!==0).length;
+  const rough = DAYS.filter(d=>d.rough.length).length;
+  cov.textContent = `${known} of 7 days covered · ${7-known} the record knows nothing about`;
+
+  if(selDay === null){
+    /* ONE line, and it names what is on screen rather than concluding past it.
+       "Let the chart tell the story" - the sentence is a caption, not a claim. */
+    read.innerHTML = `<b>${rough} rough stretches this week</b>, all of them in the ` +
+      `afternoon except Saturday's. <span style="color:var(--paper-500)">Tap a day.</span>`;
+    return;
+  }
+  const day = DAYS[selDay];
+  if(day.state === 0){
+    read.innerHTML = `<b>${day.d} ${day.date}</b> — nothing logged. The chart can't ` +
+      `speak to this day, and doesn't try to.`;
+    return;
+  }
+  const bits = [];
+  if(day.sleep) bits.push(`slept ${dur(day.sleep[0], day.sleep[1])}, up at ${fmt(day.sleep[1])}`);
+  bits.push(`${day.doses.length} doses from ${fmt(day.doses[0].t)}`);
+  const sk = day.doses.filter(d=>d.addon==='skipped').length;
+  if(sk) bits.push(`${sk} add-on not taken`);
+  const hi = day.meals.filter(m=>m.p===3).length;
+  if(hi) bits.push(`${hi} high-protein meal${hi>1?'s':''}`);
+  if(day.rough.length)
+    bits.push(`rough ${day.rough.map(([a,b])=>`${fmt(a)}–${fmt(b)}`).join(', ')}`);
+  else bits.push('nothing rough recorded');
+  read.innerHTML = `<b>${day.d} ${day.date}</b> — ${bits.join(' · ')}.` +
+    `<br><span style="color:var(--paper-500)">The row was the target; ` +
+    `${fmt(selHour)} was the hint — the day view would open there.</span>`;
+}
+
+/* ── toggles ── */
+function tg(id, get, set){
+  const b = document.getElementById(id);
+  b.onclick = () => { set(!get()); b.setAttribute('aria-pressed', String(get())); draw(); };
+}
+tg('tgFeel',  ()=>showFeel,  v=>showFeel=v);
+tg('tgSleep', ()=>showSleep, v=>showSleep=v);
+tg('tgMeal',  ()=>showMeal,  v=>showMeal=v);
+document.getElementById('tgSquint').onclick = e => {
+  const on = e.currentTarget.getAttribute('aria-pressed')==='true';
+  e.currentTarget.setAttribute('aria-pressed', String(!on));
+  document.getElementById('stage').classList.toggle('squint', !on);
+};
+addEventListener('resize', draw);
+draw();
+</script>
+</body>
+</html>
