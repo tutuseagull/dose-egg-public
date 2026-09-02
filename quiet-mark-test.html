@@ -127,7 +127,9 @@ mark exists. What they said is a property of the mark, not of whether it's drawn
   <h3>1 · Coverage grid — six weeks, one square per day</h3>
   <p class="lede" style="font-size:14px">The hardest context. Forty-two marks read at a glance.
   <b>Auto</b> fills the width, which is how it should ship; the fixed sizes are for comparing.</p>
-  <div class="card"><svg id="svgGrid" viewBox="0 0 400 230" role="img" aria-label="Coverage grid"></svg></div>
+  <div class="card"><svg id="svgGrid" viewBox="0 0 400 230" role="img" aria-label="Coverage grid"></svg>
+    <p class="lede" id="dayRead" style="font-size:13px;margin:10px 0 0;padding-top:10px;
+       border-top:1px solid var(--paper-200)"></p></div>
 
   <h3>2 · Day rows — one week, time of day across</h3>
   <p class="lede" style="font-size:14px">Here a quiet day is a whole empty row. The row itself has to say something.</p>
@@ -151,58 +153,68 @@ mark exists. What they said is a property of the mark, not of whether it's drawn
 </div>
 
 
-<h2>Does it look pressable?</h2>
-<p class="lede">Auto sizing fixed legibility and broke something else. Tutu, on her phone,
-2026-09-02: <em>"auto is really big — and now they feel each container could be
-interactive because they are so big."</em></p>
-
-<p>That is the right read, and it is a bigger problem here than it would be in most
-products. The coverage grid is <b>read, never operated</b>. We already decided where
-selection lives: at the large scale selection is <em>navigation</em>, and navigation went
-onto the coverage line. At the small scale it is <em>inspection</em>, which is the week
-view's job. Nothing in the six-week grid is a target. So every cell that invites a tap
-is an effortful gesture this population spends and gets nothing back for.</p>
+<h2>Keypad or chart?</h2>
+<p class="lede">Two rounds. Tutu, on her phone: <em>"auto is really big — and now they
+feel each container could be interactive because they are so big."</em> Then, on the fix:
+<em>"what do you mean by pressable? I feel individual day could be pressable? did I
+misunderstand?"</em></p>
 
 <div class="note warn">
-  <b>The fork worth stating out loud.</b> A false affordance has two fixes: remove the
-  cue, or honour it. Honouring it means 42 real targets at ~38px on a 390pt phone — below
-  the comfortable floor for a hand with tremor or bradykinesia, and packed seven across.
-  We cannot keep that promise at this density, which settles it: the grid is read-only,
-  so the cues have to go.
+  <b>She didn't. I did.</b> I read "these feel interactive" as "this affordance is false",
+  and reached for our navigation-vs-inspection rule to justify it. That rule says what a
+  selection <em>means</em> at each scale. It never said the six-week grid has no selection.
+  Recording the wrong turn because the right answer is only interesting next to it.
+</div>
+
+<p>A day has to be tappable. Otherwise the only route from <em>"Jul 27 looks rough"</em> to
+<em>"what happened on Jul 27"</em> is scrolling a timeline back six weeks — the worst
+possible ask for this population, and it would make the picture a dead end.</p>
+
+<p class="q">So the problem was never a false affordance. It's that 42 equal-weight filled
+rectangles read as a <b>keypad</b>, and a keypad says <em>operate me</em> where a chart says
+<em>read me</em>.</p>
+
+<p>The grid's first job is to be read at a glance — the shape of six weeks, in one look.
+Tapping is real but secondary, and it shouldn't be shouting over the picture. Which turns
+the touch-target worry from an objection into a requirement:</p>
+
+<div class="note">
+  <b>The target is not the ink.</b> The whole day slot is the hit area — about 43px at auto,
+  the same in every container and at every cell size — while the drawn mark stays a dot.
+  A target is a promise about the finger; the mark is a statement about the day. They are
+  allowed to differ, and here they should.
 </div>
 
 <h3>Three separable causes</h3>
-<p>A tinted, rounded rectangle with a gutter around it is a button. But that is three
-decisions, not one, and they come apart — which is what the toggle above tests.</p>
+<p>A tinted, rounded rectangle with a gutter around it is a keypad key. But that's three
+decisions, and they come apart — which is what the toggle above tests.</p>
 <ul>
-  <li><b>Size.</b> Capped: auto now tops out at <b>38px</b> rather than 46. Half a fix,
-  and the half that costs nothing.</li>
-  <li><b>Styling</b> — corner radius and fill contrast. <b>Flat</b> squares the corners and
-  drops the ground to the paler tint. If this alone is enough, the discreteness was never
-  the problem.</li>
+  <li><b>Size.</b> Auto caps at <b>38px</b> rather than 46. Cheapest part of the fix.</li>
+  <li><b>Styling</b> — radius and fill contrast. <b>Flat</b> squares the corners and drops to
+  the paler ground.</li>
   <li><b>Discreteness</b> — 42 separate objects. <b>Field</b> merges each run of covered days
-  into one shape; day boundaries become hairline seams instead of gutters. Same footprint,
-  same pitch, roughly a fifth as many objects.</li>
+  into one shape; day boundaries become hairline seams instead of gutters.</li>
 </ul>
 
 <h3>Where I'd land: field</h3>
-<p>Not only because it is the least pressable, though it is. Because it is the option that
-finally <em>draws</em> what we said option 4 meant. "Coverage is the canvas" was always a
-claim about a continuous surface, and we had been rendering it as 42 tiles — which is a
-canvas cut into stamps. In field, a covered stretch is one shape and an unknown day is a
-hole punched in it, which is the sentence we wanted: <em>the record covers this stretch,
-and here is where it doesn't</em>.</p>
-<p>It also changes what a run of unknowns looks like. Tiles gave every unknown day its own
-dashed box — seven boxes for a week away, seven objects saying nothing. Field gives that
-week a single dotted rule: ruled, unwritten, one thing.</p>
+<p>It's the option that finally <em>draws</em> what option 4 always claimed. "Coverage is the
+canvas" is a statement about a continuous surface, and we'd been rendering it as 42 stamps.
+Now a covered stretch is one shape and an unknown day is a hole punched in it. A week away
+is a single dotted rule rather than seven dashed boxes saying nothing seven times.</p>
+<p>Field bands are taller than tile cells, which looks like an inconsistency and isn't. A
+tile is square because a tile is an object. A band is one shape seven days wide, so at the
+same height it reads thin — and height is free here, because a band isn't competing with a
+gutter for it.</p>
+
+<h3>What a tap does</h3>
+<p>Not a popover. It hands off to the <b>week view containing that day</b> — the scale that
+can actually carry detail, and the same this-week / six-weeks pair from the chart
+interaction test. The six-week grid stays what it's good at: shape. Selection here is
+navigation, which is what the rule said all along; I just applied it to the wrong object.</p>
 <div class="note">
-  <b>What to check on the phone.</b> Two things I can't settle from here.
-  <b>One:</b> does the quiet dash still separate from the unknown hairline? They are now
-  both horizontal lines — different colour, weight, length and ground, but worth a squint.
-  <b>Two:</b> with no gutter, do adjacent covered days still read as <em>days</em>, or does a
-  week smear into one bar? Paper-white seams turned out to be invisible &mdash; the ground is
-  only about 6% off white &mdash; so the seam is now a hairline a shade <em>darker</em> than the
-  ground. Ruled paper, not gutters. Weeks still get 3px of real white between them.
+  <b>Still to check on the phone.</b> Does the quiet dash separate from the unknown hairline —
+  they're both horizontal lines now, differing in colour, weight, length and ground. And does
+  the selection ring read as <em>looking at</em> rather than <em>pressed</em>.
 </div>
 
 <h2>Where I'd land</h2>
@@ -302,6 +314,25 @@ let opt = 'ground', cell = 26, autoCell = true;
    Only option 4 is containerised; the other four define their own cell. */
 let container = 'field';
 
+/* The correction, 2026-09-02. Tutu: "I feel individual day could be
+   pressable? did i misunderstand?" She did not - I did.
+
+   I read "these feel interactive" as "this affordance is false" and reached
+   for the navigation/inspection rule to justify it. That rule says what a
+   selection MEANS at each scale. It never said the six-week grid has no
+   selection. And a day has to be tappable: otherwise the only route from
+   "Jul 27 looks rough" to "what happened on Jul 27" is scrolling a timeline
+   back six weeks, which is the worst possible ask for this population.
+
+   So the problem was never a false affordance. It is that 42 equal-weight
+   filled rectangles read as a KEYPAD, and a keypad says operate me where a
+   chart says read me. The grid's first job is to be read at a glance.
+
+   Which makes the target-size worry a requirement rather than an objection:
+   the hit area does not have to be the ink. The whole day slot is the target
+   (~43px at auto) while the drawn mark stays a dot. */
+let selDay = null;
+
 /* MIN is legibility, not touch. The grid is read rather than operated, so the
    WCAG 24px target floor does not apply to it - what sets the floor is the point
    where the tick inside a quiet cell stops being a tick. MAX exists because the
@@ -316,9 +347,25 @@ const CELL_MIN = 22, CELL_MAX = 38, GUTTER = 26;
 /* Derived, not chosen. Seven columns fill the width they are given; on a 390pt
    phone that lands around 40px on its own, which is the size Tutu picked by eye
    from the fixed steppers. The steppers stay as a comparison lab. */
+/* The SVG's own rendered width, in CSS pixels.
+
+   This is a correction, 2026-09-02. The viewBox width was pinned at 400 while
+   the SVG rendered at whatever the card was wide - about 322 on a 390pt phone
+   - so every "px" on this page was an SVG user unit worth roughly 0.8 of a
+   real one. The label said 35px and the thing on glass was 28. Harmless while
+   we were only comparing options against each other; not harmless the moment
+   the page starts making a claim about a TOUCH TARGET, which is a promise
+   measured in millimetres of finger.
+
+   Making the viewBox width equal the rendered width makes one unit one CSS
+   pixel, so the numbers on this page are now the numbers on the phone. */
+function gridWidth(){
+  const svg = document.getElementById('svgGrid');
+  const w = svg.getBoundingClientRect().width;
+  return Math.max(240, Math.round(w || (svg.parentElement.clientWidth - 32)));
+}
 function autoSize(){
-  const box = document.getElementById('svgGrid').parentElement;
-  const W = Math.max(240, box.clientWidth - 32);
+  const W = gridWidth();
   let c = Math.round((W - GUTTER - 6 * 8) / 7);
   return Math.max(CELL_MIN, Math.min(CELL_MAX, c));
 }
@@ -402,77 +449,127 @@ function drawGrid(){
   const g=el('g',{},svg);
   if (autoCell) cell = autoSize();
 
-  /* PITCH is the invariant. Tiles spend part of it on a gutter; field spends
-     all of it on ground. Same footprint either way, so the comparison is about
-     the container and nothing else. */
   const tileGap = Math.max(4, Math.round(cell * 0.22));
   const pitch   = cell + tileGap;
   const cont    = (opt === 'ground') ? container : 'tiles';
-  const w       = (cont === 'field') ? pitch : cell;
+
+  /* Tiles are square because a tile is an object. A field band is one shape
+     seven days wide, so at the same height it reads THIN - Tutu's word, and
+     correct. Height is a free variable here: a band is not competing with a
+     gutter, so it can afford to be taller than a tile. */
+  const w       = (cont === 'field') ? pitch + 4 : cell;
+  const rowPitch= (cont === 'field') ? pitch + 7 : pitch;
   const left = GUTTER, top = 26;
+  const VBW  = gridWidth();               // 1 user unit = 1 CSS pixel
 
   const auto = document.getElementById('szAuto');
   if (auto) auto.textContent = autoCell ? `Auto · ${cell}px` : 'Auto';
   const cr = document.getElementById('contRow');
   if (cr) cr.classList.toggle('off', opt !== 'ground');
 
-  /* viewBox WIDTH stays 400 so that a bigger cell renders bigger on screen
-     rather than the whole drawing scaling down to compensate. Height grows. */
-  svg.setAttribute('viewBox', `0 0 400 ${top + 6*pitch + 6}`);
+  svg.setAttribute('viewBox', `0 0 ${VBW} ${top + 6*rowPitch + 6}`);
 
   WEEKDAYS.forEach((d,i)=>{
-    const t=el('text',{x:left+i*pitch+w/2,y:16,'text-anchor':'middle',
+    const t=el('text',{x:left+i*pitch+pitch/2,y:16,'text-anchor':'middle',
       'font-size':11,fill:C.text,'font-family':'Inter,system-ui'},g);
     t.textContent=d;
   });
 
   for(let wk=0; wk<6; wk++){
-    const y = top + wk*pitch;
+    const y = top + wk*rowPitch;
     const t=el('text',{x:left-10,y:y+w/2+4,'text-anchor':'end',
       'font-size':10,fill:C.text,'font-family':'Inter,system-ui'},g);
     t.textContent = ['Jul 6','Jul 13','Jul 20','Jul 27','Aug 3','Aug 10'][wk].split(' ')[1];
 
     if(cont !== 'field'){
       for(let d=0; d<7; d++) drawCell(g, left+d*pitch, y, w, STATES[wk*7+d]);
-      continue;
-    }
-
-    /* One rect per RUN of covered days. Forty-two objects become four or five,
-       and a hole is a hole in something rather than a missing tile. */
-    /* Weeks get a real 3px of paper between them and days get none. The
-       horizontal continuity is what kills the tile read; the vertical gap is
-       what keeps six weeks from fusing into one block. */
-    const INSET = 1.5;
-    let d = 0;
-    while(d < 7){
-      if(STATES[wk*7+d] === 0){
-        /* unknown run: a hairline, so the week's extent stays legible even
-           when nothing in it is covered. Reads as ruled-but-unwritten. */
-        let e = d; while(e < 7 && STATES[wk*7+e] === 0) e++;
-        el('line',{x1:left+d*pitch+3, y1:y+w/2, x2:left+e*pitch-3, y2:y+w/2,
-          stroke:C.edge,'stroke-width':1.25,'stroke-dasharray':'2 4'},g);
-        d = e; continue;
+    } else {
+      /* One rect per RUN of covered days. Forty-two objects become four or
+         five, and a hole is a hole in something rather than a missing tile.
+         Weeks keep 3px of real paper; days get none - the horizontal
+         continuity is what stops the row reading as tiles. */
+      const INSET = 1.5;
+      let d = 0;
+      while(d < 7){
+        if(STATES[wk*7+d] === 0){
+          /* unknown run: a hairline, so the week's extent stays legible even
+             when nothing in it is covered. Ruled, unwritten. */
+          let e = d; while(e < 7 && STATES[wk*7+e] === 0) e++;
+          el('line',{x1:left+d*pitch+3, y1:y+w/2, x2:left+e*pitch-3, y2:y+w/2,
+            stroke:C.edge,'stroke-width':1.25,'stroke-dasharray':'2 4'},g);
+          d = e; continue;
+        }
+        let e = d; while(e < 7 && STATES[wk*7+e] !== 0) e++;
+        el('rect',{x:left+d*pitch, y:y+INSET, width:(e-d)*pitch, height:w-2*INSET,
+          rx:4, fill:C.groundSoft},g);
+        /* Day boundaries are SEAMS, not gutters. Paper-white was invisible -
+           the ground is only ~6% off white - so the seam is a hairline a shade
+           darker than the ground. Ruled paper, not edges between objects. */
+        for(let k=d+1; k<e; k++)
+          el('line',{x1:left+k*pitch, y1:y+INSET+2, x2:left+k*pitch, y2:y+w-INSET-2,
+            stroke:'#D6DEE4','stroke-width':1},g);
+        d = e;
       }
-      let e = d; while(e < 7 && STATES[wk*7+e] !== 0) e++;
-      el('rect',{x:left+d*pitch, y:y+INSET, width:(e-d)*pitch, height:w-2*INSET, rx:4,
-        fill:C.groundSoft},g);
-      /* Day boundaries are SEAMS, not gutters. Paper-white was invisible - the
-         ground is only ~6% off white - so the seam is a hairline a shade darker
-         than the ground. Reads as ruled paper rather than as edges between
-         objects, which is the whole point. */
-      for(let k=d+1; k<e; k++)
-        el('line',{x1:left+k*pitch, y1:y+INSET+2, x2:left+k*pitch, y2:y+w-INSET-2,
-          stroke:'#D6DEE4','stroke-width':1},g);
-      d = e;
+      for(let d2=0; d2<7; d2++){
+        const st = STATES[wk*7+d2], cx = left+d2*pitch+pitch/2, cy = y+w/2;
+        if(st===2) el('circle',{cx, cy, r:Math.max(4, cell*0.24), fill:C.mark},g);
+        else if(st===1) el('rect',{x:cx-cell*0.28, y:cy-1.5, width:cell*0.56,
+          height:3, rx:1.5, fill:C.mark, opacity:.55},g);
+      }
     }
 
-    for(let d2=0; d2<7; d2++){
-      const st = STATES[wk*7+d2], cx = left+d2*pitch+pitch/2, cy = y+w/2;
-      if(st===2) el('circle',{cx, cy, r:Math.max(3.5, cell*0.22), fill:C.mark},g);
-      else if(st===1) el('rect',{x:cx-cell*0.26, y:cy-1.25, width:cell*0.52,
-        height:2.5, rx:1.25, fill:C.mark, opacity:.55},g);
+    /* ── selection, drawn on top of everything in the row ──
+       Inspection focus, not a pressed button: a ring around the slot the
+       finger claimed, which is the same slot whether the day is logged,
+       quiet or unknown. */
+    for(let d3=0; d3<7; d3++){
+      const i = wk*7+d3;
+      if(selDay === i)
+        el('rect',{x:left+d3*pitch+1, y:y+1, width:pitch-2, height:w-2, rx:5,
+          fill:'none', stroke:C.mark,'stroke-width':1.75},g);
+    }
+
+    /* ── the targets ──
+       Invisible, full-slot, and the SAME size in every container and at every
+       cell size, because the target is a promise about the finger and the ink
+       is a statement about the day. They are allowed to differ. */
+    for(let d4=0; d4<7; d4++){
+      const i = wk*7+d4;
+      const hit = el('rect',{x:left+d4*pitch, y, width:pitch, height:w,
+        fill:'transparent'},g);
+      hit.style.cursor='pointer';
+      hit.addEventListener('click', () => { selDay = (selDay===i? null : i); render(); });
     }
   }
+  reportDay();
+}
+
+/* What a tap would actually do. In the product this is not a popover - it
+   hands off to the week view containing that day, which is the scale that can
+   carry detail, and reuses the this-week / six-weeks pair Tutu liked in the
+   chart interaction test. Here it is a readout, so the target can be felt on
+   a phone without building the handoff. */
+function reportDay(){
+  const box = document.getElementById('dayRead');
+  if(!box) return;
+  if(selDay === null){
+    /* measured, not asserted - the last thing this page should do is claim a
+       target size it has not looked at */
+    const hit = document.querySelector('#svgGrid rect[fill="transparent"]');
+    const r = hit ? hit.getBoundingClientRect() : null;
+    const dim = r ? `${Math.round(r.width)} × ${Math.round(r.height)}px` : '—';
+    box.innerHTML = `<em>Tap a day.</em> The whole slot is the target — <b>${dim}</b>, ` +
+      `measured on this screen — even though the mark is a dot.`;
+    return;
+  }
+  const wk = Math.floor(selDay/7), d = selDay%7;
+  const wkLabel = ['Jul 6','Jul 13','Jul 20','Jul 27','Aug 3','Aug 10'][wk];
+  const dayNum = parseInt(wkLabel.split(' ')[1],10) + d;
+  const mon = wkLabel.split(' ')[0];
+  const st = STATES[selDay];
+  const said = st===2 ? 'has entries' : (st===1 ? 'was marked ordinary' : 'the record knows nothing about');
+  box.innerHTML = `<b>${mon} ${dayNum}</b> — a day that ${said}. ` +
+    `A tap opens the week of ${wkLabel}, with this day in view.`;
 }
 
 /* ═══ 2 · day rows ═══ */
