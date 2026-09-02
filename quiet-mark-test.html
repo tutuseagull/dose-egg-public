@@ -106,8 +106,9 @@ mark exists. What they said is a property of the mark, not of whether it's drawn
   <div class="opts" id="opts"></div>
   <div class="toggles">
     <button class="tg" id="tgSquint" aria-pressed="false">Low contrast</button>
+    <button class="tg" id="szAuto" aria-pressed="true">Auto</button>
     <button class="tg" id="sz20" aria-pressed="false">20px</button>
-    <button class="tg" id="sz26" aria-pressed="true">26px</button>
+    <button class="tg" id="sz26" aria-pressed="false">26px</button>
     <button class="tg" id="sz34" aria-pressed="false">34px</button>
     <button class="tg" id="sz44" aria-pressed="false">44px</button>
   </div>
@@ -116,7 +117,8 @@ mark exists. What they said is a property of the mark, not of whether it's drawn
 <div id="stage">
 
   <h3>1 · Coverage grid — six weeks, one square per day</h3>
-  <p class="lede" style="font-size:14px">The hardest context. Forty-two marks at 20px, read at a glance.</p>
+  <p class="lede" style="font-size:14px">The hardest context. Forty-two marks read at a glance.
+  <b>Auto</b> fills the width, which is how it should ship; the fixed sizes are for comparing.</p>
   <div class="card"><svg id="svgGrid" viewBox="0 0 400 230" role="img" aria-label="Coverage grid"></svg></div>
 
   <h3>2 · Day rows — one week, time of day across</h3>
@@ -218,7 +220,25 @@ const OPTIONS = [
     verdict:'<b>Flips the hierarchy: logged is filled, quiet is outlined, unknown is nearly nothing.</b> Worth building to see, because it tests the instinct that an outline reads as "empty" rather than "missing" — here the outline is the <em>positive</em> state. But it makes gaps almost invisible, and the coverage grid exists specifically so the holes can be seen. I think this one is instructive and wrong.'}
 ];
 
-let opt = 'ground', cell = 26;
+let opt = 'ground', cell = 26, autoCell = true;
+
+/* MIN is legibility, not touch. The grid is read rather than operated, so the
+   WCAG 24px target floor does not apply to it - what sets the floor is the point
+   where the tick inside a quiet cell stops being a tick. MAX exists because the
+   grid competes for vertical space with the statement underneath it, and the
+   statement is the point: at 44px a six-week grid is already a third of a phone
+   screen. */
+const CELL_MIN = 22, CELL_MAX = 46, GUTTER = 26;
+
+/* Derived, not chosen. Seven columns fill the width they are given; on a 390pt
+   phone that lands around 40px on its own, which is the size Tutu picked by eye
+   from the fixed steppers. The steppers stay as a comparison lab. */
+function autoSize(){
+  const box = document.getElementById('svgGrid').parentElement;
+  const W = Math.max(240, box.clientWidth - 32);
+  let c = Math.round((W - GUTTER - 6 * 8) / 7);
+  return Math.max(CELL_MIN, Math.min(CELL_MAX, c));
+}
 
 /* Cell size is a variable, not a constant, because the 20px it started at was
    never derived from anything - it was just what got drawn first. The coverage
@@ -295,7 +315,10 @@ function drawCell(g, x, y, s, state){
 function drawGrid(){
   const svg=document.getElementById('svgGrid'); clear(svg);
   const g=el('g',{},svg);
-  const s = cell, gap = Math.max(4, Math.round(s * 0.22)), left = 26, top = 26;
+  if (autoCell) cell = autoSize();
+  const s = cell, gap = Math.max(4, Math.round(s * 0.22)), left = GUTTER, top = 26;
+  const auto = document.getElementById('szAuto');
+  if (auto) auto.textContent = autoCell ? `Auto · ${s}px` : 'Auto';
   /* viewBox WIDTH stays 400 so that a bigger cell renders bigger on screen
      rather than the whole drawing scaling down to compensate. Height grows. */
   svg.setAttribute('viewBox', `0 0 400 ${top + 6*(s+gap) + 6}`);
@@ -535,14 +558,17 @@ document.getElementById('tgSquint').onclick=e=>{
   e.currentTarget.setAttribute('aria-pressed', String(!on));
   document.getElementById('stage').classList.toggle('squint', !on);
 };
-[20,26,34,44].forEach(n => {
-  document.getElementById('sz'+n).onclick = () => {
-    cell = n;
-    [20,26,34,44].forEach(m =>
-      document.getElementById('sz'+m).setAttribute('aria-pressed', String(m===n)));
-    render();
-  };
-});
+function setSizeMode(mode){
+  autoCell = (mode === 'auto');
+  if (!autoCell) cell = mode;
+  document.getElementById('szAuto').setAttribute('aria-pressed', String(autoCell));
+  [20,26,34,44].forEach(m =>
+    document.getElementById('sz'+m).setAttribute('aria-pressed', String(!autoCell && m===mode)));
+  render();
+}
+document.getElementById('szAuto').onclick = () => setSizeMode('auto');
+[20,26,34,44].forEach(n => { document.getElementById('sz'+n).onclick = () => setSizeMode(n); });
+addEventListener('resize', () => { if (autoCell) render(); });
 
 render();
 </script>
