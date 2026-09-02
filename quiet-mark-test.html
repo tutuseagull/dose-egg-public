@@ -58,7 +58,7 @@ li{margin-bottom:7px;color:var(--paper-700);font-size:16px}
 .tg[aria-pressed="true"]{background:var(--paper-700);border-color:var(--paper-700);color:#fff}
 .tg small{display:block;font-weight:400;font-size:10px;color:var(--paper-500);line-height:1.3}
 .tg[aria-pressed="true"] small{color:rgba(255,255,255,.7)}
-#contRow.off{opacity:.4;pointer-events:none}
+#contRow.off,#selRow.off{opacity:.4;pointer-events:none}
 
 /* rough proxy for reduced contrast sensitivity — NOT a real simulation */
 #stage.squint{filter:contrast(.42) blur(.5px);opacity:.95}
@@ -117,8 +117,13 @@ mark exists. What they said is a property of the mark, not of whether it's drawn
   </div>
   <div class="toggles" id="contRow" style="margin-top:6px">
     <button class="tg" id="cnTiles" aria-pressed="false">Tiles<small>what you saw</small></button>
-    <button class="tg" id="cnFlat"  aria-pressed="true">Flat<small>square, tighter</small></button>
-    <button class="tg" id="cnField" aria-pressed="false">Field<small>no gutters</small></button>
+    <button class="tg" id="cnFlat"  aria-pressed="true">Tight<small>rounded, paler</small></button>
+    <button class="tg" id="cnField" aria-pressed="false">Field<small>rejected</small></button>
+  </div>
+  <div class="toggles" id="selRow" style="margin-top:6px">
+    <button class="tg" id="slTile"  aria-pressed="true">Tile<small>inverted</small></button>
+    <button class="tg" id="slCross" aria-pressed="false">Crosshair<small>+ fade the rest</small></button>
+    <button class="tg" id="slRing"  aria-pressed="false">Row ring<small>shows the target</small></button>
   </div>
 </div>
 
@@ -216,15 +221,39 @@ read, so drawing them fused invites an interpolation the record can't support.</
   to notice and just as loud.
 </div>
 
-<h3>Where this lands: flat</h3>
-<p>Days stay discrete, so nothing false is asserted, and no length means anything. Square
-corners and the paler ground drop most of the key-like read on their own. The remaining
-move is the gutter: <b>12% of the cell rather than 22%</b>. Days still part — they are
-separate samples and should look it — but the row coheres instead of scattering into
-floating keys.</p>
-<p>And the keypad worry is now smaller than it was, because C-17 moved the target. Nothing
-in the grid has to <em>look</em> touchable, since the row is what the finger claims. The cells
-only have to be read.</p>
+<h3>Where this lands: tight</h3>
+<p>Days stay discrete, so nothing false is asserted and no length means anything. The
+radius <b>stays</b> — Tutu: <em>"I like the rounded corner, I don't like flat, looks
+sharp"</em> — and squaring it had bought very little anyway. The keypad read came mostly
+from the tint and the gutter, and C-17 took the rest of it away by moving the target off
+the cell entirely. So the only differences from tiles are the <b>paler ground</b> and a
+<b>gutter tightened from 22% to 12%</b>: days still part, because they are separate
+samples and should look it, but the row coheres instead of scattering into floating keys.</p>
+
+<h2>Selection is feedback, not the target</h2>
+<p class="q">Tutu: <em>"I don't know if it's necessary to show the row. We can just show
+the selected tile."</em></p>
+<p>Right, and it's the same conflation a third time — I drew the <em>target</em>. The row is
+what the finger claims, and that stays; but a ring around it shows the user the hit area,
+which is apparatus. <b>Targets should be invisible. Feedback belongs on the thing that
+matters.</b> Three treatments to compare on the phone:</p>
+<ul>
+  <li><b>Tile</b> — the selected day <em>inverts</em>: the ground takes the mark colour and the
+  mark goes to paper. No ring, no box. An unknown day keeps its dashed edge, in paper, so
+  inverting never costs the state.</li>
+  <li><b>Crosshair</b> — the same, plus everything off the selected row <em>and column</em>
+  recedes to 22%. Not decoration: the column is a real axis here — the same weekday across
+  six weeks — so the fade answers <em>"how are my Fridays"</em> for free, which is exactly the
+  kind of pattern the retrospective exists to surface.</li>
+  <li><b>Row ring</b> — the version this replaces, kept so the difference is visible rather
+  than argued.</li>
+</ul>
+<div class="note">
+  <b>Worth watching for.</b> The inverted tile is the highest-contrast object on the screen,
+  which is right for feedback and wrong if it ever persists — a selection that stays after
+  you look away becomes a fourth state competing with the three real ones. It should clear
+  on navigation.
+</div>
 
 <h2>Where I'd land</h2>
 <p><b>Option 4 — ground and figure</b>, with a piece of option 3 borrowed.</p>
@@ -359,6 +388,20 @@ let container = 'flat';
    rewarded, never required. */
 let selWeek = null, selDay = null;
 
+/* Target and FEEDBACK are different questions, and I had merged them again.
+   The row is the target - that is C-17 and it stands - but drawing a ring
+   round the row shows the user the hit area, which is apparatus. Tutu:
+   "I don't know if it's necessary to show the row. we can just show the
+   selected tile, perhaps with the treatment that reverse the color of dot
+   and container background? if the selection is not clear enough, we can
+   fade the other tiles which are not on the same row and column."
+
+   Targets should be invisible; feedback belongs on the thing that matters.
+   And the crosshair is not just emphasis - the column IS a real axis here
+   (the same weekday across six weeks), so fading everything off the cross
+   answers "how are my Fridays" for free. */
+let selMode = 'tile';   // 'ring' | 'tile' | 'cross'
+
 /* MIN is legibility, not touch. The grid is read rather than operated, so the
    WCAG 24px target floor does not apply to it - what sets the floor is the point
    where the tick inside a quiet cell stops being a tick. MAX exists because the
@@ -391,7 +434,9 @@ function gridWidth(){
   return Math.max(240, Math.round(w || (svg.parentElement.clientWidth - 32)));
 }
 function autoSize(ratio){
-  const W = gridWidth();
+  /* the -8 is a right margin. Without it the seventh column lands exactly on
+     the SVG's right edge and reads as clipped even though it is not. */
+  const W = gridWidth() - 8;
   let c = Math.round((W - GUTTER) / (7 + 6*ratio));
   return Math.max(CELL_MIN, Math.min(CELL_MAX, c));
 }
@@ -421,7 +466,7 @@ const C = {
 
 /* ═══ the whole design decision lives here ═══
    Draws one day cell of side `s` at (x,y) for state 0/1/2. */
-function drawCell(g, x, y, s, state){
+function drawCell(g, x, y, s, state, sel){
   const r = 4;
   if(opt==='weight'){
     if(state===2) el('rect',{x,y,width:s,height:s,rx:r,fill:C.mark},g);
@@ -449,8 +494,31 @@ function drawCell(g, x, y, s, state){
       stroke:C.edge,'stroke-width':1.5,'stroke-dasharray':'3 3'},g);
   }
   else if(opt==='ground'){
-    const flat = (container === 'flat' && s > 20);
-    const rr = flat ? 0 : r, gf = flat ? C.groundSoft : C.ground;
+    /* The radius stays. Tutu, 2026-09-02: "I like the rounded corner, I don't
+       like flat, looks sharp" - and she is right that square corners bought
+       very little: the keypad read came mostly from the tint and the gutter,
+       and C-17 took the rest of it away by moving the target off the cell.
+       So 'tight' now differs from 'tiles' only in ground and gutter. */
+    const tight = (container === 'flat');
+    const rr = r, gf = tight ? C.groundSoft : C.ground;
+
+    /* ── selected ──
+       The tile inverts: ground takes the mark colour, the mark goes to paper.
+       No ring, no box around anything - the feedback is ON the thing selected
+       rather than around the region that was tappable. Unknown keeps its
+       dashed edge, in paper, so inverting never costs the state. */
+    if(sel){
+      el('rect',{x,y,width:s,height:s,rx:rr,fill:C.mark},g);
+      if(state===0)
+        el('rect',{x:x+2.5,y:y+2.5,width:s-5,height:s-5,rx:Math.max(1,rr-1),fill:'none',
+          stroke:C.paper,'stroke-width':1.5,'stroke-dasharray':'3 3',opacity:.8},g);
+      else if(state===2)
+        el('circle',{cx:x+s/2,cy:y+s/2,r:Math.max(3.5,s*0.24),fill:C.paper},g);
+      else
+        el('rect',{x:x+s*0.24,y:y+s/2-1.5,width:s*0.52,height:3,rx:1.5,
+          fill:C.paper,opacity:.92},g);
+      return;
+    }
     if(state===0){
       el('rect',{x:x+.75,y:y+.75,width:s-1.5,height:s-1.5,rx:rr,fill:'none',
         stroke:C.edge,'stroke-width':1.5,'stroke-dasharray':'3 3'},g);
@@ -494,23 +562,37 @@ function drawGrid(){
   hintLine(cont);
   const cr = document.getElementById('contRow');
   if (cr) cr.classList.toggle('off', opt !== 'ground');
+  const sr = document.getElementById('selRow');
+  if (sr) sr.classList.toggle('off', opt !== 'ground' || cont === 'field');
 
   svg.setAttribute('viewBox', `0 0 ${VBW} ${top + 6*rowPitch + 6}`);
 
   WEEKDAYS.forEach((d,i)=>{
-    const t=el('text',{x:left+i*pitch+pitch/2,y:16,'text-anchor':'middle',
-      'font-size':11,fill:C.text,'font-family':'Inter,system-ui'},g);
+    const colOff = (selMode === 'cross' && selDay !== null && (selDay % 7) !== i);
+    const t=el('text',{x:left+i*pitch+pitch/2,y:16,'text-anchor':'middle','font-size':11,
+      fill:C.text,'font-family':'Inter,system-ui',opacity: colOff ? .3 : 1},g);
     t.textContent=d;
   });
 
   for(let wk=0; wk<6; wk++){
     const y = top + wk*rowPitch;
-    const t=el('text',{x:left-10,y:y+w/2+4,'text-anchor':'end',
-      'font-size':10,fill:C.text,'font-family':'Inter,system-ui'},g);
+    const rowOff = (selMode === 'cross' && selDay !== null
+                 && Math.floor(selDay/7) !== wk);
+    const t=el('text',{x:left-10,y:y+w/2+4,'text-anchor':'end','font-size':10,
+      fill:C.text,'font-family':'Inter,system-ui',opacity: rowOff ? .3 : 1},g);
     t.textContent = ['Jul 6','Jul 13','Jul 20','Jul 27','Aug 3','Aug 10'][wk].split(' ')[1];
 
     if(cont !== 'field'){
-      for(let d=0; d<7; d++) drawCell(g, left+d*pitch, y, w, STATES[wk*7+d]);
+      for(let d=0; d<7; d++){
+        const i = wk*7+d, isSel = (selDay === i && selMode !== 'ring');
+        /* crosshair: everything OFF the selected row and column recedes. The
+           column is a real axis - the same weekday across six weeks - so this
+           is not decoration, it answers "how are my Fridays" for free. */
+        const off = (selMode === 'cross' && selDay !== null && !isSel
+                  && Math.floor(selDay/7) !== wk && (selDay % 7) !== d);
+        const cg = el('g', off ? {opacity:0.22} : {}, g);
+        drawCell(cg, left+d*pitch, y, w, STATES[i], isSel);
+      }
     } else {
       /* One rect per RUN of covered days. Forty-two objects become four or
          five, and a hole is a hole in something rather than a missing tile.
@@ -550,7 +632,7 @@ function drawGrid(){
        The ring goes round the ROW, because the row is what the tap
        claimed. The hinted day gets an underscore, not a ring: it is where
        the next view will open, not a second selection. */
-    if(selWeek === wk){
+    if(selWeek === wk && (selMode === 'ring' || cont === 'field')){
       el('rect',{x:left-2, y:y-1, width:7*pitch+4, height:w+2, rx:6,
         fill:'none', stroke:C.mark,'stroke-width':1.75},g);
       if(selDay !== null){
@@ -851,6 +933,15 @@ function setSizeMode(mode){
     document.getElementById('sz'+m).setAttribute('aria-pressed', String(!autoCell && m===mode)));
   render();
 }
+const SELMODES = {slTile:'tile', slCross:'cross', slRing:'ring'};
+Object.entries(SELMODES).forEach(([id, key]) => {
+  document.getElementById(id).onclick = () => {
+    selMode = key;
+    Object.keys(SELMODES).forEach(i =>
+      document.getElementById(i).setAttribute('aria-pressed', String(SELMODES[i] === key)));
+    render();
+  };
+});
 const CONTAINERS = {cnTiles:'tiles', cnFlat:'flat', cnField:'field'};
 Object.entries(CONTAINERS).forEach(([id, key]) => {
   document.getElementById(id).onclick = () => {
@@ -874,8 +965,9 @@ function hintLine(cont){
       'reframe threw out. Kept here so the reason survives the decision.'
     : (cont === 'flat'
       ? '<b>Where this lands.</b> Days stay discrete, so nothing false is asserted. ' +
-        'Square corners and the paler ground drop most of the key-like read, and the ' +
-        'gutter is tightened to 12% of the cell so the row coheres without fusing.'
+        'The radius stays — it bought very little, and C-17 took the keypad problem ' +
+        'away by moving the target off the cell. What changes from tiles is the paler ' +
+        'ground and a gutter tightened from 22% to 12%, so the row coheres without fusing.'
       : '<b>What you saw.</b> Rounded, tinted, 22% gutter — forty-two objects that read ' +
         'as a keypad, which is what started this.');
 }
