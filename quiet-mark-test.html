@@ -106,7 +106,10 @@ mark exists. What they said is a property of the mark, not of whether it's drawn
   <div class="opts" id="opts"></div>
   <div class="toggles">
     <button class="tg" id="tgSquint" aria-pressed="false">Low contrast</button>
-    <button class="tg" id="tgBig" aria-pressed="false">Bigger marks</button>
+    <button class="tg" id="sz20" aria-pressed="false">20px</button>
+    <button class="tg" id="sz26" aria-pressed="true">26px</button>
+    <button class="tg" id="sz34" aria-pressed="false">34px</button>
+    <button class="tg" id="sz44" aria-pressed="false">44px</button>
   </div>
 </div>
 
@@ -125,6 +128,11 @@ mark exists. What they said is a property of the mark, not of whether it's drawn
   <div class="card"><svg id="svgTL" viewBox="0 0 400 260" role="img" aria-label="Timeline"></svg></div>
 
   <div class="legend" id="legend"></div>
+
+  <h3>4 · The same six weeks, with its sentence</h3>
+  <p class="lede" style="font-size:14px">The marks and the statements were made on different days and had
+  never met. This is them together, on the grid above.</p>
+  <div class="card" id="worked"></div>
 </div>
 
 <div class="card" id="verdictCard">
@@ -210,7 +218,15 @@ const OPTIONS = [
     verdict:'<b>Flips the hierarchy: logged is filled, quiet is outlined, unknown is nearly nothing.</b> Worth building to see, because it tests the instinct that an outline reads as "empty" rather than "missing" — here the outline is the <em>positive</em> state. But it makes gaps almost invisible, and the coverage grid exists specifically so the holes can be seen. I think this one is instructive and wrong.'}
 ];
 
-let opt = 'ground', big = false;
+let opt = 'ground', cell = 26;
+
+/* Cell size is a variable, not a constant, because the 20px it started at was
+   never derived from anything - it was just what got drawn first. The coverage
+   grid is READ, not operated: you look at it to see the shape of six weeks, and
+   the touch rule belongs on the things you actually tap. So the question is not
+   "do three marks survive 20px", it is "what is the smallest cell where three
+   marks are legible, and can a seven-column grid afford it". At 44px a week is
+   still under 400 wide, so we probably can. (Tutu, 2026-08-26.) */
 
 /* ── tiny SVG helper ── */
 const NS='http://www.w3.org/2000/svg';
@@ -279,7 +295,10 @@ function drawCell(g, x, y, s, state){
 function drawGrid(){
   const svg=document.getElementById('svgGrid'); clear(svg);
   const g=el('g',{},svg);
-  const s = big ? 26 : 20, gap = big ? 8 : 7, left = 34, top = 26;
+  const s = cell, gap = Math.max(4, Math.round(s * 0.22)), left = 26, top = 26;
+  /* viewBox WIDTH stays 400 so that a bigger cell renders bigger on screen
+     rather than the whole drawing scaling down to compensate. Height grows. */
+  svg.setAttribute('viewBox', `0 0 400 ${top + 6*(s+gap) + 6}`);
   WEEKDAYS.forEach((d,i)=>{
     const t=el('text',{x:left+i*(s+gap)+s/2,y:16,'text-anchor':'middle',
       'font-size':11,fill:C.text,'font-family':'Inter,system-ui'},g);
@@ -352,7 +371,7 @@ function drawRows(){
     }
 
     if(st===2) row.doses.forEach(h=>{
-      el('circle',{cx:X(h),cy:cy,r: big?6:4.75,fill:C.mark,stroke:'#FFF','stroke-width':1.5},g);
+      el('circle',{cx:X(h),cy:cy,r: 3.5 + cell*0.06,fill:C.mark,stroke:'#FFF','stroke-width':1.5},g);
     });
   });
 }
@@ -431,8 +450,71 @@ function drawLegend(){
   });
 }
 
+/* Which of the logged days carried a "rough afternoon" note. Fixed, not random,
+   so the sentences below are the same every time the page opens. */
+const ROUGH = [1, 10, 16, 25, 27, 35, 38];
+
+function drawWorked(){
+  const logged  = STATES.filter(v => v === 2).length;
+  const quiet   = STATES.filter(v => v === 1).length;
+  const unknown = STATES.filter(v => v === 0).length;
+  const covers  = logged + quiet, n = ROUGH.length;
+
+  document.getElementById('worked').innerHTML = `
+    <div class="label">The record</div>
+    <p style="font-size:14px;margin:6px 0 18px">
+      ${STATES.length} days · <b>${logged}</b> with entries · <b>${quiet}</b> marked ordinary ·
+      <b>${unknown}</b> the app knows nothing about. ${n} of the logged days carry a rough afternoon.</p>
+
+    <div class="label">What we would have said before the quiet state</div>
+    <p class="q" style="margin:6px 0 4px">"${n} rough afternoons, out of the ${logged} days you logged."</p>
+    <p style="font-size:13px;color:var(--paper-600);margin:0 0 18px">
+      ${Math.round(n/logged*100)}% of the days it can see. Not conservative &mdash; <b>wrong</b>.
+      ${quiet} of those quiet days were genuinely fine and had no way to say so.</p>
+
+    <div class="label">A · one number</div>
+    <p class="q" style="margin:6px 0 4px">"${n} rough afternoons, out of the ${covers} days this picture covers."</p>
+    <p style="font-size:13px;color:var(--paper-600);margin:0 0 18px">
+      ${Math.round(n/covers*100)}%. True, short, and silent about the ${unknown} unknown days.</p>
+
+    <div class="label">B · both numbers</div>
+    <p class="q" style="margin:6px 0 4px">"${n} rough afternoons, out of the ${covers} days this picture
+      covers. ${unknown} more it cannot speak to."</p>
+    <p style="font-size:13px;color:var(--paper-600);margin:0 0 18px">
+      Complete, and noticeably heavier. Two numbers in one breath is the thing the
+      coverage control was invented to avoid.</p>
+
+    <div class="label">C · short sentence, coverage on its own line &nbsp;&mdash;&nbsp; DECIDED</div>
+    <p class="q" style="margin:6px 0 4px">"${n} rough afternoons in six weeks."</p>
+    <p style="font-size:13px;color:var(--paper-600);margin:0 0 6px;
+       border-left:2px solid var(--paper-300);padding-left:10px">
+      ${covers} of ${STATES.length} days covered · ${unknown} unknown</p>
+    <p style="font-size:13px;color:var(--paper-600);margin:8px 0 0">
+      <b>Chosen 2026-08-26 (Tutu):</b> this is how you read the chart, not an insight
+      beyond it. Coverage at the period level is <em>apparatus</em> &mdash; the same for every
+      statement on screen, like an axis label. You do not put the axis label inside
+      the sentence. It can be quiet, and it can collapse.</p>
+
+    <div class="label" style="margin-top:22px">The distinction that keeps the differentiator</div>
+    <p style="font-size:13px;color:var(--paper-600);margin:6px 0 0">
+      This does <em>not</em> retire "coverage inside the claim". There are two kinds and only
+      one of them moves.<br><br>
+      <b>Period coverage</b> &mdash; "35 of 42 days covered" &mdash; is identical for every statement
+      on the screen. Apparatus. It goes on the line.<br><br>
+      <b>Claim coverage</b> &mdash; "on 6 of the 9 days lunch was close to the dose", "5 of the 7"
+      &mdash; changes per statement and <em>is</em> the evidence. It stays inside the sentence,
+      which is still the thing nobody else in the market ships.</p>
+
+    <div class="label" style="margin-top:22px">Consequence: R-05 stops being a statement</div>
+    <p style="font-size:13px;color:var(--paper-600);margin:6px 0 0">
+      R-05 was "Tuesday and Saturday have no entries, so this picture doesn't cover
+      them" &mdash; which is period coverage wearing a statement's clothes. It becomes the
+      coverage line instead: always visible and quiet, rather than occasionally emitted
+      and taking a slot. One fewer statement, and the fact is on screen more of the time.</p>`;
+}
+
 function render(){
-  drawGrid(); drawRows(); drawTL(); drawLegend();
+  drawGrid(); drawRows(); drawTL(); drawLegend(); drawWorked();
   const o=OPTIONS.find(o=>o.key===opt);
   document.getElementById('verdict').innerHTML=o.verdict;
   [...document.querySelectorAll('.opt')].forEach(b=>
@@ -453,11 +535,14 @@ document.getElementById('tgSquint').onclick=e=>{
   e.currentTarget.setAttribute('aria-pressed', String(!on));
   document.getElementById('stage').classList.toggle('squint', !on);
 };
-document.getElementById('tgBig').onclick=e=>{
-  const on = e.currentTarget.getAttribute('aria-pressed')==='true';
-  e.currentTarget.setAttribute('aria-pressed', String(!on));
-  big=!on; render();
-};
+[20,26,34,44].forEach(n => {
+  document.getElementById('sz'+n).onclick = () => {
+    cell = n;
+    [20,26,34,44].forEach(m =>
+      document.getElementById('sz'+m).setAttribute('aria-pressed', String(m===n)));
+    render();
+  };
+});
 
 render();
 </script>
