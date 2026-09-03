@@ -56,6 +56,7 @@ svg{display:block;width:100%;height:auto}
 /* svg{width:100%} above would stretch every swatch to the row width — the
    legend needs its own rule, and it needs flex:none or flexbox grows it anyway */
 .legend svg{width:26px;height:14px;flex:none}
+.legend.off,#palRow.off{opacity:.4;pointer-events:none}
 .read{font-size:13px;color:var(--paper-600);margin:10px 0 0;padding-top:10px;
   border-top:1px solid var(--paper-200)}
 .read b{color:var(--paper-900)}
@@ -93,11 +94,15 @@ rather than asserted. One week only — the scale where detail is affordable.</p
     <button class="tg" id="tgSquint" aria-pressed="false">Low contrast<small>rough proxy</small></button>
     <button class="tg" id="tgFeel" aria-pressed="true">Rough spans<small>as ground</small></button>
     <button class="tg" id="tgSleep" aria-pressed="true">Sleep<small>band</small></button>
-    <button class="tg" id="tgMeal" aria-pressed="true">Meals<small>protein weight</small></button>
+    <button class="tg" id="tgMeal" aria-pressed="true">Meals<small>protein blocks</small></button>
   </div>
   <div class="toggles" style="margin-top:6px">
     <button class="tg" id="vwDay" aria-pressed="true">By day<small>dimensions inside each day</small></button>
     <button class="tg" id="vwMeasure" aria-pressed="false">By measure<small>stacked, one shared axis</small></button>
+  </div>
+  <div class="toggles" id="palRow" style="margin-top:6px">
+    <button class="tg" id="plDistinct" aria-pressed="true">Distinct hues<small>a colour per measure</small></button>
+    <button class="tg" id="plOne" aria-pressed="false">One ink<small>subtitles do the naming</small></button>
   </div>
 </div>
 
@@ -166,6 +171,40 @@ meals, and 2 of the 3 rough stretches begin here."</em></p>
 <p>Which is the accessible / sensible / narrative test doing real work rather than
 confirming a choice already made. The target changed because the zoom changed; the chart
 never stopped responding.</p>
+
+<h2>Protein: count, don't measure</h2>
+<p class="q">Tutu: <em>"I don't like the stretched dot… like a stacked bar, like a rotated
+battery. Low protein gets one block, high gets 3 blocks."</em></p>
+<p>Better, and the reason is worth naming because it generalises. A bar 4.8px tall against
+one 6.2px tall asks the eye to <em>measure</em> a difference smaller than the mark itself.
+Three cells with two filled asks it to <b>count to two</b> — which survives presbyopia
+(C-16), contrast loss, and a phone held at arm's length, all of which our population has.</p>
+<p>It also does something the stretched dot couldn't: an empty cell <b>states the scale</b>.
+You can see there are three levels even on a day when every meal was low, so a low-protein
+week reads as low rather than as a week where the encoding failed.</p>
+
+<h2>One ink, and why only in the stack</h2>
+<p class="q">Tutu: <em>"another option might not necessarily need different legends. They
+could be same or similar colours as long as the chart type makes sense, because each chart
+has its subtitle."</em></p>
+<p>This turned out to draw a line between the two views rather than being a preference.</p>
+<ul>
+  <li><b>By measure</b>, every panel carries a title and a subtitle. The title is what
+  identifies the measure, so hue is a <em>second, redundant encoding of something already
+  named in words</em> — and four hues for four labelled panels is noise. In <b>one ink</b>
+  the panels differ by <b>mark type</b> — band, dot, blocks, span — which is a real
+  difference, and weight carries the rest. The legend disappears entirely, because a legend
+  here would be the same fact in a third form: hue, title <em>and</em> swatch.</li>
+  <li><b>By day</b>, nothing labels the lanes. Hue is the only thing telling sleep from
+  meals, so it can't be given up — the toggle is switched off in that view rather than
+  offered and quietly wrong.</li>
+</ul>
+<div class="note">
+  <b>The general form.</b> Colour earns its place when it is the <em>only</em> carrier of a
+  distinction. The moment a label carries the same distinction, colour is free — and in a
+  palette this quiet, spending it twice is what makes a chart feel busy without anyone being
+  able to say which element to remove.
+</div>
 
 <h3>The statement is secondary</h3>
 <p>One quiet line under the chart, and the coverage line under that. The chart is doing
@@ -242,6 +281,7 @@ const DAYS = [
     rough:[] }
 ];
 
+const C_MARK = '#4E6B84';
 const C = {
   mark:'#4E6B84', markSoft:'#8FA6B8',
   sleep:'#C4D2DC', sleepSoft:'#DDE6EC',
@@ -287,6 +327,26 @@ const PARTS = [
 ];
 const WEEKL = ['M','T','W','T','F','S','S'];
 
+/* ── palette ──────────────────────────────────────────────────────
+   Tutu, 2026-09-03: "another option might not necessarily need different
+   legends. they could be same or similar colors as long as the chart type
+   makes sense. because each chart has its subtitle, so it's okay if two
+   charts' legend look the same."
+
+   Right, and it draws a line between the two views rather than being a
+   preference. In the BY MEASURE stack every panel carries a title, so the
+   title is what identifies the measure - hue is a second, redundant encoding
+   of something already named in words, and four hues for four labelled panels
+   is just noise. In the BY DAY view nothing labels the lanes, so there hue is
+   the only thing telling sleep from meals and it has to stay.
+
+   Hence: one ink is offered in the stack and withheld in the day view. What
+   varies between panels is the MARK TYPE - band, dot, blocks, span - which is
+   a real difference, and weight carries the rest. */
+let palette = 'distinct';   // 'distinct' | 'oneink'
+const ONEINK = { sleep:[C_MARK, .30], dose:[C_MARK, 1], meal:[C_MARK, .60],
+                 rough:[C_MARK, .32], ghost:[C_MARK, .10] };
+
 const NS='http://www.w3.org/2000/svg';
 function el(tag, attrs, parent){
   const n=document.createElementNS(NS,tag);
@@ -314,6 +374,27 @@ function fmt(h){
 function dur(a,b){
   const t = b - a, hh = Math.floor(t), mm = Math.round((t-hh)*60);
   return mm ? `${hh}h ${mm}m` : `${hh}h`;
+}
+
+/* ── protein as a rotated battery ──
+   Tutu: "I don't like the stretched dot... like a stacked bar, like a rotated
+   battery. low protein gets one block, high gets 3 blocks."
+
+   Better than size for a reason worth naming: three discrete cells are
+   COUNTED, not judged. A bar that is 4.8px against one that is 6.2px asks the
+   eye to measure a difference smaller than the mark; three cells with two
+   filled asks it to count to two, which survives presbyopia, contrast loss and
+   a phone held at arm's length. It also states the scale - you can see there
+   are three levels even when a meal only has one. */
+function battery(g, cx, cy, p, cw, ch, gap, fill, op){
+  const total = 3*cw + 2*gap, x0 = cx - total/2;
+  for(let k=0;k<3;k++){
+    const x = x0 + k*(cw+gap);
+    if(k < p) el('rect',{x, y:cy-ch/2, width:cw, height:ch, rx:1.2,
+      fill, opacity:op},g);
+    else el('rect',{x:x+.5, y:cy-ch/2+.5, width:cw-1, height:ch-1, rx:1,
+      fill:'none', stroke:fill, 'stroke-width':.9, opacity:op*0.42},g);
+  }
 }
 
 /* ── lane geometry ──
@@ -407,9 +488,7 @@ function draw(){
 
     /* ── meals: protein as weight, 3 levels (D-12) ── */
     if(showMeal) day.meals.forEach(m=>{
-      const h = 3 + m.p*1.8, cx = X(m.t);
-      el('rect',{x:cx-5, y:y+LANE.mealY+(LANE.mealH-h)/2, width:10, height:h, rx:h/2,
-        fill:C.meal, opacity:.35 + m.p*0.2},grp);
+      battery(grp, X(m.t), y+LANE.mealY+LANE.mealH/2, m.p, 4.5, 7, 1.6, C.meal, .95);
     });
 
     addHit(g, left, y, right-left, GROUP_H, GROUP_GAP, i, X);
@@ -431,9 +510,20 @@ function draw(){
 }
 
 /* ═══ by measure — one panel per dimension, one shared x-axis ═══ */
-const ROW = 11, TITLE = 15, PGAP = 16, TOPM = 30;
-const PNAME = { sleep:'Sleep', dose:'Doses', meal:'Meals · protein',
+const ROW = 11, TITLE = 27, PGAP = 15, TOPM = 30;
+const PNAME = { sleep:'Sleep', dose:'Doses', meal:'Meals',
                 rough:'Rough stretches' };
+/* The subtitle is what makes one ink possible - it names in words what hue
+   would otherwise have to carry. */
+const PSUB = { sleep:'band ends at the hour you woke',
+               dose:'ring means the slot included the add-on',
+               meal:'protein, one to three blocks',
+               rough:'ghosted faintly into every panel above' };
+function ink(kind){
+  return palette === 'oneink' ? ONEINK[kind]
+       : { sleep:[C.sleep,1], dose:[C.mark,1], meal:[C.meal,1],
+           rough:[C.rough,.34], ghost:[C.rough,.10] }[kind];
+}
 
 function drawByMeasure(svg, g, W, left, right, X){
   const panels = [];
@@ -442,6 +532,7 @@ function drawByMeasure(svg, g, W, left, right, X){
   if(showMeal)  panels.push('meal');
   if(showFeel)  panels.push('rough');
   const PANEL_H = TITLE + 7*ROW;
+  const [gc, go] = ink('ghost');
   const H = TOPM + panels.length*(PANEL_H + PGAP);
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
@@ -460,9 +551,13 @@ function drawByMeasure(svg, g, W, left, right, X){
   panels.forEach((key, pi) => {
     const py = TOPM + pi*(PANEL_H + PGAP);
     const ti = el('text',{x:0, y:py+9,'font-size':10.5,'font-weight':600,
-      fill:C.text,'font-family':'Inter,system-ui','letter-spacing':'0.04em'},g);
+      fill:C.paper900 || '#46443C','font-family':'Inter,system-ui',
+      'letter-spacing':'0.04em'},g);
     ti.textContent = PNAME[key].toUpperCase();
-    titles.push(ti);
+    const su = el('text',{x:0, y:py+21,'font-size':9.5,
+      fill:C.text,'font-family':'Inter,system-ui'},g);
+    su.textContent = PSUB[key];
+    titles.push(ti); titles.push(su);
 
     DAYS.forEach((day, i) => {
       const ry = py + TITLE + i*ROW, cy = ry + ROW/2;
@@ -475,7 +570,7 @@ function drawByMeasure(svg, g, W, left, right, X){
          dose panel - the figure/ground move surviving the transpose. */
       if(showFeel && key !== 'rough') day.rough.forEach(([a,b])=>{
         el('rect',{x:X(a), y:ry+1, width:X(b)-X(a), height:ROW-2, rx:2,
-          fill:C.rough, opacity:.10},g);
+          fill:gc, opacity:go},g);
       });
 
       if(day.state === 0){
@@ -484,32 +579,32 @@ function drawByMeasure(svg, g, W, left, right, X){
         return;
       }
 
+      const [ic, io] = ink(key);
       if(key === 'sleep' && day.sleep){
         const [a,b] = day.sleep, x0 = X(Math.max(a,H0)), x1 = X(b);
         const r = el('rect',{x:x0, y:ry+2.5, width:Math.max(2,x1-x0), height:ROW-5,
-          rx:(ROW-5)/2, fill:C.sleep},g);
+          rx:(ROW-5)/2, fill:ic, opacity:io},g);
         if(a < H0){
-          const id = 'fadeM'+i;
+          const id = 'fadeM'+i+palette;
           const defs = el('defs',{},g);
           const lg = el('linearGradient',{id, x1:'0', x2:'1'},defs);
-          el('stop',{offset:'0','stop-color':C.sleep,'stop-opacity':'0'},lg);
-          el('stop',{offset:'0.3','stop-color':C.sleep,'stop-opacity':'1'},lg);
+          el('stop',{offset:'0','stop-color':ic,'stop-opacity':'0'},lg);
+          el('stop',{offset:'0.3','stop-color':ic,'stop-opacity':String(io)},lg);
           r.setAttribute('fill', `url(#${id})`);
+          r.setAttribute('opacity', '1');
         }
       }
       else if(key === 'dose') day.doses.forEach(ds=>{
         if(ds.addon) el('circle',{cx:X(ds.t), cy, r:5.2, fill:'none',
-          stroke:C.mark,'stroke-width':1.1, opacity:.5},g);
-        el('circle',{cx:X(ds.t), cy, r:3, fill:C.mark},g);
+          stroke:ic,'stroke-width':1.1, opacity:io*.5},g);
+        el('circle',{cx:X(ds.t), cy, r:3, fill:ic, opacity:io},g);
       });
       else if(key === 'meal') day.meals.forEach(m=>{
-        const h = 2 + m.p*1.4;
-        el('rect',{x:X(m.t)-2.5, y:cy-h/2, width:5, height:h, rx:h/2,
-          fill:C.meal, opacity:.4 + m.p*0.18},g);
+        battery(g, X(m.t), cy, m.p, 3.4, 6.5, 1.2, ic, io);
       });
       else if(key === 'rough') day.rough.forEach(([a,b])=>{
         el('rect',{x:X(a), y:ry+2.5, width:X(b)-X(a), height:ROW-5, rx:2,
-          fill:C.rough, opacity:.34},g);
+          fill:ic, opacity:io},g);
       });
     });
   });
@@ -524,12 +619,12 @@ function drawByMeasure(svg, g, W, left, right, X){
     [[left, X(a)], [X(b), right]].forEach(([x0,x1])=>{
       if(x1 - x0 < 0.5) return;
       const v = el('rect',{x:x0, y:TOPM-12, width:x1-x0, height:H-TOPM+10,
-        fill:C.paper, opacity:.52},g);
+        fill:C.paper, opacity:.45},g);
       v.style.pointerEvents = 'none';
     });
     [X(a), X(b)].forEach(x=>{
       const l = el('line',{x1:x, y1:TOPM-12, x2:x, y2:H-PGAP+2,
-        stroke:C.mark,'stroke-width':1,opacity:.45},g);
+        stroke:C.mark,'stroke-width':1,opacity:.6},g);
       l.style.pointerEvents = 'none';
     });
     /* Panel titles start left of the plot but run into it, so the veil was
@@ -601,15 +696,19 @@ function swatch(draw_, w){
 }
 function drawLegend(){
   const box=document.getElementById('legend'); box.innerHTML='';
+  /* The stack does not get a legend at all - that is the point of the panel
+     subtitles. A legend here would be the redundant encoding wearing a third
+     form: hue, title AND swatch all naming the same thing. */
+  box.style.display = (view === 'measure') ? 'none' : 'flex';
+  if(view === 'measure') return;
   const items = [
     ['Dose alone', g=>el('circle',{cx:11,cy:7,r:5.5,fill:C.mark},g)],
     ['with add-on', g=>{el('circle',{cx:11,cy:7,r:5.5,fill:C.mark},g);
       el('circle',{cx:11,cy:7,r:9,fill:'none',stroke:C.mark,'stroke-width':1.5,opacity:.55},g);}]
   ];
   if(showSleep) items.push(['Sleep', g=>el('rect',{x:1,y:4,width:20,height:6,rx:3,fill:C.sleep},g)]);
-  if(showMeal)  items.push(['Meal · protein', g=>{
-      [1,2,3].forEach((p,k)=>{const h=3+p*1.8;
-        el('rect',{x:2+k*7,y:7-h/2,width:5,height:h,rx:h/2,fill:C.meal,opacity:.35+p*0.2},g);});}]);
+  if(showMeal)  items.push(['Meal · 1–3 protein blocks',
+      g=>battery(g, 12, 7, 2, 4, 7, 1.4, C.meal, .95)]);
   if(showFeel)  items.push(['A rough stretch', g=>el('rect',{x:1,y:2,width:20,height:10,rx:3,
       fill:C.rough,opacity:.16},g)]);
   items.forEach(([name, d])=>{
@@ -668,14 +767,29 @@ document.getElementById('tgSquint').onclick = e => {
   e.currentTarget.setAttribute('aria-pressed', String(!on));
   document.getElementById('stage').classList.toggle('squint', !on);
 };
+function syncPalRow(){
+  /* One ink is offered only in the stack. In the day view nothing labels the
+     lanes, so hue is the only thing telling sleep from meals and it cannot be
+     given up. */
+  document.getElementById('palRow').classList.toggle('off', view !== 'measure');
+}
 [['vwDay','day'],['vwMeasure','measure']].forEach(([id,v])=>{
   document.getElementById(id).onclick = () => {
     view = v; selDay = null; selHour = null; selPart = null;
     document.getElementById('vwDay').setAttribute('aria-pressed', String(v==='day'));
     document.getElementById('vwMeasure').setAttribute('aria-pressed', String(v==='measure'));
+    syncPalRow(); draw();
+  };
+});
+[['plDistinct','distinct'],['plOne','oneink']].forEach(([id,v])=>{
+  document.getElementById(id).onclick = () => {
+    palette = v;
+    document.getElementById('plDistinct').setAttribute('aria-pressed', String(v==='distinct'));
+    document.getElementById('plOne').setAttribute('aria-pressed', String(v==='oneink'));
     draw();
   };
 });
+syncPalRow();
 addEventListener('resize', draw);
 draw();
 </script>
