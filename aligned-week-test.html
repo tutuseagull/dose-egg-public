@@ -84,8 +84,9 @@ rather than asserted. One week only — the scale where detail is affordable.</p
 </div>
 
 <h2>The week</h2>
-<p class="lede" style="font-size:14px">Tap any day. The target is the whole row; where you
-land sets the hour the day view would open at.</p>
+<p class="lede" style="font-size:14px">Two groupings of the same week.
+<b>By day</b> — tap a day; the target is the whole row and where you land sets the hour.
+<b>By measure</b> — four charts stacked on one axis; tap a part of the day.</p>
 
 <div class="controls">
   <div class="toggles">
@@ -93,6 +94,10 @@ land sets the hour the day view would open at.</p>
     <button class="tg" id="tgFeel" aria-pressed="true">Rough spans<small>as ground</small></button>
     <button class="tg" id="tgSleep" aria-pressed="true">Sleep<small>band</small></button>
     <button class="tg" id="tgMeal" aria-pressed="true">Meals<small>protein weight</small></button>
+  </div>
+  <div class="toggles" style="margin-top:6px">
+    <button class="tg" id="vwDay" aria-pressed="true">By day<small>dimensions inside each day</small></button>
+    <button class="tg" id="vwMeasure" aria-pressed="false">By measure<small>stacked, one shared axis</small></button>
   </div>
 </div>
 
@@ -119,11 +124,48 @@ patch or outside it.</p>
 from the left edge and fades, meaning "this started before the window" — the duration is
 stated rather than measured off the axis, because measuring a clipped bar is a lie.</p>
 
-<h3>Add-ons are a treatment, not a second mark</h3>
-<p>Per D-16 a slot is one ask, so it should be one mark. An add-on shows as a <b>ring</b>
-around the dose dot. If the anchor was taken and the add-on wasn't, the ring is
-<b>broken</b> — which is a positive fact, not an absence, exactly as the entry schema
-requires.</p>
+<h3>Add-ons are a treatment, not a second mark — and there are two states, not three</h3>
+<p>Per D-16 a slot is one ask, so it is one mark: a <b>ring</b> around the dose dot means
+the slot included the add-on, and no ring means it didn't. I had drawn a third state, a
+broken ring for "add-on skipped". Tutu: <em>"I don't think we need add-on skipped. User
+would say with or without add-on."</em></p>
+<div class="note">
+  <b>The distinction underneath is worth keeping.</b> "Skipped" is a comparison against
+  the <em>plan</em>, which the app computes. "With / without" is what the person actually
+  said. Drawing the computed one turns the chart into a compliance check — the report card
+  wearing a third hat, and this time in a place we would not have looked for it. The plan
+  deviation is still recoverable from the data if we ever deliberately want it; it just
+  isn't something the picture should volunteer.
+</div>
+
+<h2>Two groupings, two questions</h2>
+<p class="q">Tutu: <em>"could we fit 3 or more charts on one screen, stacking style, but
+share the same x-axis?"</em></p>
+<p>Yes, and it is a different chart rather than a tidier one. Same data, transposed:</p>
+<ul>
+  <li><b>By day</b> groups by day and puts the dimensions inside it as lanes. It answers
+  <em>"what did Tuesday look like"</em>. The correlation is read <b>across lanes within a
+  row</b>.</li>
+  <li><b>By measure</b> groups by dimension — one panel each, seven day-rows inside, all on
+  one shared axis. It answers <em>"when do doses happen"</em> and, crossing panels,
+  <em>"does the rough stretch always land at the same hour"</em>. The correlation is read
+  <b>down a column across panels</b>.</li>
+</ul>
+<p>The second is the stronger layout for finding a pattern and the weaker one for reading a
+single day, which is why both are here. It also keeps the figure/ground move alive through
+the transpose: the rough stretches <b>ghost into every panel</b>, so you can see a dose
+sitting inside one without leaving the dose panel.</p>
+
+<h3>The stack changes what a target is — and that is C-17 working</h3>
+<p>By measure there are twenty-eight rows of 11px on screen. No row can be a target, and
+that is fine, because <b>the unit worth interrogating here isn't a day at all — it's a time
+of day</b>. So the target becomes a <b>part of the day</b>: a full-height column, 44px wide
+at its narrowest on a 390pt phone, and the readout it produces is the sentence this layout
+was built to support — <em>"Early afternoon — 6 doses, 5 with an add-on, 2 high-protein
+meals, and 2 of the 3 rough stretches begin here."</em></p>
+<p>Which is the accessible / sensible / narrative test doing real work rather than
+confirming a choice already made. The target changed because the zoom changed; the chart
+never stopped responding.</p>
 
 <h3>The statement is secondary</h3>
 <p>One quiet line under the chart, and the coverage line under that. The chart is doing
@@ -168,34 +210,34 @@ validated vision simulation.</footer>
 const DAYS = [
   { d:'Mon', date:'Aug 10', state:2,
     sleep:[23.17-24, 6.67],
-    doses:[{t:7.17,addon:'taken'},{t:12.33,addon:'taken'},{t:17.5,addon:null}],
+    doses:[{t:7.17,addon:true},{t:12.33,addon:true},{t:17.5,addon:false}],
     meals:[{t:7.67,p:1},{t:12.0,p:2},{t:18.5,p:1}],
     rough:[] },
   { d:'Tue', date:'Aug 11', state:2,
     sleep:[24.83-24, 6.33],
-    doses:[{t:7.0,addon:'taken'},{t:12.17,addon:'skipped'},{t:17.17,addon:null}],
+    doses:[{t:7.0,addon:true},{t:12.17,addon:false},{t:17.17,addon:false}],
     meals:[{t:7.5,p:1},{t:12.5,p:3},{t:18.75,p:2}],
     rough:[[13.5,16.5]] },
   { d:'Wed', date:'Aug 12', state:0,
     sleep:null, doses:[], meals:[], rough:[] },
   { d:'Thu', date:'Aug 13', state:1,
     sleep:[22.83-24, 7.17],
-    doses:[{t:7.5,addon:'taken'},{t:13.0,addon:'taken'},{t:18.0,addon:null}],
+    doses:[{t:7.5,addon:true},{t:13.0,addon:true},{t:18.0,addon:false}],
     meals:[{t:8.0,p:1},{t:13.25,p:2},{t:19.0,p:1}],
     rough:[] },
   { d:'Fri', date:'Aug 14', state:2,
     sleep:[23.67-24, 6.83],
-    doses:[{t:7.08,addon:'taken'},{t:12.25,addon:'taken'},{t:17.33,addon:null}],
+    doses:[{t:7.08,addon:true},{t:12.25,addon:true},{t:17.33,addon:false}],
     meals:[{t:7.5,p:1},{t:12.08,p:3},{t:18.5,p:2}],
     rough:[[14.0,15.5]] },
   { d:'Sat', date:'Aug 15', state:2,
     sleep:[25.33-24, 8.5],
-    doses:[{t:8.67,addon:'taken'},{t:13.67,addon:'taken'},{t:18.67,addon:null}],
+    doses:[{t:8.67,addon:true},{t:13.67,addon:true},{t:18.67,addon:false}],
     meals:[{t:9.0,p:1},{t:13.5,p:2},{t:19.5,p:2}],
     rough:[[10.75,12.5]] },
   { d:'Sun', date:'Aug 16', state:2,
     sleep:[23.0-24, 7.67],
-    doses:[{t:7.83,addon:'taken'},{t:12.83,addon:'taken'},{t:17.83,addon:null}],
+    doses:[{t:7.83,addon:true},{t:12.83,addon:true},{t:17.83,addon:false}],
     meals:[{t:8.25,p:1},{t:13.0,p:1},{t:18.75,p:1}],
     rough:[] }
 ];
@@ -211,6 +253,39 @@ const C = {
 const H0 = 5, H1 = 25;                    // 5am to 1am next day
 let showFeel = true, showSleep = true, showMeal = true;
 let selDay = null, selHour = null;
+
+/* Two groupings of the SAME data, and they answer different questions.
+
+     by day      group by day, dimensions as lanes inside it
+                 -> "what did Tuesday look like"
+     by measure  group by dimension, seven day-rows inside each panel,
+                 every panel on one shared axis
+                 -> "when do doses happen" and, crossing panels,
+                    "does the rough stretch always land at the same hour"
+
+   Tutu, 2026-09-03: "I was thinking if we could fit 3 or more charts on one
+   screen, stacking style, but share the same x-axis?" That is the second one.
+   It is the stronger layout for pattern-finding and the weaker one for
+   reading a single day, which is why both are here rather than one. */
+let view = 'day';   // 'day' | 'measure'
+let selPart = null;
+
+/* Selection targets differ between the two, and that is C-17 working rather
+   than an inconsistency. By day, the unit worth opening is a DAY. By measure
+   there are 28 rows of 11px on screen - no row can be a target - and the unit
+   worth interrogating is not a day at all but a TIME OF DAY, which is exactly
+   what this layout is about. So the target becomes a part of the day: a
+   full-height column, 42px wide at its narrowest, and the readout it produces
+   is the sentence the layout was built to support. */
+const PARTS = [
+  ['Early morning',   5,  9],
+  ['Late morning',    9,  12],
+  ['Early afternoon', 12, 15],
+  ['Late afternoon',  15, 18],
+  ['Evening',         18, 21],
+  ['Night',           21, 25]
+];
+const WEEKL = ['M','T','W','T','F','S','S'];
 
 const NS='http://www.w3.org/2000/svg';
 function el(tag, attrs, parent){
@@ -252,8 +327,9 @@ function draw(){
   const svg = document.getElementById('svgWeek'); clear(svg);
   const g = el('g',{},svg);
   const W = plotWidth();
-  const left = 36, right = W - 8;
+  const left = (view === 'measure') ? 22 : 36, right = W - 8;
   const X = h => left + (h - H0)/(H1 - H0) * (right - left);
+  if(view === 'measure'){ drawByMeasure(svg, g, W, left, right, X); return; }
   const pitch = GROUP_H + GROUP_GAP;
   const H = TOP + 7*pitch + 6;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
@@ -317,12 +393,15 @@ function draw(){
     /* ── doses: one mark per SLOT, add-on as a ring ── */
     day.doses.forEach(ds=>{
       const cx = X(ds.t), cy = y + LANE.doseY + LANE.doseR;
-      if(ds.addon){
+      /* Tutu, 2026-09-03: "I don't think we need add-on skipped. User would
+         say with or without add-on." Two states, not three — and the reason
+         is worth keeping. "Skipped" is a comparison against the PLAN, which
+         the app computes; "with / without" is what the person actually said.
+         Drawing the computed one turns the chart into a compliance check,
+         which is the report card wearing a third hat. */
+      if(ds.addon)
         el('circle',{cx, cy, r:LANE.doseR+3.5, fill:'none', stroke:C.mark,
-          'stroke-width':1.5,
-          'stroke-dasharray': ds.addon==='skipped' ? '3 3' : 'none',
-          opacity: ds.addon==='skipped' ? .85 : .55},grp);
-      }
+          'stroke-width':1.5, opacity:.55},grp);
       el('circle',{cx, cy, r:LANE.doseR, fill:C.mark},grp);
     });
 
@@ -351,6 +430,154 @@ function draw(){
   drawLegend(); report();
 }
 
+/* ═══ by measure — one panel per dimension, one shared x-axis ═══ */
+const ROW = 11, TITLE = 15, PGAP = 16, TOPM = 30;
+const PNAME = { sleep:'Sleep', dose:'Doses', meal:'Meals · protein',
+                rough:'Rough stretches' };
+
+function drawByMeasure(svg, g, W, left, right, X){
+  const panels = [];
+  if(showSleep) panels.push('sleep');
+  panels.push('dose');
+  if(showMeal)  panels.push('meal');
+  if(showFeel)  panels.push('rough');
+  const PANEL_H = TITLE + 7*ROW;
+  const H = TOPM + panels.length*(PANEL_H + PGAP);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  /* the shared axis, drawn ONCE and running the full height - it is the thing
+     that makes this a stack rather than four charts that happen to be near
+     each other */
+  [6,12,18,24].forEach(h=>{
+    el('line',{x1:X(h), y1:TOPM-12, x2:X(h), y2:H-PGAP+2,
+      stroke:C.rule,'stroke-width':1},g);
+    const t=el('text',{x:X(h), y:TOPM-18,'text-anchor':'middle','font-size':10,
+      fill:C.text,'font-family':'Inter,system-ui'},g);
+    t.textContent = h===24 ? '12am' : (h===12 ? '12pm' : (h<12 ? h+'am' : (h-12)+'pm'));
+  });
+
+  const titles = [];
+  panels.forEach((key, pi) => {
+    const py = TOPM + pi*(PANEL_H + PGAP);
+    const ti = el('text',{x:0, y:py+9,'font-size':10.5,'font-weight':600,
+      fill:C.text,'font-family':'Inter,system-ui','letter-spacing':'0.04em'},g);
+    ti.textContent = PNAME[key].toUpperCase();
+    titles.push(ti);
+
+    DAYS.forEach((day, i) => {
+      const ry = py + TITLE + i*ROW, cy = ry + ROW/2;
+      const dl = el('text',{x:left-5, y:cy+3,'text-anchor':'end','font-size':8.5,
+        fill: day.state===0 ? C.edge : C.text,'font-family':'Inter,system-ui'},g);
+      dl.textContent = WEEKL[i];
+
+      /* the rough stretches ghost into EVERY panel, not just their own. That
+         is what lets you see a dose sitting inside one without leaving the
+         dose panel - the figure/ground move surviving the transpose. */
+      if(showFeel && key !== 'rough') day.rough.forEach(([a,b])=>{
+        el('rect',{x:X(a), y:ry+1, width:X(b)-X(a), height:ROW-2, rx:2,
+          fill:C.rough, opacity:.10},g);
+      });
+
+      if(day.state === 0){
+        el('line',{x1:left, y1:cy, x2:right, y2:cy, stroke:C.edge,
+          'stroke-width':1,'stroke-dasharray':'2 4'},g);
+        return;
+      }
+
+      if(key === 'sleep' && day.sleep){
+        const [a,b] = day.sleep, x0 = X(Math.max(a,H0)), x1 = X(b);
+        const r = el('rect',{x:x0, y:ry+2.5, width:Math.max(2,x1-x0), height:ROW-5,
+          rx:(ROW-5)/2, fill:C.sleep},g);
+        if(a < H0){
+          const id = 'fadeM'+i;
+          const defs = el('defs',{},g);
+          const lg = el('linearGradient',{id, x1:'0', x2:'1'},defs);
+          el('stop',{offset:'0','stop-color':C.sleep,'stop-opacity':'0'},lg);
+          el('stop',{offset:'0.3','stop-color':C.sleep,'stop-opacity':'1'},lg);
+          r.setAttribute('fill', `url(#${id})`);
+        }
+      }
+      else if(key === 'dose') day.doses.forEach(ds=>{
+        if(ds.addon) el('circle',{cx:X(ds.t), cy, r:5.2, fill:'none',
+          stroke:C.mark,'stroke-width':1.1, opacity:.5},g);
+        el('circle',{cx:X(ds.t), cy, r:3, fill:C.mark},g);
+      });
+      else if(key === 'meal') day.meals.forEach(m=>{
+        const h = 2 + m.p*1.4;
+        el('rect',{x:X(m.t)-2.5, y:cy-h/2, width:5, height:h, rx:h/2,
+          fill:C.meal, opacity:.4 + m.p*0.18},g);
+      });
+      else if(key === 'rough') day.rough.forEach(([a,b])=>{
+        el('rect',{x:X(a), y:ry+2.5, width:X(b)-X(a), height:ROW-5, rx:2,
+          fill:C.rough, opacity:.34},g);
+      });
+    });
+  });
+
+  /* ── selection: a part of the day, washed rather than ringed ──
+     Everything outside the band is veiled with paper. The marks keep their
+     own colour, so nothing is recoloured to mean "selected" - the rest just
+     recedes. pointer-events:none on both veils, or they would sit on top of
+     the targets, which is the bug the guide line taught us. */
+  if(selPart !== null){
+    const [, a, b] = PARTS[selPart];
+    [[left, X(a)], [X(b), right]].forEach(([x0,x1])=>{
+      if(x1 - x0 < 0.5) return;
+      const v = el('rect',{x:x0, y:TOPM-12, width:x1-x0, height:H-TOPM+10,
+        fill:C.paper, opacity:.52},g);
+      v.style.pointerEvents = 'none';
+    });
+    [X(a), X(b)].forEach(x=>{
+      const l = el('line',{x1:x, y1:TOPM-12, x2:x, y2:H-PGAP+2,
+        stroke:C.mark,'stroke-width':1,opacity:.45},g);
+      l.style.pointerEvents = 'none';
+    });
+    /* Panel titles start left of the plot but run into it, so the veil was
+       eating their last letters — "SLEE_p_". Re-appending lifts them above
+       the veil without needing a second, cleverer rectangle. */
+    titles.forEach(t => g.appendChild(t));
+  }
+
+  PARTS.forEach(([name,a,b], i)=>{
+    const hit = el('rect',{x:X(a), y:TOPM-12, width:X(b)-X(a), height:H-TOPM+10,
+      fill:'transparent'},g);
+    hit.style.cursor = 'pointer';
+    hit.addEventListener('click', ()=>{ selPart = (selPart===i ? null : i); draw(); });
+  });
+
+  drawLegend(); reportMeasure();
+}
+
+function reportMeasure(){
+  const read = document.getElementById('read');
+  const cov  = document.getElementById('cov');
+  const known = DAYS.filter(d=>d.state!==0).length;
+  cov.textContent = `${known} of 7 days covered · ${7-known} the record knows nothing about`;
+
+  if(selPart === null){
+    read.innerHTML = `<b>Four measures, one axis.</b> Read down a column rather than ` +
+      `across a row. <span style="color:var(--paper-500)">Tap a part of the day.</span>`;
+    return;
+  }
+  const [name, a, b] = PARTS[selPart];
+  const inWin = t => t >= a && t < b;
+  const doses = DAYS.flatMap(d=>d.doses).filter(x=>inWin(x.t));
+  const withA = doses.filter(x=>x.addon).length;
+  const hiP   = DAYS.flatMap(d=>d.meals).filter(m=>inWin(m.t) && m.p===3).length;
+  const allR  = DAYS.flatMap(d=>d.rough);
+  const startR= allR.filter(([s])=>inWin(s)).length;
+  const wakes = DAYS.filter(d=>d.sleep && inWin(d.sleep[1])).length;
+
+  const bits = [];
+  if(wakes) bits.push(`${wakes} of the week's wake-ups`);
+  if(doses.length) bits.push(`${doses.length} doses, ${withA} with an add-on`);
+  if(hiP) bits.push(`${hiP} high-protein meal${hiP>1?'s':''}`);
+  bits.push(startR
+    ? `${startR} of the ${allR.length} rough stretches begin here`
+    : `no rough stretch begins here`);
+  read.innerHTML = `<b>${name}</b> (${fmt(a)}–${fmt(b)}) — ${bits.join(' · ')}.`;
+}
+
 /* C-17: the target is the DAY at this zoom, and it is the full row plus its
    gutter. The marks stay mark-sized. Coarse target, fine hint. */
 function addHit(g, x, y, w, h, gap, i, X){
@@ -375,12 +602,9 @@ function swatch(draw_, w){
 function drawLegend(){
   const box=document.getElementById('legend'); box.innerHTML='';
   const items = [
-    ['Dose', g=>el('circle',{cx:11,cy:7,r:5.5,fill:C.mark},g)],
-    ['+ add-on', g=>{el('circle',{cx:11,cy:7,r:5.5,fill:C.mark},g);
-      el('circle',{cx:11,cy:7,r:9,fill:'none',stroke:C.mark,'stroke-width':1.5,opacity:.55},g);}],
-    ['add-on skipped', g=>{el('circle',{cx:11,cy:7,r:5.5,fill:C.mark},g);
-      el('circle',{cx:11,cy:7,r:9,fill:'none',stroke:C.mark,'stroke-width':1.5,
-        'stroke-dasharray':'3 3',opacity:.85},g);}]
+    ['Dose alone', g=>el('circle',{cx:11,cy:7,r:5.5,fill:C.mark},g)],
+    ['with add-on', g=>{el('circle',{cx:11,cy:7,r:5.5,fill:C.mark},g);
+      el('circle',{cx:11,cy:7,r:9,fill:'none',stroke:C.mark,'stroke-width':1.5,opacity:.55},g);}]
   ];
   if(showSleep) items.push(['Sleep', g=>el('rect',{x:1,y:4,width:20,height:6,rx:3,fill:C.sleep},g)]);
   if(showMeal)  items.push(['Meal · protein', g=>{
@@ -419,8 +643,8 @@ function report(){
   const bits = [];
   if(day.sleep) bits.push(`slept ${dur(day.sleep[0], day.sleep[1])}, up at ${fmt(day.sleep[1])}`);
   bits.push(`${day.doses.length} doses from ${fmt(day.doses[0].t)}`);
-  const sk = day.doses.filter(d=>d.addon==='skipped').length;
-  if(sk) bits.push(`${sk} add-on not taken`);
+  const wo = day.doses.filter(d=>!d.addon).length;
+  if(wo) bits.push(`${wo} without an add-on`);
   const hi = day.meals.filter(m=>m.p===3).length;
   if(hi) bits.push(`${hi} high-protein meal${hi>1?'s':''}`);
   if(day.rough.length)
@@ -444,6 +668,14 @@ document.getElementById('tgSquint').onclick = e => {
   e.currentTarget.setAttribute('aria-pressed', String(!on));
   document.getElementById('stage').classList.toggle('squint', !on);
 };
+[['vwDay','day'],['vwMeasure','measure']].forEach(([id,v])=>{
+  document.getElementById(id).onclick = () => {
+    view = v; selDay = null; selHour = null; selPart = null;
+    document.getElementById('vwDay').setAttribute('aria-pressed', String(v==='day'));
+    document.getElementById('vwMeasure').setAttribute('aria-pressed', String(v==='measure'));
+    draw();
+  };
+});
 addEventListener('resize', draw);
 draw();
 </script>
