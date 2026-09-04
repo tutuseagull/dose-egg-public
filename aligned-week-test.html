@@ -85,7 +85,9 @@ rather than asserted. One week only — the scale where detail is affordable.</p
 </div>
 
 <h2>The week</h2>
-<p class="lede" style="font-size:14px">Two groupings, three scales.
+<p class="lede" style="font-size:14px">Opens on <b>3 days · by measure · distinct hues ·
+horizontal protein</b> — Tutu's pick as of 2026-09-03. Everything else is one tap away.<br>
+Two groupings, three scales.
 <b>By day</b> — dimensions as lanes inside each day. <b>By measure</b> — one panel per
 measure, all on a shared axis. And <b>1 / 3 / 7 days</b>, which changes what a mark can
 afford to say and what a finger is allowed to aim at.</p>
@@ -100,16 +102,16 @@ afford to say and what a finger is allowed to aim at.</p>
   </div>
   <div class="toggles" style="margin-top:6px">
     <button class="tg" id="sc1" aria-pressed="false">1 day<small>entries are targets</small></button>
-    <button class="tg" id="sc3" aria-pressed="false">3 days<small>lanes get names</small></button>
-    <button class="tg" id="sc7" aria-pressed="true">7 days<small>marks only</small></button>
+    <button class="tg" id="sc3" aria-pressed="true">3 days<small>lanes get names</small></button>
+    <button class="tg" id="sc7" aria-pressed="false">7 days<small>marks only</small></button>
   </div>
   <div class="toggles" style="margin-top:6px">
-    <button class="tg" id="stVert" aria-pressed="true">Protein ↑<small>blocks stack up</small></button>
-    <button class="tg" id="stHorz" aria-pressed="false">Protein →<small>blocks run across</small></button>
+    <button class="tg" id="stVert" aria-pressed="false">Protein ↑<small>blocks stack up</small></button>
+    <button class="tg" id="stHorz" aria-pressed="true">Protein →<small>blocks run across</small></button>
   </div>
   <div class="toggles" style="margin-top:6px">
-    <button class="tg" id="vwDay" aria-pressed="true">By day<small>dimensions inside each day</small></button>
-    <button class="tg" id="vwMeasure" aria-pressed="false">By measure<small>stacked, one shared axis</small></button>
+    <button class="tg" id="vwDay" aria-pressed="false">By day<small>dimensions inside each day</small></button>
+    <button class="tg" id="vwMeasure" aria-pressed="true">By measure<small>stacked, one shared axis</small></button>
   </div>
   <div class="toggles" id="palRow" style="margin-top:6px">
     <button class="tg" id="plDistinct" aria-pressed="true">Distinct hues<small>a colour per measure</small></button>
@@ -167,10 +169,23 @@ share the same x-axis?"</em></p>
   <em>"does the rough stretch always land at the same hour"</em>. The correlation is read
   <b>down a column across panels</b>.</li>
 </ul>
-<p>The second is the stronger layout for finding a pattern and the weaker one for reading a
-single day, which is why both are here. It also keeps the figure/ground move alive through
-the transpose: the rough stretches <b>ghost into every panel</b>, so you can see a dose
-sitting inside one without leaving the dose panel.</p>
+<p>The figure/ground move survives the transpose either way: the rough stretches
+<b>ghost into every panel</b>, so a dose sitting inside one is visible without leaving the
+dose panel.</p>
+
+<div class="note warn">
+  <b>And a verdict, 2026-09-03.</b> Tutu, on the day view: <em>"By day reads very
+  complicated from my perspective."</em> Which is fair, and the cause is traceable: adding
+  the activity lane pushed it to <b>five lanes inside a sixty-pixel block, with nothing
+  labelling any of them</b> at the seven-day scale. Five unlabelled rows of marks is a
+  cipher, not a chart — you have to hold the lane order in your head to read it at all.
+  <br><br>
+  The resolution the ladder already suggests: <b>by day is a detail view, by measure is the
+  survey view</b>. By day earns its lanes only where they can carry their own names — at one
+  and three days, where the gutter is spent on labels. At seven days the stack is simply the
+  better instrument, and offering the day view there is offering the worse one. Not
+  implemented yet; recorded so it is a decision rather than a drift.
+</div>
 
 <h3>The stack changes what a target is — and that is C-17 working</h3>
 <p>By measure there are twenty-eight rows of 11px on screen. No row can be a target, and
@@ -219,8 +234,21 @@ vertical wins on a point that isn't taste:</p>
 <p>The counter-argument is legibility, and it is not weak. Horizontal blocks sit side by
 side, so three of them are easy to count at a glance; vertical blocks have to fit inside a
 lane's height, and at seven days that height is about fifteen pixels for all three. In the
-<b>stacked</b> view it is worse — an 12px row leaves 3px per block. Compare them on the
-phone: the argument above may not survive contact with the actual size.</p>
+<b>stacked</b> view it is worse — a 12px row leaves 3px per block.</p>
+<div class="note warn">
+  <b>Tutu turned the argument into a testable question, which is better than the argument.</b>
+  <em>"Does the length of them actually have any time implication? That could also be a
+  message users get confused by."</em> — and she likes neither option enough to settle it
+  from the armchair, so it goes to P01.
+  <br><br>
+  What we can say without her: the horizontal stack is <b>centred on the meal's time</b>
+  rather than starting at it, which is deliberate. A left-anchored stack would say "began
+  here and continued"; a centred one straddles the moment and says "around here". And three
+  blocks span roughly twenty pixels — about ninety minutes on this axis — so the false
+  duration is small but not zero. If P01 reads it as a length, the honest fixes are to make
+  the blocks visibly <em>separate</em> (a tally, not a bar) or to abandon blocks entirely
+  and use three distinct shapes.
+</div>
 
 <h2>One day, three days, seven</h2>
 <p class="q">Tutu: <em>"I kind of feel there could be scale at 1 day, 3 days, and 7 days…
@@ -383,9 +411,13 @@ function ink(kind){
            rough:[C.rough,.34], ghost:[C.rough,.10] }[kind];
 }
 
-let view = 'day';           // 'day' | 'measure'
-let stackDir = 'vert';      // 'vert' | 'horz'
-let scale = 7;              // 1 | 3 | 7
+/* Defaults set by Tutu, 2026-09-03, before showing the page to P01:
+   three days, by measure, distinct hues, horizontal protein. Every other
+   combination is still one tap away — this is where the page OPENS, not what
+   it can do. */
+let view = 'measure';       // 'day' | 'measure'
+let stackDir = 'horz';      // 'vert' | 'horz'
+let scale = 3;              // 1 | 3 | 7
 let selPart = null;
 
 /* ── the scale ladder ─────────────────────────────────────────────
@@ -400,7 +432,11 @@ let selPart = null;
 const SCALES = {
   7: { from:0, to:7, lane:{sleep:8,  act:7,  dose:16, meal:17}, pad:5,
        gut:36, head:0,  labels:'none',  target:'day' },
-  3: { from:3, to:6, lane:{sleep:12, act:12, dose:26, meal:24}, pad:8,
+  /* Wed-Thu-Fri, not Thu-Fri-Sat: the window has to contain an UNKNOWN day
+     or the default view quietly hides one of the three states we spent a whole
+     page deciding how to draw. It also still contains a rough afternoon and a
+     short night, so the correlation is there to be found. */
+  3: { from:2, to:5, lane:{sleep:12, act:12, dose:26, meal:24}, pad:8,
        gut:54, head:17, labels:'lane',  target:'day' },
   1: { from:4, to:5, lane:{sleep:18, act:18, dose:50, meal:42}, pad:10,
        gut:54, head:19, labels:'entry', target:'entry' }
