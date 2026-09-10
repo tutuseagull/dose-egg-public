@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DoseEgg — Look Back: decided, drawn, built</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,300;6..72,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper-0:#FFF;--paper-50:#F9F8F5;--paper-100:#F2F1EC;--paper-200:#E8E6DF;
+  --paper-300:#D9D6CC;--paper-500:#8D8A7D;--paper-600:#6E6B5F;--paper-700:#46443C;--paper-900:#1A1916;
+  --ink-500:#1F4A52;--ink-600:#163940;
+  --mark:#4E6B84;--mark-note:#8C7B6A;
+  --ok:#5B7A63;--part:#8C7B6A;--gap:#A85E52;
+  --font-serif:'Newsreader',Georgia,serif;--font-sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;padding:24px 18px 96px;background:var(--paper-50);color:var(--paper-900);
+     font-family:var(--font-sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:520px;margin:0 auto}
+a.back{display:inline-block;font-size:12px;font-weight:600;color:var(--paper-600);
+  text-decoration:none;border:1px solid var(--paper-200);border-radius:20px;
+  padding:4px 12px;margin-bottom:18px;background:var(--paper-0)}
+h1{font-family:var(--font-serif);font-size:28px;font-weight:400;line-height:1.2;margin:0 0 6px}
+h2{font-family:var(--font-serif);font-size:22px;font-weight:400;margin:44px 0 4px;
+   padding-bottom:10px;border-bottom:1px solid var(--paper-200)}
+h3{font-size:15px;font-weight:600;margin:26px 0 6px}
+p{margin:0 0 12px;color:var(--paper-700);font-size:16px}
+.lede{color:var(--paper-600)}
+.q{font-family:var(--font-serif);font-size:19px;color:var(--paper-900);margin:0 0 12px;line-height:1.4}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.85em;background:var(--paper-200);
+     padding:2px 5px;border-radius:5px}
+ul{margin:0 0 14px;padding-left:20px}
+li{margin-bottom:7px;color:var(--paper-700);font-size:16px}
+.note{background:var(--paper-100);border-left:3px solid var(--ink-500);border-radius:0 10px 10px 0;
+      padding:14px;margin:16px 0;font-size:15px;color:var(--paper-700)}
+.note b{color:var(--paper-900)}
+.note.warn{border-left-color:var(--gap);background:rgba(168,94,82,.06)}
+.card{background:var(--paper-0);border:1px solid var(--paper-200);border-radius:14px;
+      padding:16px;margin:16px 0}
+.label{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--paper-600);font-weight:600}
+
+/* ── the matrix ── */
+.grp{margin:26px 0 0}
+.grp-h{font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  color:var(--paper-600);margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid var(--paper-200)}
+.row{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:start;
+  padding:11px 0;border-bottom:1px solid var(--paper-100)}
+.row:last-child{border-bottom:none}
+.row-name{font-size:15px;font-weight:600;color:var(--paper-900);line-height:1.35}
+.row-note{grid-column:1 / -1;font-size:13.5px;color:var(--paper-600);margin:2px 0 0;line-height:1.5}
+.row-note b{color:var(--paper-700)}
+.pill{font-size:10.5px;font-weight:700;font-style:normal;letter-spacing:.04em;text-transform:uppercase;
+  padding:3px 8px;border-radius:20px;white-space:nowrap;align-self:start}
+.p-built{background:rgba(91,122,99,.14);color:#3F5A46}
+.p-test{background:rgba(140,123,106,.16);color:#6B5C4C}
+.p-paper{background:rgba(168,94,82,.13);color:#8B4438}
+.p-none{background:var(--paper-200);color:var(--paper-600)}
+.where{font-size:12.5px;color:var(--paper-500);grid-column:1 / -1;margin-top:3px}
+.where code{font-size:.9em;background:var(--paper-100)}
+.key{display:flex;flex-wrap:wrap;gap:8px 14px;margin:10px 0 0;font-size:13px;color:var(--paper-600)}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.count{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 0}
+.count div{flex:1 1 44%;background:var(--paper-0);border:1px solid var(--paper-200);
+  border-radius:10px;padding:10px 12px}
+.count b{display:block;font-family:var(--font-serif);font-size:26px;font-weight:400;line-height:1.1}
+.count small{font-size:11.5px;color:var(--paper-600);letter-spacing:.03em}
+ol.next{padding-left:0;list-style:none;counter-reset:n}
+ol.next li{counter-increment:n;position:relative;padding-left:34px;margin-bottom:16px}
+ol.next li::before{content:counter(n);position:absolute;left:0;top:1px;width:23px;height:23px;
+  border-radius:50%;background:var(--ink-500);color:#fff;font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--paper-200);
+  font-size:12px;color:var(--paper-500)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back" href="index.html">← Home</a>
+
+<h1>Look Back: decided, drawn, built</h1>
+<p class="lede">An audit, not a plan. Every Look Back use case we have written down, against
+where it actually exists — the statement bank, a test page, or the prototype a person could
+open. Run 2026-09-10, before finishing the Demo.</p>
+
+<h2>The short answer</h2>
+<p class="q">No, and the gap is lopsided in a way that turns out to be the useful finding.</p>
+<p>The statement bank holds 19 sentences and the Look Back prototype speaks about five of
+them. That sounds like the problem. It isn't the interesting part.</p>
+
+<div class="note warn">
+  <b>The bank predates half the record.</b> It was written when Look Back had three things
+  in it: doses, movement, and notes. Since then we have added <b>sleep</b> (the domain lead
+  called it very important, 2026-08-15), <b>meals and protein</b>, <b>activity as an
+  interval</b> rather than a count, the <b>slot model with add-ons</b> (D-16), and a
+  <b>third entry state</b> for quiet days. Not one of those has a single sentence in the
+  bank. So the list isn't just under-built — <b>it is out of date as a list</b>, which is the
+  more expensive kind of incomplete.
+</div>
+
+<div class="note warn">
+  <b>And the two halves of the differentiator have never met.</b> The Explain era —
+  <code>E-01…E-05</code>, the cross-dimension statements — is the thing nobody else in the
+  benchmark ships, and it is 0% built. Meanwhile <code>aligned-week-test.html</code> now
+  <em>draws</em> precisely the apparatus <code>E-01</code> and <code>E-02</code> need: meals,
+  doses and rough stretches on one shared time axis. Both artefacts are ours, both are
+  current, and neither knows the other exists. <b>The picture has no sentence and the
+  sentence has no picture.</b>
+</div>
+
+<div class="count">
+  <div><b>19</b><small>STATEMENTS WRITTEN</small></div>
+  <div><b>5</b><small>SPOKEN IN THE PROTOTYPE</small></div>
+  <div><b>0</b><small>OF THE EXPLAIN ERA</small></div>
+  <div><b>5</b><small>DIMENSIONS, NO STATEMENT</small></div>
+</div>
+
+<h2>The matrix</h2>
+<div class="key">
+  <span><i class="pill p-built">Built</i> in <code>prototypes/look-back.html</code></span>
+  <span><i class="pill p-test">Test page</i> drawn, not in the prototype</span>
+  <span><i class="pill p-paper">Paper</i> decided, never drawn</span>
+  <span><i class="pill p-none">Open</i> not decided</span>
+</div>
+
+<div class="card">
+
+<div class="grp">
+  <div class="grp-h">A · What the record can hold</div>
+
+  <div class="row">
+    <div class="row-name">Doses — timing, count, confirmed vs assumed</div>
+    <span class="pill p-built">Built</span>
+    <p class="row-note">Week view draws every dose against its planned time; six-week view
+    puts all three slots on one deviation scale. Assumed doses are drawn and excluded from
+    anything the page says about timing.</p>
+  </div>
+
+  <div class="row">
+    <div class="row-name">Doses — the slot, and add-ons</div>
+    <span class="pill p-test">Test page</span>
+    <p class="row-note">D-16 made the slot the object and the add-on a ring on the dose mark,
+    with two states — <em>with</em> or <em>without</em>, never "skipped". The Look Back
+    prototype still draws one dot per dose with no slot concept at all, so a 12-med slot would
+    render as twelve marks.</p>
+    <div class="where">Drawn in <code>aligned-week-test.html</code> · decided D-16</div>
+  </div>
+
+  <div class="row">
+    <div class="row-name">Movement / activity — as a count</div>
+    <span class="pill p-built">Built</span>
+    <p class="row-note">Six bars, one per week, with the coverage control attached and the
+    "why this is here" note.</p>
+  </div>
+
+  <div class="row">
+    <div class="row-name">Activity — as an interval</div>
+    <span class="pill p-test">Test page</span>
+    <p class="row-note">A walk is a band with a start and an end, treated like sleep, not a
+    tally mark. It makes things visible a count cannot — a swim sitting <em>inside</em> a
+    rough stretch rather than before it.</p>
+    <div class="where">Drawn in <code>aligned-week-test.html</code></div>
+  </div>
+
+  <div class="row">
+    <div class="row-name">Sleep</div>
+    <span class="pill p-test">Test page</span>
+    <p class="row-note"><b>Demo lane, and the largest single hole.</b> A band anchored at the
+    hour you woke, because sleep crosses midnight. Confirmed as important by the domain lead
+    on 2026-08-15 — a reviewed requirement, not a hunch — and it appears nowhere in the Look
+    Back prototype and in no statement.</p>
+    <div class="where">Drawn in <code>aligned-week-test.html</code> · backlog: Demo</div>
+  </div>
+
+  <div class="row">
+    <div class="row-name">Meals and protein</div>
+    <span class="pill p-test">Test page</span>
+    <p class="row-note">One to three blocks, no empty blocks. This is not a nutrition feature
+    — it exists because protein competes with levodopa, so it is the load-bearing variable in
+    <code>E-01</code>, the single best statement we have written.</p>
+    <div class="where">Drawn in <code>aligned-week-test.html</code> · orientation still with P01</div>
+  </div>
+
+  <div class="row">
+    <div class="row-name">Feelings and notes — as a chart</div>
+    <span class="pill p-test">Test page</span>
+    <p class="row-note"><code>R-04</code> says "four notes about feeling off, all between 2
+    and 6pm" — but the prototype has no surface that shows when a rough stretch happened.
+    The aligned view draws them as ground behind the day, which is the right form and is
+    nowhere a person can reach.</p>
+  </div>
+
+  <div class="row">
+    <div class="row-name">The quiet day — a third entry state</div>
+    <span class="pill p-test">Test page</span>
+    <p class="row-note">Five encodings tested, landing on ground-and-figure with the "tight"
+    container. The prototype knows two states — has entries, has none — so a quiet day would
+    currently render as an <em>unknown</em> one, which is the exact error the whole reframe
+    was written to fix.</p>
+    <div class="where">Drawn in <code>quiet-mark-test.html</code> · backlog: V1</div>
+  </div>
+</div>
+
+<div class="grp">
+  <div class="grp-h">B · Scale and navigation</div>
+
+  <div class="row">
+    <div class="row-name">Week and six weeks, as tabs</div>
+    <span class="pill p-built">Built</span>
+    <p class="row-note">Plus stepping between weeks, and a jump back to this week. Selection
+    is a day index, so stepping holds the weekday.</p>
+  </div>
+
+  <div class="row">
+    <div class="row-name">1-day and 3-day scales</div>
+    <span class="pill p-test">Test page</span>
+    <p class="row-note">Tutu's pick as of 2026-09-03 is 3 days, then 1. The prototype offers
+    neither. At one day every entry names itself and the chart stops needing a sentence
+    underneath at all — which is a different product decision hiding inside a zoom level.</p>
+  </div>
+
+  <div class="row">
+    <div class="row-name">C-17 — the target ladder</div>
+    <span class="pill p-paper">Paper</span>
+    <p class="row-note">Every chart is interactive; zoom changes the target, never the
+    availability. Six weeks → the week row; one week → the day; one day → the entry. The
+    prototype has hit areas but they predate the rule and were never checked against it.</p>
+    <div class="where">Decided C-17 · <code>design-constraints.html</code></div>
+  </div>
+
+  <div class="row">
+    <div class="row-name">Coverage control — count days with no entries</div>
+    <span class="pill p-built">Built</span>
+    <p class="row-note">With the "why this is here" disclosure, which names both readings as
+    real questions and neither as the correct one. This is the most finished thing on the
+    surface.</p>
+  </div>
+
+  <div class="row">
+    <div class="row-name">Coverage as a <em>line</em>, replacing R-05</div>
+    <span class="pill p-paper">Paper</span>
+    <p class="row-note"><b>A live inconsistency.</b> Decided 2026-08-26 that period coverage
+    is apparatus, not a claim — it goes on a quiet line under the chart, always visible,
+    rather than occasionally taking a statement slot. <code>R-05</code> is still sitting in
+    the bank as a statement.</p>
+  </div>
+</div>
+
+<div class="grp">
+  <div class="grp-h">C · What the record says when it is thin</div>
+
+  <div class="row">
+    <div class="row-name">Below threshold — a new record</div>
+    <span class="pill p-built">Built</span>
+    <p class="row-note">The "early record" toggle drops to <code>T-01</code>/<code>T-02</code>:
+    "this week has 4 days with entries… comparing your slots needs a few more days than that."</p>
+  </div>
+
+  <div class="row">
+    <div class="row-name">Below threshold — a <em>lapsed</em> record</div>
+    <span class="pill p-paper">Paper</span>
+    <p class="row-note"><b>Demo lane.</b> Someone who logged for three weeks, stopped for a
+    month, and came back is not a beginner, and must not be greeted as one. Two empty states,
+    not one. Nothing is drawn.</p>
+    <div class="where">Backlog: Demo · flow benchmark F4</div>
+  </div>
+
+  <div class="row">
+    <div class="row-name">Day zero — nothing at all</div>
+    <span class="pill p-none">Open</span>
+    <p class="row-note">Distinct from both of the above and never specified. What does Look
+    Back look like the hour after install, when opening it is a reasonable thing to do and
+    there is genuinely nothing?</p>
+  </div>
+</div>
+
+<div class="grp">
+  <div class="grp-h">D · The statement bank, era by era</div>
+
+  <div class="row">
+    <div class="row-name">Recall — <code>R-01…R-06</code></div>
+    <span class="pill p-test">2 of 6</span>
+    <p class="row-note">Live: <code>R-02</code> (slot spread) and the coverage-complete line.
+    Missing: the confirmed-dose count with its named gaps (<code>R-01</code>), movement
+    summary (<code>R-03</code>), the timing of rough notes (<code>R-04</code>), and the
+    somewhere-to-be pattern (<code>R-06</code>). <code>R-05</code> should stop being a
+    statement.</p>
+  </div>
+
+  <div class="row">
+    <div class="row-name">Compare — <code>C-01…C-05</code></div>
+    <span class="pill p-test">2 of 5</span>
+    <p class="row-note">Live: something close to <code>C-02</code> (doses more than 15 minutes
+    after plan) and <code>C-03</code> (movement range). Missing: drift over weeks
+    (<code>C-01</code>), month-over-month shift in when notes appear (<code>C-04</code>), and
+    the "nothing has changed" statement (<code>C-05</code>) — which matters more than it
+    sounds, because a surface that only speaks when something moved teaches people that
+    silence means trouble.</p>
+  </div>
+
+  <div class="row">
+    <div class="row-name">Explain — <code>E-01…E-05</code></div>
+    <span class="pill p-paper">0 of 5</span>
+    <p class="row-note"><b>The differentiator, entirely unbuilt.</b> Every one of these needs
+    two dimensions on the same axis — lunch against the midday dose, rough afternoons against
+    dose lateness, dips against clock time, stiffness notes against movement days. We built
+    that axis last week and pointed no sentence at it.</p>
+  </div>
+
+  <div class="row">
+    <div class="row-name">Threshold messages — <code>T-01…T-03</code></div>
+    <span class="pill p-test">2 of 3</span>
+    <p class="row-note">The depth invitation (<code>T-03</code> — "if you ever want to see
+    what your afternoons have to do with the rest of your day…") is not built, and it is the
+    one that recruits people into the Explain era.</p>
+  </div>
+</div>
+
+<div class="grp">
+  <div class="grp-h">E · Statements the new dimensions need and do not have</div>
+  <div class="row">
+    <div class="row-name">Sleep · Activity-as-interval · Add-ons · Quiet days · Cross-dimension</div>
+    <span class="pill p-none">Open</span>
+    <p class="row-note">Five dimensions, zero sentences. Some of these are easy
+    (<em>"you woke around the same time on five of the seven days"</em>); at least one is
+    dangerous — anything about sleep <em>length</em> slides toward a score, and P01's own
+    two-part night means a "nights slept through" metric would grade her down for a strategy
+    she chose [C-08]. That is a design problem, not a writing problem, and it should be
+    settled before the sentences are drafted.</p>
+  </div>
+</div>
+
+</div>
+
+<h2>What the Demo actually needs</h2>
+<p>Three Look Back items sit in the Demo lane, and one of them is a suitcase word.</p>
+<ul>
+  <li><b>Trend views</b> — the whole retrospective surface behind two words. This line should
+  be decomposed before it is estimated; as written it hides everything above.</li>
+  <li><b>Two Look Back empty states</b> — new record and lapsed record. Cheap, and one of
+  them does not exist.</li>
+  <li><b>Sleep as its own entry type</b> — logging is prototyped; <em>seeing</em> it is not.</li>
+</ul>
+<p>The quiet day is V1, so a Demo Look Back may legitimately know only two entry states.
+Worth stating out loud rather than discovering it in the build.</p>
+
+<h2>The three moves I would make, in order</h2>
+<ol class="next">
+  <li><b>Point one sentence at the aligned axis.</b> Take <code>E-01</code> — lunch within
+  half an hour of the midday dose, against rough afternoons — and make
+  <code>aligned-week-test.html</code> compute and say it from its own data. One statement,
+  one chart, proving the pair works. This is the cheapest way to find out whether the
+  differentiator is real, and it is currently the only thing on this page that is about
+  <em>value</em> rather than <em>completeness</em>.</li>
+
+  <li><b>Bring the settled decisions into the prototype.</b> The coverage line replacing
+  <code>R-05</code>, the tight container from the quiet-mark work, C-17's targets, and the
+  slot-with-add-on mark. These are all decided and all still living in test pages — which
+  means the prototype is quietly the oldest statement of what Look Back is.</li>
+
+  <li><b>Draft the sleep statements deliberately, with the trap named first.</b> Before
+  writing sentences: decide what we will never say about sleep. Then two or three that
+  describe rather than grade.</li>
+</ol>
+
+<div class="note">
+  <b>What this audit does not cover.</b> The doctor export, appointment-anchored periods, and
+  auto-surfaced findings are all V1 or later and were left out deliberately. Nothing here is
+  a judgement about the <em>quality</em> of what is built — <code>prototypes/look-back.html</code>
+  is careful work, and the coverage control with its disclosure is the strongest thing on the
+  surface. The finding is that it stopped keeping up, not that it was wrong.
+</div>
+
+<footer>DoseEgg · Planning · Look Back coverage audit · 10 September 2026<br>
+Sources: <code>analyze-statements.html</code>, <code>prototypes/look-back.html</code>,
+<code>aligned-week-test.html</code>, <code>quiet-mark-test.html</code>,
+<code>feature-backlog.html</code>, <code>design-constraints.html</code>.</footer>
+
+</div>
+</body>
+</html>
