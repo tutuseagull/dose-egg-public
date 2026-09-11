@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DoseEgg — E-01, computed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,300;6..72,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper-0:#FFF;--paper-50:#F9F8F5;--paper-100:#F2F1EC;--paper-200:#E8E6DF;
+  --paper-300:#D9D6CC;--paper-500:#8D8A7D;--paper-600:#6E6B5F;--paper-700:#46443C;--paper-900:#1A1916;
+  --ink-500:#1F4A52;--ink-600:#163940;
+  --mark:#4E6B84;--mark-note:#8C7B6A;--gap:#A85E52;
+  --font-serif:'Newsreader',Georgia,serif;--font-sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;padding:24px 18px 96px;background:var(--paper-50);color:var(--paper-900);
+     font-family:var(--font-sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:480px;margin:0 auto}
+a.back{display:inline-block;font-size:12px;font-weight:600;color:var(--paper-600);
+  text-decoration:none;border:1px solid var(--paper-200);border-radius:20px;
+  padding:4px 12px;margin-bottom:18px;background:var(--paper-0)}
+h1{font-family:var(--font-serif);font-size:28px;font-weight:400;line-height:1.2;margin:0 0 6px}
+h2{font-family:var(--font-serif);font-size:22px;font-weight:400;margin:46px 0 4px;
+   padding-bottom:10px;border-bottom:1px solid var(--paper-200)}
+h3{font-size:15px;font-weight:600;margin:26px 0 6px}
+p{margin:0 0 12px;color:var(--paper-700);font-size:16px}
+.lede{color:var(--paper-600)}
+.q{font-family:var(--font-serif);font-size:19px;color:var(--paper-900);margin:0 0 12px;line-height:1.4}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.85em;background:var(--paper-200);
+     padding:2px 5px;border-radius:5px}
+ul{margin:0 0 14px;padding-left:20px}
+li{margin-bottom:7px;color:var(--paper-700);font-size:16px}
+.note{background:var(--paper-100);border-left:3px solid var(--ink-500);border-radius:0 10px 10px 0;
+      padding:14px;margin:16px 0;font-size:15px;color:var(--paper-700)}
+.note b{color:var(--paper-900)}
+.note.warn{border-left-color:var(--gap);background:rgba(168,94,82,.06)}
+.card{background:var(--paper-0);border:1px solid var(--paper-200);border-radius:14px;
+      padding:18px 16px;margin:16px 0}
+.label{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--paper-600);font-weight:600}
+
+.controls{position:sticky;top:0;z-index:20;background:var(--paper-50);
+  padding:10px 0 12px;margin:0 0 8px;border-bottom:1px solid var(--paper-200)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px}
+.toggles + .toggles{margin-top:6px}
+.tg{flex:1 1 62px;min-height:44px;padding:4px 6px;border-radius:9px;
+  border:1px solid var(--paper-300);background:var(--paper-0);color:var(--paper-700);
+  font-family:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.tg small{display:block;font-weight:400;font-size:10px;color:var(--paper-500);line-height:1.3}
+.tg[aria-pressed="true"]{background:var(--paper-700);border-color:var(--paper-700);color:#fff}
+.tg[aria-pressed="true"] small{color:rgba(255,255,255,.7)}
+
+/* ── the statement, in the product's voice ── */
+.say{font-family:var(--font-serif);font-size:20px;line-height:1.42;color:var(--paper-900);
+  margin:0 0 10px}
+.say.mute{color:var(--paper-600);font-style:italic;font-size:18px}
+.cov{font-size:13px;color:var(--paper-600);border-left:2px solid var(--paper-300);
+  padding-left:10px;margin:0}
+svg{display:block;width:100%;height:auto}
+.read{font-size:13px;color:var(--paper-600);margin:12px 0 0;padding-top:11px;
+  border-top:1px solid var(--paper-200);min-height:2.6em}
+.read b{color:var(--paper-900)}
+
+/* ── the gate ── */
+.gate{margin:14px 0 0;font-size:13px}
+.gate-row{display:flex;gap:8px;align-items:baseline;padding:5px 0;
+  border-bottom:1px solid var(--paper-100);color:var(--paper-600)}
+.gate-row:last-child{border-bottom:none}
+.gate-row b{color:var(--paper-900);font-weight:600}
+.gate-mark{width:16px;flex:none;font-weight:700}
+.pass{color:#3F5A46}.fail{color:#8B4438}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--paper-200);
+  font-size:12px;color:var(--paper-500)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back" href="index.html">← Home</a>
+
+<h1>E-01, computed</h1>
+<p class="lede">The first Explain-era statement, generated from a record rather than written
+by hand. The point is not the sentence — it is whether the machinery around it can be
+trusted to <b>stay quiet</b> when the record does not support speech.</p>
+
+<div class="note">
+  <b>Why this one.</b> <code>E-01</code> is the cross-dimension statement: lunch against the
+  midday dose, against rough afternoons. Nothing else in the benchmark ships anything like
+  it, and until now we had the <em>sentence</em> in the statement bank and the <em>picture</em>
+  in a test page, with no connection between them. This is the join.
+</div>
+
+<div class="controls">
+  <div class="toggles">
+    <button class="tg" id="dsA" aria-pressed="true">Record A<small>a difference</small></button>
+    <button class="tg" id="dsB" aria-pressed="false">Record B<small>no difference</small></button>
+    <button class="tg" id="dsC" aria-pressed="false">Record C<small>too thin</small></button>
+    <button class="tg" id="dsD" aria-pressed="false">Record D<small>window-dependent</small></button>
+  </div>
+  <div class="toggles">
+    <button class="tg" id="w15" aria-pressed="false">±15 min<small>tighter cut</small></button>
+    <button class="tg" id="w30" aria-pressed="true">±30 min<small>as specified</small></button>
+    <button class="tg" id="w45" aria-pressed="false">±45 min<small>looser cut</small></button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="label" style="margin-bottom:8px">What Look Back would say</div>
+  <p class="say" id="say"></p>
+  <p class="cov" id="cov"></p>
+  <svg id="chart" viewBox="0 0 400 260" role="img" aria-label="Two columns of days"></svg>
+  <p class="read" id="read"></p>
+</div>
+
+<div class="card">
+  <div class="label" style="margin-bottom:6px">The gate, shown working</div>
+  <p style="font-size:14px;margin:0 0 6px;color:var(--paper-600)">Every condition
+  <code>E-01</code> has to clear before it is allowed to speak. A generator that always
+  speaks is a horoscope.</p>
+  <div class="gate" id="gate"></div>
+</div>
+
+<h2>What the machinery does</h2>
+
+<h3>One dot is one day</h3>
+<p>Two columns — lunch close to the midday dose, lunch further away — and every day in the
+record is a dot in one of them. A <b>filled</b> dot is a day with a rough afternoon; a
+<b>hollow</b> one is a day accounted for and ordinary. You count dots; you never measure a
+bar. Same reasoning as the protein blocks: at this size, counting survives what measuring
+does not.</p>
+<p>Both columns are drawn at the same scale and both denominators are stated in the
+sentence, which is <code>E-01</code>'s spec and the thing that keeps it from being a
+statistic with the inconvenient half removed.</p>
+
+<h3>It is allowed to say nothing, and to say "no difference"</h3>
+<p>Three outcomes, not one:</p>
+<ul>
+  <li><b>A difference</b> — both sides have at least five days and the rates are far enough
+  apart to be worth a sentence.</li>
+  <li><b>No difference</b> — both sides qualify and the rates are close. This still gets
+  said, and saying it matters: a surface that only speaks when something moved teaches
+  people that silence means trouble.</li>
+  <li><b>Not yet</b> — one side is too thin. The statement is withheld and the reason is
+  named in plain words, rather than the surface going mysteriously blank.</li>
+</ul>
+<div class="note warn">
+  <b>The number I made up.</b> The bank specifies "≥5 days on each side"; it says nothing
+  about how different the two rates must be before a difference is worth stating. I used
+  <b>20 percentage points</b>. That is a designer's number with no clinical or statistical
+  basis, it is doing real work — it decides when the app opens its mouth — and it should be
+  reviewed by someone who knows better rather than inherited because it was in the first
+  prototype.
+</div>
+
+<h3>The window is a chosen number too — and record D is why that matters</h3>
+<p>The ±30 minutes in <code>E-01</code> is not given by anything; someone picked it. On
+<b>record A</b> the finding survives all three cuts (67% vs 18% at ±30, and still 60% vs 33%
+at the tighter ±15), which is what a real pattern looks like.</p>
+<p><b>Record D is the same three weeks read three ways.</b> The rough days happen to cluster
+at gaps of 18 to 28 minutes, and nothing else about the record changes — only the window
+does:</p>
+<ul>
+  <li><b>±15</b> — withheld. The close side falls to 4 days and the gate refuses.</li>
+  <li><b>±30</b> — a difference. 56% against 18%.</li>
+  <li><b>±45</b> — no difference. 36% against 33%.</li>
+</ul>
+<div class="note warn">
+  <b>This is the finding, and it is about us rather than about lunch.</b> A record can be
+  made to say "a difference", "no difference" or "not yet" by a parameter the person never
+  sees and we chose in an afternoon. Nobody is lying; every one of those three sentences is
+  arithmetically true of the same twenty-one days.
+  <br><br>
+  Three responses, none of them comfortable. <b>Pick a number and defend it</b> — which
+  requires a clinical basis we do not have. <b>Show the sensitivity</b> — "this holds between
+  20 and 45 minutes" — which is honest and is also the kind of sentence that makes a
+  retrospective feel like a statistics package. Or <b>only speak when the finding survives
+  the range</b>, which is the most conservative and would have withheld record D entirely.
+  <br><br>
+  I would build the third and say so in the disclosure: <em>we only mention this when it
+  holds however we slice it</em>. It is the only one of the three that cannot be accused of
+  having chosen its own evidence. It is also the one that speaks least, which is a cost we
+  should take on purpose rather than discover.
+</div>
+
+<h2>What this found</h2>
+
+<div class="note warn">
+  <b>The window question above is the headline.</b> Everything below it is real but smaller.
+</div>
+
+<div class="note warn">
+  <b>E-01 depends on the quiet day, and the quiet day is scheduled for V1.</b>
+  <br><br>
+  A day only enters the comparison if its afternoon is <em>accounted for</em> — either a
+  rough note, or a positive mark that it was ordinary. Without the third entry state, "no
+  rough note" means two different things, <em>fine</em> and <em>unreported</em>, and they get
+  silently pooled. A week where someone logged doses but said nothing about how they felt
+  would then quietly drag one side's rate down and invent a difference that is not there.
+  <br><br>
+  So the Explain era — the differentiator — has a hard dependency on a feature currently
+  sitting in the V1 lane. That is not an argument for moving it; it is an argument for the
+  Demo not pretending to do Explain.
+</div>
+
+<div class="note">
+  <b>The chart's window and the statement's window are different, and that is correct.</b>
+  The aligned week view shows three days; this statement is computed over the whole record.
+  The 2026-08-26 decision already separates them: <b>period coverage</b> is apparatus and
+  goes on a line under the chart, while <b>claim coverage</b> — "the 9 days", "the 11 days" —
+  lives inside the sentence because it <em>is</em> the evidence. Two different periods on
+  one screen is only confusing if both are called coverage.
+</div>
+
+<h3>Still open</h3>
+<ul>
+  <li><b>What counts as "lunch".</b> The record has three meals a day; this uses the one
+  nearest the midday dose, which is an assumption doing quiet work. A person who eats at
+  11 and again at 2 breaks it.</li>
+  <li><b>Whether the two columns should be orderable.</b> Right now rough days sit at the
+  bottom of each column so the filled block is contiguous and countable. Sorting by date
+  instead would let you see a bad fortnight — a different and possibly better question.</li>
+  <li><b>Whether a person can disagree with it.</b> Every statement here is the app's read
+  of their life. There is no affordance to say "that's not right", and there probably
+  should be — it is also the cheapest research instrument we could build.</li>
+</ul>
+
+<footer>DoseEgg · Look Back · E-01 computed · September 2026<br>
+Records are invented and deterministic. The 20-point difference threshold is a placeholder
+and is flagged as such above.</footer>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   Three records, 21 days each, deterministic.
+
+   gap  = minutes between lunch and the midday dose
+   aft  = 'r' rough afternoon · 'o' accounted for and ordinary
+          · '?' afternoon not accounted for  →  EXCLUDED from the
+            comparison, because without the quiet state we cannot tell
+            "fine" from "never said"
+   ═══════════════════════════════════════════════════════════════════ */
+const RECORDS = {
+  A: { name:'A', days:[
+    [5,'r'],[12,'r'],[20,'o'],[8,'r'],[25,'r'],[15,'o'],[30,'r'],[3,'o'],[18,'r'],
+    [55,'o'],[70,'o'],[45,'r'],[95,'o'],[60,'o'],[80,'o'],[50,'r'],[110,'o'],[65,'o'],
+    [75,'o'],[40,'o'],[35,'?']
+  ]},
+  B: { name:'B', days:[
+    [10,'r'],[22,'o'],[6,'r'],[28,'o'],[16,'o'],[12,'r'],[24,'o'],[9,'r'],[30,'o'],
+    [50,'r'],[65,'o'],[90,'r'],[44,'o'],[72,'r'],[58,'o'],[100,'r'],[48,'o'],[85,'r'],
+    [62,'o'],[55,'o'],[38,'?']
+  ]},
+  /* D is the cautionary record, and it is the reason this page exists.
+     Rough days are clustered at gaps of 18–28 minutes; ordinary days sit
+     either side of them. Nothing about the record changes — only the window
+     does — and the same three weeks then say three different things:
+        +/-15  withheld, the close side drops to 4 days
+        +/-30  a difference, 56% against 18%
+        +/-45  no difference, 36% against 33%
+     A record engineered to embarrass the method is worth more than one
+     engineered to flatter it. */
+  D: { name:'D', days:[
+    [18,'r'],[20,'r'],[22,'r'],[25,'r'],[28,'r'],
+    [5,'o'],[8,'o'],[10,'o'],[12,'o'],
+    [34,'o'],[38,'o'],[40,'o'],[42,'o'],[44,'o'],
+    [60,'r'],[70,'o'],[80,'r'],[90,'o'],[95,'o'],[100,'o'],
+    [26,'?']
+  ]},
+  C: { name:'C', days:[
+    [12,'r'],[20,'o'],[7,'r'],
+    [50,'o'],[65,'o'],[90,'r'],[44,'o'],[72,'o'],[58,'o'],[100,'r'],[48,'o'],[85,'o'],
+    [62,'o'],[55,'o'],[38,'o'],[77,'o'],[41,'r'],[68,'o'],
+    [33,'?'],[52,'?'],[46,'o']
+  ]}
+};
+
+/* The bank gives "≥5 days on each side". It does NOT give a difference
+   threshold — this one is mine, it decides when the app speaks, and it is
+   flagged in the prose as needing review by someone who knows better. */
+const MIN_SIDE = 5, MIN_DIFF_PP = 20;
+
+let rec = 'A', win = 30, selCol = null, selDay = null;
+
+const C = { mark:'#4E6B84', edge:'#C7CEC9', text:'#8D8A7D', dark:'#46443C',
+            paper:'#FFF', rule:'#EFEDE7', mute:'#D9D6CC' };
+const NS='http://www.w3.org/2000/svg';
+function el(tag, attrs, parent){
+  const n=document.createElementNS(NS,tag);
+  for(const k in attrs) n.setAttribute(k, attrs[k]);
+  if(parent) parent.appendChild(n);
+  return n;
+}
+function clear(s){ while(s.firstChild) s.removeChild(s.firstChild); }
+function txt(g,x,y,s,size,fill,o){
+  const t=el('text',Object.assign({x,y,'font-size':size,fill,
+    'font-family':'Inter,system-ui'},o||{}),g); t.textContent=s; return t;
+}
+/* 1 user unit = 1 CSS pixel */
+function cw(){
+  const s=document.getElementById('chart');
+  return Math.max(240, Math.round(s.getBoundingClientRect().width ||
+    (s.parentElement.clientWidth-32)));
+}
+
+/* ── the split ── */
+function split(){
+  const days = RECORDS[rec].days.map(([gap,aft],i)=>({gap,aft,i}));
+  const used = days.filter(d=>d.aft !== '?');
+  const excl = days.filter(d=>d.aft === '?');
+  const near = used.filter(d=>d.gap <= win);
+  const far  = used.filter(d=>d.gap >  win);
+  const R = s => s.filter(d=>d.aft==='r').length;
+  return {days, used, excl, near, far, nearR:R(near), farR:R(far)};
+}
+
+/* ── the gate, and the three things it can decide ── */
+function verdict(s){
+  const checks = [];
+  const okNear = s.near.length >= MIN_SIDE, okFar = s.far.length >= MIN_SIDE;
+  checks.push(['Lunch close to the dose', `${s.near.length} days`, okNear,
+    `at least ${MIN_SIDE} needed`]);
+  checks.push(['Lunch further away', `${s.far.length} days`, okFar,
+    `at least ${MIN_SIDE} needed`]);
+  const pn = s.near.length ? s.nearR/s.near.length : 0;
+  const pf = s.far.length  ? s.farR /s.far.length  : 0;
+  const diff = Math.round(Math.abs(pn-pf)*100);
+  const okDiff = diff >= MIN_DIFF_PP;
+  checks.push(['Both afternoons accounted for',
+    `${s.used.length} of ${s.days.length} days`, true,
+    s.excl.length ? `${s.excl.length} left out — nothing said about the afternoon`
+                  : 'none left out']);
+  if(okNear && okFar)
+    checks.push(['Far enough apart to call a difference',
+      `${Math.round(pn*100)}% vs ${Math.round(pf*100)}%`, okDiff,
+      `${diff} points apart · ${MIN_DIFF_PP} needed`]);
+  return { checks, okNear, okFar, okDiff, pn, pf, diff,
+           kind: (!okNear || !okFar) ? 'thin' : (okDiff ? 'diff' : 'same') };
+}
+
+/* ── the sentence ──
+   Never a causal verb, never a p-value, never advice. Both denominators
+   always stated. Those three are E-01's spec, not style preferences. */
+function sentence(s, v){
+  const say = document.getElementById('say'), cov = document.getElementById('cov');
+  const mins = win;
+  if(v.kind === 'thin'){
+    const thin = !v.okNear ? 'close to your midday dose' : 'further from your midday dose';
+    const n = !v.okNear ? s.near.length : s.far.length;
+    say.className = 'say mute';
+    say.textContent = `Not enough days yet to compare. Only ${n} ` +
+      `${n===1?'day has':'days have'} lunch ${thin}, and this needs at least ${MIN_SIDE} ` +
+      `on both sides before it is worth saying anything.`;
+  } else if(v.kind === 'same'){
+    say.className = 'say';
+    say.textContent = `Rough afternoons were about as common either way — ` +
+      `${s.nearR} of the ${s.near.length} days lunch was within ${mins} minutes of your ` +
+      `midday dose, and ${s.farR} of the ${s.far.length} days it was further away.`;
+  } else {
+    const hiNear = v.pn > v.pf;
+    say.className = 'say';
+    say.textContent = `On the ${s.near.length} days lunch was within ${mins} minutes of ` +
+      `your midday dose, you noted a rough afternoon on ${s.nearR}. On the ` +
+      `${s.far.length} days lunch was further away, on ${s.farR}.`;
+  }
+  cov.textContent = s.excl.length
+    ? `${s.used.length} of ${s.days.length} days could be used · ${s.excl.length} had ` +
+      `nothing said about the afternoon`
+    : `All ${s.days.length} days in the record could be used`;
+}
+
+/* ── two dot columns ── */
+function draw(){
+  const svg = document.getElementById('chart'); clear(svg);
+  const g = el('g',{},svg);
+  const W = cw();
+  const s = split(), v = verdict(s);
+
+  const maxN = Math.max(s.near.length, s.far.length, 1);
+  const D = 9, GAPY = 5, pitch = D*2 + GAPY;          // dot diameter + gap
+  const topPad = 46, botPad = 46;
+  const H = topPad + maxN*pitch + botPad;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  const colW = (W - 24) / 2;
+  const cols = [
+    { key:'near', label:`Lunch within ${win} min`, set:s.near, r:s.nearR, x: 12 + colW*0.5 },
+    { key:'far',  label:'Lunch further away',      set:s.far,  r:s.farR,  x: 12 + colW*1.5 }
+  ];
+
+  cols.forEach(col=>{
+    const dim = (selCol && selCol !== col.key);
+    const grp = el('g', dim ? {opacity:.3} : {}, g);
+
+    txt(grp, col.x, 16, col.label, 11.5, C.dark,
+      {'text-anchor':'middle','font-weight':600});
+    txt(grp, col.x, 31, `${col.set.length} day${col.set.length===1?'':'s'}`, 10.5, C.text,
+      {'text-anchor':'middle'});
+
+    /* Columns are bottom-aligned and the rough days sit ON the baseline, so
+       the two filled blocks start from the same line and can be compared by
+       eye without counting — while still being countable, because they are
+       dots. A shorter column floats up; it never stretches to fill. */
+    const ordered = [...col.set].sort((a,b)=> (a.aft==='r'?0:1) - (b.aft==='r'?0:1));
+    ordered.forEach((d, k)=>{
+      const cy = topPad + (maxN - 1 - k)*pitch + D;
+      if(d.aft === 'r')
+        el('circle',{cx:col.x, cy, r:D, fill:C.mark,
+          opacity: (selDay!==null && selDay!==d.i) ? .45 : 1},grp);
+      else
+        el('circle',{cx:col.x, cy, r:D-1, fill:C.paper, stroke:C.mark,
+          'stroke-width':1.4, opacity:(selDay!==null && selDay!==d.i) ? .35 : .55},grp);
+      if(selDay === d.i)
+        el('circle',{cx:col.x, cy, r:D+4, fill:'none', stroke:C.mark,'stroke-width':1.6},grp);
+    });
+
+    /* the count, said in words under the column */
+    const pct = col.set.length ? Math.round(col.r/col.set.length*100) : 0;
+    txt(grp, col.x, H - 24, `${col.r} rough`, 12, C.dark,
+      {'text-anchor':'middle','font-weight':600});
+    txt(grp, col.x, H - 10, `of ${col.set.length}  ·  ${pct}%`, 10.5, C.text,
+      {'text-anchor':'middle'});
+  });
+
+  /* ── targets: the COLUMN, not the dot (C-17) ──
+     Two groups, each about half the width and the full height. The dot you
+     land on is the hint, and it names a day. */
+  cols.forEach(col=>{
+    const hit = el('rect',{x: col.x - colW/2, y:0, width:colW, height:H,
+      fill:'transparent'},g);
+    hit.style.cursor='pointer';
+    hit.addEventListener('click', ev=>{
+      if(selCol === col.key){ selCol = null; selDay = null; render(); return; }
+      const bb = hit.getBoundingClientRect();
+      const fy = (ev.clientY - bb.top) / bb.height * H;
+      const ordered = [...col.set].sort((a,b)=> (a.aft==='r'?0:1) - (b.aft==='r'?0:1));
+      let best = null, bd = 1e9;
+      ordered.forEach((d,k)=>{
+        const cy = topPad + (maxN - 1 - k)*pitch + D;
+        if(Math.abs(cy-fy) < bd){ bd = Math.abs(cy-fy); best = d; }
+      });
+      selCol = col.key; selDay = best ? best.i : null;
+      render();
+    });
+  });
+
+  return {s, v};
+}
+
+function drawGate(v){
+  const box = document.getElementById('gate'); box.innerHTML = '';
+  v.checks.forEach(([name, value, ok, note])=>{
+    const row = document.createElement('div'); row.className = 'gate-row';
+    row.innerHTML = `<span class="gate-mark ${ok?'pass':'fail'}">${ok?'✓':'✕'}</span>` +
+      `<span style="flex:1">${name}<br><span style="font-size:12px">${note}</span></span>` +
+      `<b>${value}</b>`;
+    box.appendChild(row);
+  });
+}
+
+function report(s){
+  const read = document.getElementById('read');
+  if(selCol === null){
+    read.innerHTML = `<span style="color:var(--paper-500)">Tap a column. The target is the ` +
+      `whole group; the dot you land on names a day.</span>`;
+    return;
+  }
+  const col = selCol === 'near'
+    ? {n:'within '+win+' minutes', set:s.near, r:s.nearR}
+    : {n:'further away',           set:s.far,  r:s.farR};
+  const d = s.days[selDay];
+  const day = d ? `Day ${selDay+1} — lunch ${d.gap} min from the dose, ` +
+      `${d.aft==='r' ? 'a rough afternoon' : 'an ordinary afternoon'}.` : '';
+  read.innerHTML = `<b>Lunch ${col.n}</b> — ${col.set.length} days, ` +
+    `${col.r} with a rough afternoon.<br>` +
+    `<span style="color:var(--paper-500)">${day} ` +
+    `In the app this opens those days.</span>`;
+}
+
+function render(){
+  const {s, v} = draw();
+  sentence(s, v);
+  drawGate(v);
+  report(s);
+}
+
+function group(pairs, apply){
+  pairs.forEach(([id, val])=>{
+    document.getElementById(id).onclick = ()=>{
+      apply(val);
+      pairs.forEach(([i2,v2])=>
+        document.getElementById(i2).setAttribute('aria-pressed', String(v2===val)));
+      render();
+    };
+  });
+}
+group([['dsA','A'],['dsB','B'],['dsC','C'],['dsD','D']],
+      v=>{ rec=v; selCol=null; selDay=null; });
+group([['w15',15],['w30',30],['w45',45]],     v=>{ win=v; selCol=null; selDay=null; });
+addEventListener('resize', render);
+render();
+</script>
+</body>
+</html>
