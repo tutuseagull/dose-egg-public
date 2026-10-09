@@ -972,7 +972,8 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
    fields = editable context, keyed by CONTEXT below
    meta   = derived/computed display pairs the user cannot edit here
    note   = free text  [C-12: stored raw so phrases can be tagged later] */
-const ICON = { sleep:'ph-moon', dose:'ph-pill', symptom:'ph-waveform', activity:'ph-footprints',
+const ICON = { sleep:'ph-moon', dose:'ph-pill', symptom:'ph-hand-heart',   /* care, 2026-10-09: the waveform read as voice input */
+               activity:'ph-footprints',
                meal:'ph-fork-knife', note:'ph-note-pencil' };
 const TYPE_NAME = { sleep:'Sleep', dose:'Medication', symptom:'How I feel', activity:'Activity',
                     meal:'Food', note:'Note' };
@@ -1146,7 +1147,7 @@ function fieldsFor(e){
   }
   if (e.type !== 'symptom') return base;
   const extra = SYMPTOM_FIELDS[e.text] || SYMPTOM_DEFAULT;
-  return [{ ...extra, icon:'ph-waveform', multi:true }].concat(base);
+  return [{ ...extra, icon:'ph-hand-heart', multi:true }].concat(base);
 }
 
 /* Basis, written for the person whose record it is. The sub-line names the
@@ -1662,7 +1663,7 @@ let logStep = null;          // null = categories · otherwise the chosen type
 const TILES = [
   ['sleep','ph-moon','Sleep'],        ['note','ph-camera','Photo'],
   ['meal','ph-fork-knife','Food'],    ['activity','ph-footprints','Activity'],
-  ['dose','ph-pill','Medication'],    ['symptom','ph-waveform','How I feel']
+  ['dose','ph-pill','Medication'],    ['symptom','ph-hand-heart','How I feel']
 ];
 const q = t => JSON.stringify(t).replace(/"/g,'&quot;');
 

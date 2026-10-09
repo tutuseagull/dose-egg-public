@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-palette="oat" data-type="manrope">
+<html lang="en" data-palette="oat" data-type="manrope" data-material="glass">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
@@ -1027,6 +1027,61 @@ button.navrow{width:100%;text-align:left}
     -webkit-backdrop-filter:none;backdrop-filter:none}
 }
 
+
+/* ═════════ NAV DOCK FORK · GLASS MATERIAL (2026-10-09) ═════════
+   Why the soft recipe looked dated: a gradient BODY plus a dark line along the
+   bottom is a bevel, which is the 2012 way of saying "this is raised". The
+   current direction (iOS 26 Liquid Glass, Notion, Oura) says it differently:
+     - the body is flat and partly see-through, with the content behind it
+       blurred, so the control reads as a layer floating ABOVE the page
+     - the edge does the lighting: a thin bright rim, brightest on top
+     - the shadow is large, soft and faint, not a crisp drop
+   And one rule from Apple's own guidance that suits us: glass is for the
+   NAVIGATION layer only (dock, tabs, menu), never for content. Inside the dose
+   card, No is a solid surface, so its text contrast never depends on what
+   happens to be behind it [C-16].
+   Contrast guard for the glass: fill at least 62% white, blur 20px with a
+   saturation lift, so whatever shows through is a soft wash, not legible
+   text competing with the label. Reduce Transparency makes it solid. */
+:root[data-material="glass"]{
+  --glass-fill:color-mix(in srgb, var(--paper-0) 62%, transparent);
+  --glass-fill-strong:color-mix(in srgb, var(--paper-0) 86%, transparent);
+  --glass-blur:blur(20px) saturate(180%);
+  --glass-rim:inset 0 1px 0 color-mix(in srgb, var(--paper-0) 95%, transparent),
+              inset 0 0 0 1px color-mix(in srgb, var(--paper-0) 55%, transparent);
+  --glass-shadow:0 0 0 1px color-mix(in srgb, var(--ink-700) 6%, transparent),
+                 0 8px 24px color-mix(in srgb, var(--ink-700) 10%, transparent);
+}
+/* navigation layer: glass */
+:root[data-material="glass"] .dock-btn,
+:root[data-material="glass"] .note-bar,
+:root[data-material="glass"] .feel-pill,
+:root[data-material="glass"] .tab,
+:root[data-material="glass"] .top .icon-btn{
+  background:var(--glass-fill);border-color:transparent;
+  box-shadow:var(--glass-rim), var(--glass-shadow);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)}
+:root[data-material="glass"] .tab[aria-selected="true"]{background:var(--glass-fill-strong)}
+/* the dock no longer paints the page over the content behind it, or there
+   would be nothing for the glass to show; a faint wash keeps the edge calm */
+:root[data-material="glass"] .dock{
+  background:linear-gradient(to top, color-mix(in srgb, var(--surface-page) 70%, transparent) 0%, transparent 100%)}
+/* content layer: solid and quiet */
+:root[data-material="glass"] .c-btn:not(.primary){
+  background:var(--surface-card);border-color:transparent;
+  box-shadow:0 0 0 1px color-mix(in srgb, var(--ink-700) 8%, transparent),
+             0 1px 3px color-mix(in srgb, var(--ink-700) 8%, transparent);
+  -webkit-backdrop-filter:none;backdrop-filter:none}
+/* primary: flat accent, a single lit rim, no gradient */
+:root[data-material="glass"] .c-btn.primary,
+:root[data-material="glass"] .fab{
+  background:var(--accent);
+  box-shadow:inset 0 1px 0 color-mix(in srgb, var(--paper-0) 25%, transparent),
+             0 6px 18px color-mix(in srgb, var(--accent) 28%, transparent)}
+@media (prefers-reduced-transparency: reduce){
+  :root[data-material="glass"]{--glass-fill:var(--paper-0);--glass-fill-strong:var(--paper-0);--glass-blur:none}
+}
+
 /* five tiles: the odd one out takes the full row */
 .grid .tile:last-child:nth-child(odd){grid-column:1 / -1}
 </style>
@@ -1039,7 +1094,7 @@ button.navrow{width:100%;text-align:left}
     <span class="db">Hi-fi · Nav dock · fork of v3</span>
     <button class="demo-btn" id="palToggle" onclick="togglePalette()">palette: oat + denim</button>
     <button class="demo-btn" id="typeToggle" onclick="toggleType()">type: Manrope</button>
-    <button class="demo-btn" id="feelIcoToggle" onclick="cycleFeelIcon()">feel icon: body</button>
+    <button class="demo-btn" id="matToggle" onclick="toggleMaterial()">material: glass</button>
     <button class="demo-btn" id="slotToggle" onclick="toggleLeftSlot()">bottom A: camera · note</button>
     <button class="demo-btn" onclick="openLock()">lock screen</button>
     <button class="demo-btn" onclick="demoAddDose()">+ due dose</button>
@@ -1134,7 +1189,7 @@ button.navrow{width:100%;text-align:left}
               enterkeyhint="send" oninput="noteInput(this)" onkeydown="noteKey(event)"></textarea>
   </div>
   <button class="feel-pill" id="feelPill" onclick="feelTap()" hidden>
-    <i class="ph ph-person-simple" id="feelPillIco"></i><span>How I feel</span></button>
+    <i class="ph ph-hand-heart" id="feelPillIco"></i><span>How I feel</span></button>
   <button class="fab" id="fab" onclick="rightSlotTap()" aria-label="Add to today">
     <i class="ph ph-plus"></i></button>
 </div>
@@ -1215,7 +1270,7 @@ button.navrow{width:100%;text-align:left}
    fields = editable context, keyed by CONTEXT below
    meta   = derived/computed display pairs the user cannot edit here
    note   = free text  [C-12: stored raw so phrases can be tagged later] */
-const ICON = { sleep:'ph-moon', dose:'ph-pill', symptom:'ph-person-simple', activity:'ph-footprints',
+const ICON = { sleep:'ph-moon', dose:'ph-pill', symptom:'ph-hand-heart', activity:'ph-footprints',
                meal:'ph-fork-knife', note:'ph-note-pencil' };
 const TYPE_NAME = { sleep:'Sleep', dose:'Medication', symptom:'How I feel', activity:'Activity',
                     meal:'Food', note:'Note' };
@@ -1918,7 +1973,7 @@ let logStep = null;          // null = categories · otherwise the chosen type
 const TILES = [
   ['sleep','ph-moon','Sleep'],        ['meal','ph-fork-knife','Food'],
   ['activity','ph-footprints','Activity'], ['dose','ph-pill','Medication'],
-  ['symptom','ph-person-simple','How I feel']
+  ['symptom','ph-hand-heart','How I feel']
 ];
 const q = t => JSON.stringify(t).replace(/"/g,'&quot;');
 
@@ -3096,36 +3151,18 @@ function toggleType(){
 }
 
 
-/* How I feel icon test (Tutu, 2026-10-09). The waveform read as VOICE INPUT,
-   which is what that glyph means almost everywhere now, and next to a text
-   field it promised dictation. Candidates, all rejected alternatives noted:
-     body      person-simple. Plain "my body"; nothing else in the app uses a
-               person, since there is no profile in MVP.
-     check-in  user-focus. A person inside focus brackets: checking in with
-               yourself. Risk: reads as Face ID or a scan.
-     care      hand-heart. Warm, self-care. Risk: reads as donate or support.
-     hand      hand-palm. Hands are where many people feel PD first. Risk:
-               reads as stop.
-   Rejected without building: heartbeat / pulse (claims a measurement we do
-   not take), smiley (a mood score, and a face invites a verdict [C-08]),
-   thermometer (frames every entry as sickness), tai-chi (collides with
-   Activity). */
-const FEEL_ICONS = [
-  { ico:'ph-person-simple', tag:'body' },
-  { ico:'ph-user-focus',    tag:'check-in' },
-  { ico:'ph-hand-heart',    tag:'care' },
-  { ico:'ph-hand-palm',     tag:'hand' }
-];
-let feelIcoN = 0;
-function cycleFeelIcon(){
-  feelIcoN = (feelIcoN + 1) % FEEL_ICONS.length;
-  const f = FEEL_ICONS[feelIcoN];
-  ICON.symptom = f.ico;
-  TILES.find(t => t[0] === 'symptom')[1] = f.ico;
-  LEFT.feel.ico = f.ico;
-  el('feelPillIco').className = 'ph ' + f.ico;
-  el('feelIcoToggle').textContent = 'feel icon: ' + f.tag;
-  renderTimeline(); renderLogSheet(); renderLeftSlot();
+/* How I feel icon: DECIDED 2026-10-09, hand-heart ("care"). The waveform read
+   as voice input, which is what that glyph means almost everywhere now. Tested
+   against person-simple (looked like the iOS Accessibility icon at marker
+   size), user-focus (Face ID) and hand-palm (stop). Rejected unbuilt:
+   heartbeat (claims a measurement), smiley (a mood score), thermometer
+   (frames entries as sickness), tai-chi (collides with Activity). */
+
+function toggleMaterial(){
+  const glass = document.documentElement.dataset.material !== 'glass';
+  if (glass) document.documentElement.dataset.material = 'glass';
+  else delete document.documentElement.dataset.material;
+  el('matToggle').textContent = 'material: ' + (glass ? 'glass' : 'soft');
 }
 
 function togglePalette(){
@@ -3162,7 +3199,7 @@ const LAYOUTS = [
   { key:'C', left:'camera', middle:'feel', tag:'C: camera · feel' }
 ];
 const LEFT = { camera:{ ico:'ph-camera',   label:'Add a photo' },
-               feel:  { ico:'ph-person-simple', label:'How I feel' } };
+               feel:  { ico:'ph-hand-heart', label:'How I feel' } };
 let layoutN = 0;
 function renderLeftSlot(){
   const L = LAYOUTS[layoutN], m = LEFT[L.left], b = el('leftSlot');
