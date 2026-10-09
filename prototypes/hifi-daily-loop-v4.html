@@ -990,10 +990,11 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
    header itself has no background. The blue band it used to paint is now
    .shell::before, which sits in the page and scrolls away with the card, so
    the glass shows blue at rest and the timeline once you scroll.
-   --top-h is the header's measured height (set by syncTopHeight), never a
-   fixed number: it changes with the text-size setting. */
+   --top-y / --top-h are the header's measured position and height (set by
+   syncTopHeight), never fixed numbers: the demo bar above it wraps, and the
+   text-size setting changes the header's height. */
 .top{position:sticky;top:0;z-index:30;background:transparent}
-.shell::before{content:'';position:absolute;top:0;left:0;right:0;height:var(--top-h, 0px);
+.shell::before{content:'';position:absolute;top:var(--top-y, 0px);left:0;right:0;height:var(--top-h, 0px);
                background:var(--surface-accent);opacity:0;pointer-events:none;
                transition:opacity var(--motion-base) var(--ease-out)}
 .shell.tinted::before{opacity:1}
@@ -3267,9 +3268,18 @@ if (vv){
 /* the header floats, so the page needs to know how tall it is (see .shell::before) */
 function syncTopHeight(){
   const t = document.querySelector('.top');
-  document.querySelector('.shell').style.setProperty('--top-h', t.offsetHeight + 'px');
+  const sh = document.querySelector('.shell');
+  sh.style.setProperty('--top-h', t.offsetHeight + 'px');
+  /* where the header sits in the page at rest, measured from the shell's top */
+  const prev = t.style.position; t.style.position = 'static';
+  sh.style.setProperty('--top-y', t.offsetTop + 'px');
+  t.style.position = prev;
 }
-if (window.ResizeObserver) new ResizeObserver(syncTopHeight).observe(document.querySelector('.top'));
+if (window.ResizeObserver){
+  const ro = new ResizeObserver(syncTopHeight);
+  ro.observe(document.querySelector('.top'));
+  const bar = document.querySelector('.demo-bar'); if (bar) ro.observe(bar);
+}
 window.addEventListener('scroll', () =>
   document.querySelector('.shell').classList.toggle('scrolled', window.scrollY > 4),
   { passive:true });
