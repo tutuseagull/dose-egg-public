@@ -58,7 +58,14 @@
   /* Content-layer controls: solid white, a hairline instead of a border, a
      faint lift. Glass is for the navigation layer only (see GLASS below). */
   --content-edge:0 0 0 1px color-mix(in srgb, var(--ink-700) 8%, transparent);
-  --content-lift:0 1px 3px color-mix(in srgb, var(--ink-700) 8%, transparent);
+  /* ELEVATION (2026-10-09, Tutu): depth belongs to a LAYER, not to the things
+     inside it. Whatever floats on its own gets a shadow; its contents stay flat.
+     Three uses only: glass (nav), float (FAB), overlay (sheet, drawer). The page
+     and everything inside a sheet is flat. See design-tokens.html, Elevation. */
+  --border-control:var(--paper-300);    /* hairline for flat controls on white */
+  --shadow-float:0 6px 20px color-mix(in srgb, var(--ink-700) 10%, transparent);
+  --shadow-overlay:0 -6px 32px color-mix(in srgb, var(--ink-700) 18%, transparent);
+  --focus-glow:0 0 0 var(--focus-ring-width) color-mix(in srgb, var(--focus-ring) 22%, transparent);
 
   --focus-ring:var(--ink-500); --focus-ring-width:3px; --focus-ring-offset:2px;
   --feedback-error:var(--red-600);
@@ -148,7 +155,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .demo-btn{font-size:12px;font-weight:500;color:var(--paper-100);
           background:rgba(255,255,255,.12);padding:5px 10px;border-radius:var(--radius-full);
           display:flex;align-items:center;min-height:32px;text-decoration:none}
-.demo-btn:hover{background:rgba(255,255,255,.2)}
+@media (hover:hover){ .demo-btn:hover{background:rgba(255,255,255,.2)} }
 /* Home lives in the demo bar, not in a floating pill over the app.
    The other prototypes overlay an inline-styled 10px pill on the phone frame —
    it covers product UI and sits below the 14px floor [C-16]. This link is review
@@ -172,7 +179,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
           justify-content:center;border-radius:var(--radius-full);color:var(--text-muted);
           flex:0 0 auto}
 .icon-btn i{font-size:22px}
-.icon-btn:hover{background:var(--surface-raised)}
+@media (hover:hover){ .icon-btn:hover{background:var(--surface-raised)} }
 .top .icon-btn:first-child{margin-left:calc(var(--space-3) * -1)}
 .top .icon-btn:last-child{margin-right:calc(var(--space-3) * -1)}
 
@@ -197,15 +204,15 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
        padding:var(--space-2) var(--space-3);
        transition:background var(--motion-fast) var(--ease-out)}
 .c-btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
-.c-btn.primary:hover{background:var(--accent-hover)}
-.c-btn:not(.primary):hover{background:var(--surface-raised)}
+@media (hover:hover){ .c-btn.primary:hover{background:var(--accent-hover)} }
+@media (hover:hover){ .c-btn:not(.primary):hover{background:var(--surface-raised)} }
 /* The third path. Quiet by weight and hue, never by size or contrast [C-16]. */
 .c-more{display:flex;align-items:center;justify-content:center;gap:var(--space-2);
         width:100%;min-height:var(--target-min);margin-top:var(--target-gap);
         font-size:var(--text-small);font-weight:400;color:var(--accent);
         border-radius:var(--radius-md)}
 .c-more i{font-size:18px}
-.c-more:hover{background:var(--surface-raised)}
+@media (hover:hover){ .c-more:hover{background:var(--surface-raised)} }
 
 /* ── slot sheet + grouped row (v3, D-16) ── */
 .egroup{display:block;font-size:var(--text-label);color:var(--text-muted);margin-top:2px}
@@ -222,7 +229,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .nudge{flex:1;min-height:var(--target-routine);border-radius:var(--radius-md);
        border:1px solid var(--border-interactive);background:var(--surface-card);
        font-family:inherit;font-size:var(--text-small);font-weight:500;color:var(--text-primary)}
-.nudge:hover{background:var(--surface-sunken)}
+@media (hover:hover){ .nudge:hover{background:var(--surface-sunken)} }
 .medrow{display:flex;align-items:center;gap:var(--space-3);width:100%;
         min-height:var(--target-routine);padding:var(--space-3) var(--space-4);
         border:1px solid var(--border-subtle);border-radius:var(--radius-md);
@@ -314,7 +321,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .ecard{display:block;background:var(--surface-card);border:1px solid var(--border-subtle);
        border-radius:var(--radius-lg);padding:var(--card-pad);
        transition:background var(--motion-fast) var(--ease-out);position:relative}
-.entry:hover .ecard{background:var(--surface-raised)}
+@media (hover:hover){ .entry:hover .ecard{background:var(--surface-raised)} }
 .ecard .chev{position:absolute;right:var(--space-4);top:50%;transform:translateY(-50%);
              color:var(--paper-400);font-size:18px;display:flex}
 .etext{display:block;font-size:var(--text-small);font-weight:600;color:var(--text-primary);
@@ -366,7 +373,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 /* NAV DOCK FORK: open like the rows. The dashed marker already says
    "removed"; a dashed box around it was the last card left on the rail. */
 .tomb-card{border:none;padding:0;border-radius:0}
-.tomb-undo:hover{background:var(--surface-raised)}
+@media (hover:hover){ .tomb-undo:hover{background:var(--surface-raised)} }
 
 /* elapsed time, shown only for gaps worth noticing */
 .gap{position:relative;padding:0 0 var(--space-6) var(--rail-indent);z-index:1}
@@ -421,10 +428,10 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
      width:var(--target-critical);height:var(--target-critical);
      border-radius:var(--radius-full);background:var(--accent);
      color:var(--on-accent);display:flex;align-items:center;justify-content:center;
-     box-shadow:0 3px 12px rgba(43,91,169,.28);
+     box-shadow:var(--shadow-float);
      transition:transform var(--motion-fast) var(--ease-out),background var(--motion-fast)}
 .fab i{font-size:28px}
-.fab:hover{background:var(--accent-hover)}
+@media (hover:hover){ .fab:hover{background:var(--accent-hover)} }
 .fab:active{transform:scale(.94)}
 
 /* ── menu drawer ──
@@ -468,7 +475,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
        border-radius:var(--radius-lg) var(--radius-lg) 0 0;z-index:60;
        padding:var(--space-2) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
        transition:transform var(--motion-slow) var(--ease-out);
-       box-shadow:0 -3px 24px rgba(26,25,22,.10)}
+       box-shadow:var(--shadow-overlay)}
 /* A step asks one question, so its sheet is short and the field lands close to
    the bottom edge — which is where the thumb rests and, on a phone, exactly
    where the keyboard arrives. Steps get a deeper floor. */
@@ -499,7 +506,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
        border-radius:var(--radius-md);font-size:var(--text-small);font-weight:500;
        padding:var(--space-3) var(--space-4);text-align:left;
        transition:background var(--motion-fast),border-color var(--motion-fast)}
-.quick:hover{background:var(--surface-sunken)}
+@media (hover:hover){ .quick:hover{background:var(--surface-sunken)} }
 .quick.flash{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
 
 #log-body{display:flex;flex-direction:column;gap:var(--space-6)}
@@ -508,7 +515,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
          justify-content:center;border-radius:var(--radius-full);color:var(--text-secondary);
          margin-left:calc(var(--space-3) * -1);flex:0 0 auto}
 .backbtn i{font-size:22px}
-.backbtn:hover{background:var(--surface-raised)}
+@media (hover:hover){ .backbtn:hover{background:var(--surface-raised)} }
 
 /* Sheet rhythm — two values, and only ONE place each is set.
    BETWEEN groups: --space-6 (24), set once as the sheet's flex `gap`. Children carry
@@ -521,7 +528,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
       padding:var(--space-4);background:var(--surface-page);border:1px solid var(--border-subtle);
       border-radius:var(--radius-md);min-height:var(--target-critical);text-align:left;
       transition:background var(--motion-fast),border-color var(--motion-fast)}
-.tile:hover{background:var(--surface-raised);border-color:var(--border-interactive)}
+@media (hover:hover){ .tile:hover{background:var(--surface-raised);border-color:var(--border-interactive)} }
 .tile-ico{width:38px;height:38px;border-radius:var(--radius-full);display:flex;
           align-items:center;justify-content:center;flex:0 0 auto}
 .tile-ico i{font-size:20px;color:#fff}
@@ -533,7 +540,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 /* same label treatment as .tile-name, so Photo reads as a peer of the grid */
 .strip-name{font-size:var(--text-small);font-weight:500}
 .strip .sub{color:var(--text-muted);font-size:var(--text-label);font-weight:400}
-.strip:hover{background:var(--surface-raised)}
+@media (hover:hover){ .strip:hover{background:var(--surface-raised)} }
 
 /* ══ photo, and what the app read off it ══
    Three looks, because the app's guess must never be able to pass for the
@@ -547,7 +554,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
        min-height:var(--target-critical);padding:var(--space-3) var(--space-4);
        background:var(--surface-page);border:1px dashed var(--border-interactive);
        border-radius:var(--radius-md);font-size:var(--text-small)}
-.photo-add:hover{background:var(--surface-raised)}
+@media (hover:hover){ .photo-add:hover{background:var(--surface-raised)} }
 .photo-add > i{font-size:22px;color:var(--text-muted);flex:0 0 auto}
 .photo-shot{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;
        border-radius:var(--radius-md);background:var(--surface-sunken)}
@@ -598,7 +605,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
         background:var(--surface-page);border:1px solid var(--border-interactive);
         border-radius:var(--radius-md);padding:0 var(--space-3)}
 .lbl-in:focus{outline:none;border-color:var(--accent);
-              box-shadow:0 0 0 var(--focus-ring-width) rgba(43,91,169,.18)}
+              box-shadow:var(--focus-glow)}
 .d-title span{font-size:var(--text-meta);color:var(--text-muted)}
 
 /* Basis — the one control that changes what a doctor sees.
@@ -607,7 +614,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
            width:100%;text-align:left;padding:var(--space-2) var(--space-3);
            background:var(--surface-page);border:1px solid var(--border-subtle);
            border-radius:var(--radius-md)}
-.basis-row:hover{background:var(--surface-raised)}
+@media (hover:hover){ .basis-row:hover{background:var(--surface-raised)} }
 .basis-row > i{font-size:22px;color:var(--text-muted);flex:0 0 auto}
 .basis-row .bt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto}
 .basis-row .bt b{font-size:var(--text-small);font-weight:500}
@@ -621,7 +628,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
      background:var(--surface-page);border:1px solid var(--border-subtle);
      border-radius:var(--radius-md);
      transition:background var(--motion-fast),border-color var(--motion-fast)}
-.opt:hover{background:var(--surface-raised)}
+@media (hover:hover){ .opt:hover{background:var(--surface-raised)} }
 .opt.on{border-color:var(--accent);background:var(--surface-raised);box-shadow:inset 0 0 0 1px var(--accent)}
 .opt > i{font-size:22px;color:var(--text-muted);flex:0 0 auto}
 .opt.on > i{color:var(--accent)}
@@ -655,7 +662,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
    Tutu: "the UI indicator is the same, so I would expect the behavior be the
    same." */
 .minibtn.step i{font-size:17px}
-.minibtn:hover{background:var(--surface-raised)}
+@media (hover:hover){ .minibtn:hover{background:var(--surface-raised)} }
 .minisep{color:var(--paper-400);font-size:var(--text-small)}
 /* The time is a button — tapping it swaps in numeric fields. Signalled with a
    dotted underline and a pencil, because a big number alone reads as output. */
@@ -675,7 +682,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
     background:var(--surface-page);border:1px solid var(--border-interactive);
     border-radius:var(--radius-md);padding:0 var(--space-2)}
 .tf:focus{outline:none;border-color:var(--accent);
-          box-shadow:0 0 0 var(--focus-ring-width) rgba(43,91,169,.18)}
+          box-shadow:var(--focus-glow)}
 .tf-sep{font-family:var(--font-serif);font-size:var(--text-display);
         color:var(--text-muted)}
 .nudges{display:flex;gap:var(--target-gap);flex-wrap:wrap}
@@ -683,7 +690,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
        background:var(--surface-page);border:1px solid var(--border-interactive);
        font-size:var(--text-small);font-weight:500;font-variant-numeric:tabular-nums;
        padding:var(--space-2)}
-.nudge:hover{background:var(--surface-raised)}
+@media (hover:hover){ .nudge:hover{background:var(--surface-raised)} }
 /* Disabled rather than hidden. Hiding would reflow the row and move the
    remaining targets under the user's thumb between taps — the one thing you
    never do to someone with a tremor. Lower contrast is normally banned as a
@@ -691,13 +698,13 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
    control must read as unavailable to anyone. */
 .nudge[disabled]{color:var(--text-muted);border-color:var(--border-subtle);
                  background:transparent;cursor:not-allowed}
-.nudge[disabled]:hover{background:transparent}
+@media (hover:hover){ .nudge[disabled]:hover{background:transparent} }
 .nowbtn{display:flex;align-items:center;justify-content:center;gap:var(--space-2);
         width:100%;min-height:var(--target-routine);border-radius:var(--radius-md);
         border:1px solid var(--border-interactive);background:var(--surface-page);
         font-size:var(--text-small);font-weight:500}
 .nowbtn i{font-size:18px;color:var(--text-muted)}
-.nowbtn:hover{background:var(--surface-raised)}
+@media (hover:hover){ .nowbtn:hover{background:var(--surface-raised)} }
 .nowbtn[disabled]{color:var(--text-muted);border-color:var(--border-subtle);
                   background:transparent;cursor:not-allowed}
 
@@ -724,7 +731,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
       background:var(--surface-page);border:1px dashed var(--border-interactive);
       font-size:var(--text-small);color:var(--text-secondary)}
 .chip i{font-size:18px;color:var(--text-muted);flex:0 0 auto}
-.chip:hover{background:var(--surface-raised)}
+@media (hover:hover){ .chip:hover{background:var(--surface-raised)} }
 /* AFFORDANCE, 2026-08-12. Dashed used to mean both "empty" and "tap to open" —
    two jobs, one style, so it read as just another option chip. Dashed is a real
    convention for EMPTINESS (Figma's add-fill rows, Notion's "+ Add a property"),
@@ -777,7 +784,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
          min-height:var(--target-critical);padding:0 var(--space-4);text-align:left;
          background:var(--surface-page);border:1px solid var(--border-subtle);
          border-radius:var(--radius-md);font-size:var(--text-small)}
-.rowitem:hover{background:var(--surface-raised)}
+@media (hover:hover){ .rowitem:hover{background:var(--surface-raised)} }
 .rowitem.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);
             background:var(--surface-raised)}
 .rowitem.add{border-style:dashed;border-color:var(--border-interactive);color:var(--accent)}
@@ -798,7 +805,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
        background:var(--surface-page);border:1px solid var(--border-interactive);
        border-radius:var(--radius-md);padding:0 var(--space-2)}
 .numin:focus{outline:none;border-color:var(--accent);
-             box-shadow:0 0 0 var(--focus-ring-width) rgba(43,91,169,.18)}
+             box-shadow:var(--focus-glow)}
 .numunit{font-size:var(--text-small);color:var(--text-muted)}
 /* The platform's own date control. This is the one place a wheel is right, and
    the reason is that we do not build it: iOS renders its wheel, Android its
@@ -810,7 +817,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
       background:var(--surface-page);border:1px solid var(--border-interactive);
       border-radius:var(--radius-md)}
 .date-in:focus{outline:none;border-color:var(--accent);
-      box-shadow:0 0 0 var(--focus-ring-width) color-mix(in srgb,var(--focus-ring) 22%,transparent)}
+      box-shadow:var(--focus-glow)}
 /* SHAPE FOLLOWS BEHAVIOUR — the rule the chips and nudges were only half
    obeying, written down so it stops being an accident:
      .chip  = SELECTOR. Sets a value, can be `.on`, pill (--radius-full).
@@ -837,19 +844,19 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
          min-height:var(--target-min);line-height:var(--leading-body);
          overflow:hidden}
 .note-in:focus{border-color:var(--accent);outline:none;
-               box-shadow:0 0 0 var(--focus-ring-width) rgba(43,91,169,.18)}
+               box-shadow:var(--focus-glow)}
 
 .d-done{min-height:var(--target-critical);border-radius:var(--radius-md);
         background:var(--accent);color:var(--on-accent);font-weight:500;
         font-size:var(--text-small);width:100%}
-.d-done:hover{background:var(--accent-hover)}
+@media (hover:hover){ .d-done:hover{background:var(--accent-hover)} }
 /* Destructive, and coloured as such. This is a UI action, not health data —
    the red/green ban in AGENTS.md is about never scoring a person's symptoms. */
 .d-remove{display:flex;align-items:center;justify-content:center;gap:var(--space-2);
           min-height:var(--target-min);width:100%;font-size:var(--text-small);
           color:var(--feedback-error);font-weight:500;border-radius:var(--radius-md)}
 .d-remove i{font-size:19px}
-.d-remove:hover{background:var(--surface-raised)}
+@media (hover:hover){ .d-remove:hover{background:var(--surface-raised)} }
 
 
 /* ═════════ NAV DOCK FORK (2026-10-08) ═════════ */
@@ -884,7 +891,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 /* menu as a popover: same element as v3's drawer, different shape */
 .drawer{bottom:auto;width:min(80%,var(--drawer-w));padding:var(--space-2) 0;
         border:1px solid var(--border-subtle);border-radius:var(--radius-lg);
-        box-shadow:0 12px 32px rgba(20,27,43,.16);opacity:0;
+        box-shadow:var(--shadow-overlay);opacity:0;
         transform:translateY(calc(var(--space-2) * -1));transform-origin:top left;
         transition:opacity var(--motion-base) var(--ease-out),
                    transform var(--motion-base) var(--ease-out)}
@@ -907,14 +914,14 @@ button.navrow{width:100%;text-align:left}
           border-radius:var(--radius-full);background:var(--surface-card);
           border:1px solid var(--border-subtle);color:var(--text-primary);
           display:flex;align-items:center;justify-content:center;
-          box-shadow:0 2px 8px rgba(20,27,43,.08)}
+          box-shadow:var(--shadow-float)}
 .dock-btn i{font-size:24px}
 .dock .fab{flex:0 0 auto}
 .note-bar{pointer-events:auto;flex:1;min-width:0;display:flex;align-items:center;
           min-height:var(--target-critical);background:var(--surface-card);
           border:1px solid var(--border-subtle);
           border-radius:calc(var(--target-critical) / 2);
-          box-shadow:0 2px 8px rgba(20,27,43,.08)}
+          box-shadow:var(--shadow-float)}
 .note-bar:focus-within{outline:var(--focus-ring-width) solid var(--focus-ring);
                        outline-offset:var(--focus-ring-offset)}
 .note-bar textarea{flex:1;min-width:0;border:none;background:none;resize:none;outline:none;
@@ -937,7 +944,7 @@ button.navrow{width:100%;text-align:left}
            background:var(--surface-card);border:1px solid var(--border-subtle);
            border-radius:calc(var(--target-critical) / 2);color:var(--text-primary);
            font-size:var(--text-body);font-weight:500;padding:0 var(--space-4);
-           box-shadow:0 2px 8px rgba(20,27,43,.08)}
+           box-shadow:var(--shadow-float)}
 .feel-pill i{font-size:24px;color:var(--mark)}
 .note-bar[hidden],.feel-pill[hidden]{display:none}
 
@@ -966,7 +973,6 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
 .c-more{justify-content:space-between;color:var(--text-primary);
         padding:0 var(--space-3);margin-left:calc(var(--space-3) * -1);
         margin-right:calc(var(--space-3) * -1);width:calc(100% + var(--space-3) * 2)}
-.c-more:hover{background:transparent}
 @media (hover:hover){ .c-more:hover{background:color-mix(in srgb, var(--paper-0) 55%, transparent)} }
 .c-more:active{background:color-mix(in srgb, var(--paper-0) 55%, transparent)}
 .c-more i{font-size:22px}
@@ -1010,13 +1016,12 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
    saturation lift, so whatever shows through is a soft wash, not legible
    text competing with the label. Reduce Transparency makes it solid. */
 :root{
-  --glass-fill:color-mix(in srgb, var(--paper-0) 62%, transparent);
+  --glass-fill:color-mix(in srgb, var(--paper-0) 74%, transparent);
   --glass-fill-strong:color-mix(in srgb, var(--paper-0) 86%, transparent);
   --glass-blur:blur(20px) saturate(180%);
-  --glass-rim:inset 0 1px 0 color-mix(in srgb, var(--paper-0) 95%, transparent),
-              inset 0 0 0 1px color-mix(in srgb, var(--paper-0) 55%, transparent);
-  --glass-shadow:0 0 0 1px color-mix(in srgb, var(--ink-700) 6%, transparent),
-                 0 8px 24px color-mix(in srgb, var(--ink-700) 10%, transparent);
+  --glass-rim:inset 0 0 0 1px color-mix(in srgb, var(--paper-0) 60%, transparent);
+  --glass-shadow:0 0 0 1px color-mix(in srgb, var(--ink-700) 7%, transparent),
+                 var(--shadow-float);
 }
 /* navigation layer: glass */
 .dock-btn,
@@ -1032,17 +1037,14 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
    would be nothing for the glass to show; a faint wash keeps the edge calm */
 .dock{
   background:linear-gradient(to top, color-mix(in srgb, var(--surface-page) 70%, transparent) 0%, transparent 100%)}
-/* content layer: solid and quiet */
+/* content layer: flat. The card and the sheet carry the depth, not their buttons. */
 .c-btn:not(.primary){
   background:var(--surface-card);border-color:transparent;
-  box-shadow:var(--content-edge), var(--content-lift);
+  box-shadow:var(--content-edge);
   -webkit-backdrop-filter:none;backdrop-filter:none}
-/* primary: flat accent, a single lit rim, no gradient */
-.c-btn.primary,
-.fab{
-  background:var(--accent);
-  box-shadow:inset 0 1px 0 color-mix(in srgb, var(--paper-0) 25%, transparent),
-             0 6px 18px color-mix(in srgb, var(--accent) 28%, transparent)}
+/* primary on the page: flat accent. The FAB floats on its own, so it floats. */
+.c-btn.primary{background:var(--accent);box-shadow:none}
+.fab{background:var(--accent);box-shadow:var(--shadow-float)}
 @media (prefers-reduced-transparency: reduce){
   :root{--glass-fill:var(--paper-0);--glass-fill-strong:var(--paper-0);--glass-blur:none}
 }
@@ -1074,9 +1076,8 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
        padding:var(--space-2) var(--gutter) var(--space-2) var(--space-3);
        border-radius:var(--radius-md) 0 0 var(--radius-md)}
 /* Phones have no hover, but iOS keeps :hover on the last thing tapped, so a
-   hover wash shows up as a stuck highlight. Hover only where a real pointer
-   exists; touch gets the press. */
-.entry:hover .ecard{background:transparent}
+   hover wash shows up as a stuck highlight. EVERY hover rule in this file is
+   therefore wrapped in @media (hover:hover); touch gets the press (:active). */
 @media (hover:hover){ .entry:hover .ecard{background:var(--surface-raised)} }
 .entry:active .ecard{background:var(--surface-raised)}
 .entry.fresh .ecard{border:none}
@@ -1087,9 +1088,9 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
 .ehead .chev i{font-size:18px}
 .etime{padding-bottom:0}
 
-.c-btn.primary:hover, .fab:hover{background:var(--accent-hover)}
+@media (hover:hover){ .c-btn.primary:hover, .fab:hover{background:var(--accent-hover)} }
 .c-btn.primary:active, .fab:active{
-  box-shadow:inset 0 1px 3px color-mix(in srgb, var(--ink-700) 25%, transparent)}
+  background:var(--accent-hover)}
 .top .icon-btn:first-child{margin-left:0}
 
 
@@ -1099,8 +1100,7 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
    state and not as one more button: a dropped medication stays dashed, a
    set or picked chip stays filled, a disabled nudge stays flat. */
 .nudge, .medrow, .quick, .tile, .photo-add, .opt, .chip{
-  background:var(--surface-card);border-color:transparent;
-  box-shadow:var(--content-edge), var(--content-lift)}
+  background:var(--surface-card);border-color:var(--border-control);box-shadow:none}
 .medrow.off{background:var(--surface-page);border-color:var(--border-interactive);box-shadow:none}
 .nudge[disabled]{background:transparent;border-color:var(--border-subtle);box-shadow:none}
 .chip.set, .chip.pick.on{box-shadow:none}
