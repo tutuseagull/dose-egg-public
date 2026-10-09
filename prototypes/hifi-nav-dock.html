@@ -426,6 +426,9 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
            border-radius:var(--radius-md);font-size:var(--text-small);
            font-weight:500;color:var(--accent)}
 .tomb-undo i{font-size:18px}
+/* NAV DOCK FORK: open like the rows. The dashed marker already says
+   "removed"; a dashed box around it was the last card left on the rail. */
+.tomb-card{border:none;padding:0;border-radius:0}
 .tomb-undo:hover{background:var(--surface-raised)}
 
 /* elapsed time, shown only for gaps worth noticing */
@@ -1251,7 +1254,7 @@ button.navrow{width:100%;text-align:left}
     <div class="notif-b" id="notif-b">Levodopa 100mg, Entacapone 200mg</div>
     <div class="notif-actions">
       <button class="notif-btn primary" onclick="lockAnswer('asserted')">Taken</button>
-      <button class="notif-btn" onclick="lockAnswer('declined')">Skipped</button>
+      <button class="notif-btn" onclick="lockAnswer('declined')">Not taken</button>
     </div>
   </div>
   <button class="lock-open" onclick="closeLock()">Open the app instead</button>
@@ -1791,11 +1794,14 @@ function renderCard(){
     <div class="c-anchor"><span class="c-name">${esc(an)}</span>${ad ? ` <span class="c-dose">${esc(ad)}</span>` : ''}</div>
     ${sl.addons.length ? `<div class="c-addon">with ${esc(adds)}</div>` : ''}
     <div class="c-actions">
-      <button class="c-btn primary" onclick="cardYes()">Yes</button>
-      <button class="c-btn" onclick="cardNo()">No</button>
+      <!-- Self-describing answers (2026-10-09): a button that says what it
+           records survives a mis-tap and a screen reader without the
+           question. Same words as the notification. -->
+      <button class="c-btn primary" onclick="cardYes()">Taken</button>
+      <button class="c-btn" onclick="cardNo()">Not taken</button>
     </div>
     <button class="c-more" onclick="cardAdjust()">
-      <span>Yes, but not as scheduled</span><i class="ph ph-caret-right"></i></button>
+      <span>Taken, but not as scheduled</span><i class="ph ph-caret-right"></i></button>
     </div>`;
   updateTint();
 }
@@ -2969,7 +2975,7 @@ function renderSlotSheet(){
         <button class="medrow${r.taken ? '' : ' off'}" onclick="slotToggle(${i})">
           <span class="mname">${esc(r.name)}</span>
           <span class="mrole">${r.role === 'anchor' ? '' : 'add-on'}</span>
-          <span class="mstate">${r.taken ? 'Taken' : 'Skipped'}</span>
+          <span class="mstate">${r.taken ? 'Taken' : 'Not taken'}</span>   <!-- not 'Skipped': that implies a choice -->
         </button>`).join('')}
       <p class="slot-hint">Tap a line to drop it, tap again to put it back.</p>
     </div>
