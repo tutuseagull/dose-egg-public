@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-palette="oat" data-type="manrope">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
@@ -10,7 +10,7 @@
      bottom becomes a row of ways IN: camera, a quick note, and + for a
      specific kind of record. Everything else is v3 unchanged. Every change is
      marked NAV DOCK FORK so it can be found and judged on its own. -->
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <style>
@@ -48,6 +48,12 @@
   --ink-100:#E4EBF6; --ink-400:#5C7DAE; --ink-500:#345788; --ink-600:#29466E; --ink-700:#1D3352;
   --hue-mark:#345788;
 }
+/* NAV DOCK FORK · TYPE TEST: Manrope for everything (Tutu's pick from the
+   study). Sizes do not change: 17px body stays [C-16]. Only the families do,
+   which is the point of having them as tokens. Toggle in the demo bar. */
+:root[data-type="manrope"]{
+  --font-sans-override:'Manrope',-apple-system,system-ui,sans-serif;
+}
 /* ═══════════════════ LAYER 2 — SEMANTIC ═══════════════════ */
 :root{
   --surface-page:var(--paper-50); --surface-card:var(--paper-0);
@@ -59,6 +65,21 @@
   --on-accent:var(--paper-0);
   --mark:var(--hue-mark);
   --surface-accent:var(--ink-100);   /* NAV DOCK FORK: the dose card band */
+  --radius-xl:24px;                  /* NAV DOCK FORK: the band's bottom corners */
+
+  /* ── NAV DOCK FORK · MATERIALITY (2026-10-08, from the oat and denim study) ──
+     A little physicality on controls, after the liquid-glass direction but well
+     short of it: a lit top edge, a soft shadow, and for secondary controls a
+     mostly opaque white fill. Two rules hold it inside C-16:
+       1. Fills stay at least 78% opaque, so text contrast is set by the fill,
+          not by whatever happens to be behind it.
+       2. Every effect is decoration ON a control that already reads without it.
+          Turn on Reduce Transparency and nothing loses its edge or its label. */
+  --mat-fill:color-mix(in srgb, var(--paper-0) 82%, transparent);
+  --mat-edge:color-mix(in srgb, var(--paper-0) 92%, transparent);
+  --mat-highlight:inset 0 1px 0 color-mix(in srgb, var(--paper-0) 70%, transparent);
+  --mat-shadow:0 3px 10px color-mix(in srgb, var(--ink-700) 12%, transparent);
+  --mat-blur:blur(16px);
   --focus-ring:var(--ink-500); --focus-ring-width:3px; --focus-ring-offset:2px;
   --feedback-error:var(--red-600);
 
@@ -950,6 +971,51 @@ button.navrow{width:100%;text-align:left}
 .c-more{justify-content:space-between;color:var(--text-primary);padding:0 var(--space-1)}
 .c-more i{font-size:22px}
 
+
+/* ═════════ NAV DOCK FORK · TINT TO THE TOP + MATERIALITY (2026-10-08) ═════════ */
+:root[data-type="manrope"]{--font-sans:var(--font-sans-override);--font-serif:var(--font-sans-override)}
+
+/* Tint to the top. When the dose card is the first thing on Today, it becomes
+   a full-width band, and the band runs up behind the top bar to the top of
+   the screen, so the ask and the header read as one surface. When there is no
+   card, the header sits on the page colour as before. .tinted is set by
+   updateTint(), which runs on every card render and every tab change. */
+.top{transition:background var(--motion-base) var(--ease-out)}
+.shell.tinted .top{background:var(--surface-accent)}
+.shell.tinted .confirm{
+  margin:0 calc(var(--gutter) * -1) var(--space-6);
+  padding:var(--space-2) var(--gutter) var(--space-6);
+  border:none;border-radius:0 0 var(--radius-xl) var(--radius-xl);
+  background:linear-gradient(180deg, var(--surface-accent) 0%, var(--surface-accent) 55%,
+             color-mix(in srgb, var(--surface-accent) 72%, var(--surface-page)) 100%)}
+
+/* materiality: primary */
+.c-btn.primary, .fab{
+  background:linear-gradient(160deg,
+             color-mix(in srgb, var(--accent) 88%, var(--paper-0)) 0%,
+             var(--accent) 60%,
+             color-mix(in srgb, var(--accent) 92%, var(--paper-900)) 100%);
+  border-color:transparent;
+  box-shadow:inset 0 1px 0 color-mix(in srgb, var(--paper-0) 35%, transparent),
+             inset 0 -1px 0 color-mix(in srgb, var(--accent) 70%, var(--paper-900)),
+             var(--mat-shadow)}
+.c-btn.primary:hover, .fab:hover{background:var(--accent-hover)}
+.c-btn.primary:active, .fab:active{
+  box-shadow:inset 0 1px 3px color-mix(in srgb, var(--ink-700) 25%, transparent)}
+
+/* materiality: secondary surfaces, one recipe everywhere */
+.c-btn:not(.primary), .dock-btn, .note-bar, .feel-pill, .tab, .top .icon-btn{
+  background:var(--mat-fill);border:1px solid var(--mat-edge);
+  box-shadow:var(--mat-highlight), var(--mat-shadow);
+  -webkit-backdrop-filter:var(--mat-blur);backdrop-filter:var(--mat-blur)}
+.tab[aria-selected="true"]{background:var(--surface-card)}
+.top .icon-btn:first-child{margin-left:0}
+@media (prefers-reduced-transparency: reduce){
+  :root{--mat-fill:var(--paper-0)}
+  .c-btn:not(.primary), .dock-btn, .note-bar, .feel-pill, .tab, .top .icon-btn{
+    -webkit-backdrop-filter:none;backdrop-filter:none}
+}
+
 /* five tiles: the odd one out takes the full row */
 .grid .tile:last-child:nth-child(odd){grid-column:1 / -1}
 </style>
@@ -960,7 +1026,8 @@ button.navrow{width:100%;text-align:left}
   <div class="demo-bar">
     <a class="demo-btn home" href="../index.html">← Home</a>
     <span class="db">Hi-fi · Nav dock · fork of v3</span>
-    <button class="demo-btn" id="palToggle" onclick="togglePalette()">palette: Stitch blue</button>
+    <button class="demo-btn" id="palToggle" onclick="togglePalette()">palette: oat + denim</button>
+    <button class="demo-btn" id="typeToggle" onclick="toggleType()">type: Manrope</button>
     <button class="demo-btn" id="slotToggle" onclick="toggleLeftSlot()">bottom A: camera · note</button>
     <button class="demo-btn" onclick="openLock()">lock screen</button>
     <button class="demo-btn" onclick="demoAddDose()">+ due dose</button>
@@ -1586,7 +1653,7 @@ function renderTimeline(){
 }
 function renderCard(){
   const a = el('card-area');
-  if (!currentSlot){ a.innerHTML=''; return; }
+  if (!currentSlot){ a.innerHTML=''; updateTint(); return; }
   /* NAV DOCK FORK: hierarchy borrowed from the oat and denim study. The
      scheduled time leads, because it is how a person recognises which dose
      this is. Then the anchor, strong, with its dose quiet beside it. Then the
@@ -1613,6 +1680,7 @@ function renderCard(){
     <button class="c-more" onclick="cardAdjust()">
       <span>Yes, but not as scheduled</span><i class="ph ph-arrow-right"></i></button>
     </div>`;
+  updateTint();
 }
 
 /* ═════════ rendering — detail sheet ═════════ */
@@ -3002,6 +3070,19 @@ if (vv){
 
 /* ═════════ NAV DOCK FORK (2026-10-08) ═════════ */
 
+
+/* Tint to the top: only while the dose card is the first thing on Today. */
+function updateTint(){
+  const today = !el('scroll').hidden;
+  document.querySelector('.shell').classList.toggle('tinted', !!currentSlot && today);
+}
+function toggleType(){
+  const on = document.documentElement.dataset.type !== 'manrope';
+  if (on) document.documentElement.dataset.type = 'manrope';
+  else delete document.documentElement.dataset.type;
+  el('typeToggle').textContent = 'type: ' + (on ? 'Manrope' : 'Inter + Newsreader');
+}
+
 function togglePalette(){
   const oat = document.documentElement.dataset.palette !== 'oat';
   if (oat) document.documentElement.dataset.palette = 'oat';
@@ -3017,6 +3098,7 @@ function showTab(t){
   el('tab-lb').setAttribute('aria-selected', String(t === 'lookback'));
   el('scroll').hidden   = t !== 'today';
   el('lookback').hidden = t !== 'lookback';
+  updateTint();
 }
 
 /* The bottom row is a test, not a decision. Three layouts, cycled from the
