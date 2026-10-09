@@ -941,15 +941,14 @@ button.navrow{width:100%;text-align:left}
 .confirm{background:var(--surface-accent);border-color:transparent}
 .c-head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-3);
         flex-wrap:wrap;margin-bottom:var(--space-3)}
-.c-when{display:flex;flex-direction:column;gap:var(--space-1)}
-.c-sub{font-size:var(--text-label);color:var(--text-muted);font-variant-numeric:tabular-nums}
-.c-time{font-size:var(--text-display);line-height:var(--leading-tight);font-weight:400;
-        font-variant-numeric:tabular-nums;color:var(--text-primary)}
-.c-type{display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-small);
-        color:var(--text-secondary);margin-top:var(--space-2)}   /* centres on the big time's line */
-.c-type i{font-size:22px}
-i.c-type{font-size:24px;line-height:1}   /* the icon alone, no word */
-.confirm-q{font-weight:500;margin-bottom:var(--space-3)}
+.c-type{color:var(--text-secondary);flex:0 0 auto}
+i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no word */
+.confirm-q{font-size:var(--text-heading);font-weight:600;line-height:var(--leading-tight);margin:0}
+.c-head{flex-wrap:nowrap}   /* the question wraps inside itself; the icon stays on its first line */
+.c-head .confirm-q{flex:1;min-width:0}
+.c-meta{font-size:var(--text-small);color:var(--text-muted);margin-top:var(--space-2);
+        font-variant-numeric:tabular-nums}
+.c-meta b{font-weight:600;color:var(--text-secondary)}
 .c-anchor{font-size:var(--text-body);line-height:var(--leading-body)}
 .c-name{font-weight:600;color:var(--text-primary)}
 .c-dose{color:var(--text-muted)}
@@ -1715,37 +1714,40 @@ function renderTimeline(){
 function renderCard(){
   const a = el('card-area');
   if (!currentSlot){ a.innerHTML=''; updateTint(); return; }
-  /* NAV DOCK FORK: hierarchy borrowed from the oat and denim study. The
-     scheduled time leads, because it is how a person recognises which dose
-     this is. Then the anchor, strong, with its dose quiet beside it. Then the
+  /* HIERARCHY, revised 2026-10-09 (Tutu, mock D): the QUESTION leads,
+     because the card is a question and the person's job is to answer it.
+     Time-first (from the ChatGPT style study, a style piece, not a flow) made
+     a big clock the headline and a text block on the left. Time is the second
+     thing being confirmed, so it is a line under the medication, with the
+     plan in semibold. Then the anchor, strong, with its dose quiet beside it. Then the
      add-ons on their own line, "with ...": an add-on is never taken alone
      [D-16], and "with" says so where "+" reads like a button. Both lines stay
      at body size; the difference is weight and hue, never size [C-16]. */
   const sl = currentSlot, n = 1 + sl.addons.length;
-  const q = n === 1 ? 'Did you take this?' : n <= 3 ? 'Did you take these?' : `Did you take all ${n}?`;
+  /* past three, the list cannot be read at a glance, so the question carries
+     the time itself, as v3 did */
+  const q = n === 1 ? 'Did you take this?' : n <= 3 ? 'Did you take these?'
+          : `Did you take your ${esc(sl.sched)} medication?`;
   const split = name => { const m = name.match(/^(.*?)\s+(\d.*)$/);
                           return m ? [m[1], m[2]] : [name, '']; };   /* free-text names may carry no dose */
   const [an, ad] = split(sl.anchor);
   const adds = sl.addons.length <= 2 ? sl.addons.join(' and ')
              : `${sl.addons[0]} and ${sl.addons.length - 1} more`;
-  /* The big time needs a label, and "now" hangs off it (restored 2026-10-09:
-     v3 said "Scheduled 10:30 · now 17:01" and the restyle dropped it). Two
-     unlabelled clock times would compete; one labelled time plus a quiet
-     "now" reads as a fact. Within 15 min of the schedule, "now" only
-     repeats the big number, so it is left out. Never the word "late". */
+  /* "Scheduled 10:30 · now 14:46", as v3 had it. Within 15 min of the
+     schedule "now" adds nothing and is left out. Never the word "late". */
   /* The "Medication" WORD was removed 2026-10-09 (Tutu): the question and the
      drug names already say what this is. The pill icon stays, as the card's
      type mark, the same way every timeline row carries one. */
   const drift = Math.abs(toMin(nowTime()) - toMin(sl.sched));
-  const sub = Math.min(drift, 1440 - drift) >= 15 ? `Scheduled · now ${nowTime()}` : 'Scheduled';
+  const when = `<b>Scheduled ${esc(sl.sched)}</b>`
+             + (Math.min(drift, 1440 - drift) >= 15 ? ` · now ${nowTime()}` : '');
   a.innerHTML = `<div class="confirm">
-    <div class="c-head"><span class="c-when"><span class="c-time">${esc(sl.sched)}</span>
-      <span class="c-sub">${sub}</span></span>
+    <div class="c-head"><div class="confirm-q">${q}</div>
       <i class="ph ph-pill c-type" aria-hidden="true"></i>
     </div>
-    <div class="confirm-q">${q}</div>
     <div class="c-anchor"><span class="c-name">${esc(an)}</span>${ad ? ` <span class="c-dose">${esc(ad)}</span>` : ''}</div>
     ${sl.addons.length ? `<div class="c-addon">with ${esc(adds)}</div>` : ''}
+    <div class="c-meta">${when}</div>
     <div class="c-actions">
       <!-- Self-describing answers (2026-10-09): a button that says what it
            records survives a mis-tap and a screen reader without the
