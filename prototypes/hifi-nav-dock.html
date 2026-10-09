@@ -999,12 +999,14 @@ button.navrow{width:100%;text-align:left}
 
 /* ── dose card, restyled (NAV DOCK FORK) ── */
 .confirm{background:var(--surface-accent);border-color:transparent}
-.c-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);
+.c-head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-3);
         flex-wrap:wrap;margin-bottom:var(--space-3)}
+.c-when{display:flex;flex-direction:column;gap:var(--space-1)}
+.c-sub{font-size:var(--text-label);color:var(--text-muted);font-variant-numeric:tabular-nums}
 .c-time{font-size:var(--text-display);line-height:var(--leading-tight);font-weight:400;
         font-variant-numeric:tabular-nums;color:var(--text-primary)}
 .c-type{display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-small);
-        color:var(--text-secondary)}
+        color:var(--text-secondary);margin-top:var(--space-2)}   /* centres on the big time's line */
 .c-type i{font-size:22px}
 .confirm-q{font-weight:500;margin-bottom:var(--space-3)}
 .c-anchor{font-size:var(--text-body);line-height:var(--leading-body)}
@@ -1771,8 +1773,16 @@ function renderCard(){
   const [an, ad] = split(sl.anchor);
   const adds = sl.addons.length <= 2 ? sl.addons.join(' and ')
              : `${sl.addons[0]} and ${sl.addons.length - 1} more`;
+  /* The big time needs a label, and "now" hangs off it (restored 2026-10-09:
+     v3 said "Scheduled 10:30 · now 17:01" and the restyle dropped it). Two
+     unlabelled clock times would compete; one labelled time plus a quiet
+     "now" reads as a fact. Within 15 min of the schedule, "now" only
+     repeats the big number, so it is left out. Never the word "late". */
+  const drift = Math.abs(toMin(nowTime()) - toMin(sl.sched));
+  const sub = Math.min(drift, 1440 - drift) >= 15 ? `Scheduled · now ${nowTime()}` : 'Scheduled';
   a.innerHTML = `<div class="confirm">
-    <div class="c-head"><span class="c-time">${esc(sl.sched)}</span>
+    <div class="c-head"><span class="c-when"><span class="c-time">${esc(sl.sched)}</span>
+      <span class="c-sub">${sub}</span></span>
       <span class="c-type"><i class="ph ph-pill"></i>Medication</span></div>
     <div class="confirm-q">${q}</div>
     <div class="c-anchor"><span class="c-name">${esc(an)}</span>${ad ? ` <span class="c-dose">${esc(ad)}</span>` : ''}</div>
