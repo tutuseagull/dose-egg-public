@@ -376,10 +376,15 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 
 /* now */
 .now{position:relative;padding:0 0 var(--space-6) var(--rail-indent);z-index:2}
-.now::before{content:'';position:absolute;left:12px;top:2px;width:11px;height:11px;
+/* The dot is centred on the label's own line box, not a pixel offset, so it
+   stays centred across typefaces and text sizes (a fixed 2px was tuned for
+   Inter and drifted under Manrope, 2026-10-09). */
+.now::before{content:'';position:absolute;left:12px;width:11px;height:11px;
+             top:calc((var(--text-label) * var(--leading-body) - 11px) / 2);
              border-radius:50%;background:var(--accent);
              box-shadow:0 0 0 4px var(--surface-page)}
-.now span{font-size:var(--text-label);color:var(--accent);font-weight:600;
+.now span{display:block;line-height:var(--leading-body);
+          font-size:var(--text-label);color:var(--accent);font-weight:600;
           letter-spacing:.04em;font-variant-numeric:tabular-nums}
 
 .empty-day{font-size:var(--text-small);color:var(--text-muted);padding:var(--space-4) 0 var(--space-6)}
