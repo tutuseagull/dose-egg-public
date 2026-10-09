@@ -1122,6 +1122,7 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
     <button class="demo-btn" onclick="openLock()">lock screen</button>
     <button class="demo-btn" onclick="demoAddDose()">+ due dose</button>
     <button class="demo-btn" onclick="demoBigSlot()">12-med slot</button>
+    <button class="demo-btn" onclick="demoLastNight()">last night</button>
     <button class="demo-btn" onclick="demoEmpty()">empty</button>
     <button class="demo-btn" onclick="toggleTuner()">tune ▾</button>
     <button class="demo-btn" onclick="location.reload()">reset</button>
@@ -1755,8 +1756,10 @@ function renderCard(){
   const sl = currentSlot, n = 1 + sl.addons.length;
   /* past three, the list cannot be read at a glance, so the question carries
      the time itself, as v3 did */
+  const yday = slotDay(sl) === 1;
   const q = n === 1 ? 'Did you take this?' : n <= 3 ? 'Did you take these?'
-          : `Did you take your ${esc(sl.sched)} medication?`;
+          : yday ? `Did you take yesterday's ${esc(sl.sched)} medication?`
+                 : `Did you take your ${esc(sl.sched)} medication?`;
   const split = name => { const m = name.match(/^(.*?)\s+(\d.*)$/);
                           return m ? [m[1], m[2]] : [name, '']; };   /* free-text names may carry no dose */
   const [an, ad] = split(sl.anchor);
@@ -1768,8 +1771,12 @@ function renderCard(){
      drug names already say what this is. The pill icon stays, as the card's
      type mark, the same way every timeline row carries one. */
   const drift = Math.abs(toMin(nowTime()) - toMin(sl.sched));
-  const when = `<b>Scheduled ${esc(sl.sched)}</b>`
-             + (Math.min(drift, 1440 - drift) >= 15 ? ` · now ${nowTime()}` : '');
+  /* A slot from the day before says so, and always shows now: "22:00" alone
+     at 06:30 reads as tonight. See the rollover rule above resolveSlot. */
+  const when = yday
+    ? `<b>Scheduled yesterday ${esc(sl.sched)}</b> · now ${nowTime()}`
+    : `<b>Scheduled ${esc(sl.sched)}</b>`
+      + (Math.min(drift, 1440 - drift) >= 15 ? ` · now ${nowTime()}` : '');
   a.innerHTML = `<div class="confirm">
     <div class="c-head"><div class="confirm-q">${q}</div>
       <i class="ph ph-pill c-type" aria-hidden="true"></i>
@@ -2896,18 +2903,26 @@ function undoRemove(di, i){ delete DAYS[di].list[i].removed; renderTimeline(); }
    Supersedes "Card waits, then yields" (flow-daily-loop.html), where rows only
    appeared at yield time and a confirmed dose popped into the middle of the
    rail. Assumed still never renders as taken in the export. */
-const pendingOf = sl => DAYS[0].list.filter(e => e.pending && e.slot === sl.sched);
+/* ROLLOVER (Tutu, 2026-10-09): an unanswered slot has no clock. It yields
+   only when the NEXT dose falls due, never at midnight or at wake time, so
+   a 22:00 dose can still be confirmed at 06:30 the next morning. The slot
+   remembers which day it belongs to (ago: 0 today, 1 yesterday); its rows
+   and its answer land on that day, and the card says "yesterday". */
+const slotDay = sl => (sl && sl.ago) || 0;
+const slotList = sl => DAYS[slotDay(sl)].list;
+const pendingOf = sl => slotList(sl).filter(e => e.pending && e.slot === sl.sched);
 function ensurePending(sl){            /* returns true when it added rows */
   if (!sl || pendingOf(sl).length) return false;
   slotMeds(sl).forEach((m, ord) =>
-    DAYS[0].list.push({ time:sl.sched, recorded:nowTime(), text:m, type:'dose',
+    slotList(sl).push({ time:sl.sched, recorded:nowTime(), text:m, type:'dose',
                         basis:'assumed', pending:true,
                         slot:sl.sched, role:roleOf(sl, m), ord }));
-  sortDay(DAYS[0]);
+  sortDay(DAYS[slotDay(sl)]);
   return true;
 }
 function clearPending(sl){
-  DAYS[0].list = DAYS[0].list.filter(e => !(e.pending && e.slot === sl.sched));
+  const d = DAYS[slotDay(sl)];
+  d.list = d.list.filter(e => !(e.pending && e.slot === sl.sched));
 }
 function yieldSlot(sl){                 /* unanswered: stays assumed, stops waiting */
   pendingOf(sl).forEach(e => { delete e.pending; });
@@ -2919,7 +2934,7 @@ function resolveSlot(basis){
   clearPending(sl);
   slotMeds(sl).forEach((m, ord) =>
     addEntry({ time:sl.sched, recorded:nowTime(), text:m, type:'dose', basis,
-               slot:sl.sched, role:roleOf(sl, m), ord }, 0));
+               slot:sl.sched, role:roleOf(sl, m), ord }, slotDay(sl)));
   currentSlot = null; renderCard();
 }
 function cardYes(){ resolveSlot('asserted'); }
@@ -2958,7 +2973,7 @@ function openSlotSheet(sl, existing){
        person is confirming they took it, and the fact under correction is WHEN.
        Defaulting to now silently asserts they took it this second, which is the
        app's guess wearing the person's answer [portfolio rule 7]. */
-    slotEdit = { sched: sl.sched, time: sl.sched, fromCard: true, di: 0, ents: null,
+    slotEdit = { sched: sl.sched, time: sl.sched, fromCard: true, di: slotDay(sl), ents: null,
                  rows: slotMeds(sl).map(m => ({ name:m, role:roleOf(sl, m), taken:true })) };
   }
   renderSlotSheet();
@@ -3068,7 +3083,9 @@ function openLock(){
   el('lock-date').textContent =
     `${DAYS_LONG[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
   const meds = slotMeds(currentSlot);
-  el('notif-t').textContent = `Your ${currentSlot.sched} medication`
+  el('notif-t').textContent = (slotDay(currentSlot) === 1
+                              ? `Yesterday's ${currentSlot.sched} medication`
+                              : `Your ${currentSlot.sched} medication`)
                             + (meds.length > 3 ? ` · ${meds.length} items` : '');
   el('notif-b').textContent = medSummary(meds);
   el('lock').classList.add('open');
@@ -3096,6 +3113,14 @@ function demoBigSlot(){
     'Entacapone 200mg','Amantadine 100mg','Rasagiline 1mg','Pramipexole 0.25mg',
     'Clonazepam 0.5mg','Vitamin D 1000IU','Calcium 500mg','Melatonin 3mg',
     'Omeprazole 20mg','Sertraline 50mg','Docusate 100mg'] };
+  renderCard(); renderTimeline();
+}
+/* Rollover: last night's 22:00 was never answered, and the next dose has not
+   come due yet, so the card is still waiting for it this morning. */
+function demoLastNight(){
+  if (currentSlot){ clearPending(currentSlot); }   /* a demo swap */
+  currentSlot = { sched:'22:00', ago:1, anchor:'Levodopa 100mg',
+                  addons:['Entacapone 200mg'] };
   renderCard(); renderTimeline();
 }
 function demoEmpty(){ DAYS.forEach(d => d.list = []); currentSlot = null;
