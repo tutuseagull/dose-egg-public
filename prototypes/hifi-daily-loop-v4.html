@@ -969,6 +969,10 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
    updateTint(), which runs on every card render and every tab change. */
 .top{transition:background var(--motion-base) var(--ease-out)}
 .shell.tinted .top{background:var(--surface-accent)}
+/* With no dose card, the timeline needs its own air under the nav: the card's
+   top padding was the only buffer and it leaves with the card. Not applied
+   while tinted, or a page-coloured strip would cut the band off the header. */
+.shell:not(.tinted) #scroll{padding-top:var(--space-6)}
 .shell.tinted .confirm{
   margin:0 calc(var(--gutter) * -1) var(--space-6);
   padding:var(--space-8) var(--gutter) var(--space-6);   /* top: space-2, then 6, then 8 once the card led with a 19px question (2026-10-09) */
