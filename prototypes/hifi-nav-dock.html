@@ -1082,6 +1082,34 @@ button.navrow{width:100%;text-align:left}
   :root[data-material="glass"]{--glass-fill:var(--paper-0);--glass-fill-strong:var(--paper-0);--glass-blur:none}
 }
 
+
+/* ═════════ NAV DOCK FORK · OPEN TIMELINE ROWS (2026-10-09) ═════════
+   No bordered card per event (Tutu, from the oat and denim study): the rail
+   and the marker already group each event, so a box around it was a second
+   container saying the same thing, and it cost width on every row.
+   - The WHOLE row is the button, as before; nothing changed about the hit
+     area, only what it looks like at rest.
+   - Interactivity is a chevron on the title's first line, not a centred
+     glyph: it stays on line one when the title wraps, so it always sits
+     next to the thing it opens. Its box is exactly one title line tall.
+   - Pressing or hovering washes the row, and a new entry still gets its
+     wash, so feedback survives losing the card.
+   - ONE glyph for "opens something": caret-right, here and on "Yes, but not
+     as scheduled". AGENTS.md already reserves caret-DOWN for expanding in
+     place, so right means "goes somewhere", down means "opens here".
+     Chevron over arrow because it is the platform's row idiom and an arrow
+     repeated on every row is loud. */
+.ecard{background:transparent;border:none;border-radius:var(--radius-md);
+       padding:var(--space-2) var(--space-3);margin:0 calc(var(--space-3) * -1)}
+.entry:hover .ecard, .entry:active .ecard{background:var(--surface-raised)}
+.entry.fresh .ecard{border:none}
+.ehead{display:flex;align-items:flex-start;gap:var(--space-3)}
+.ehead .etext{flex:1;min-width:0;padding-right:0;font-size:var(--text-body)}
+.ehead .chev{position:static;transform:none;flex:0 0 auto;display:flex;align-items:center;
+             height:calc(var(--text-body) * 1.35);color:var(--text-muted)}
+.ehead .chev i{font-size:18px}
+.etime{padding-bottom:0}
+
 /* five tiles: the odd one out takes the full row */
 .grid .tile:last-child:nth-child(odd){grid-column:1 / -1}
 </style>
@@ -1622,10 +1650,9 @@ function entryHTML(e, di, i){
     ${markHTML(e)}
     <span class="etime">${fromMin(startMin(e))}</span>
     <span class="ecard">
-      <span class="etext">${esc(e.text)}</span>
+      <span class="ehead"><span class="etext">${esc(e.text)}</span><span class="chev"><i class="ph ph-caret-right"></i></span></span>
       ${meta ? `<span class="emeta">${meta}</span>` : ''}
       ${note}${free}
-      <span class="chev"><i class="ph ph-caret-right"></i></span>
     </span>
   </button>`;
 }
@@ -1671,10 +1698,9 @@ function groupHTML(g, di){
     ${markHTML(e)}
     <span class="etime">${fromMin(startMin(e))}</span>
     <span class="ecard">
-      <span class="etext">${esc(names[0])}</span>
+      <span class="ehead"><span class="etext">${esc(names[0])}</span><span class="chev"><i class="ph ph-caret-right"></i></span></span>
       <span class="egroup">${esc(medSummary(names.slice(1), 2))}</span>
       ${note}
-      <span class="chev"><i class="ph ph-caret-right"></i></span>
     </span>
   </button>`;
 }
@@ -1745,7 +1771,7 @@ function renderCard(){
       <button class="c-btn" onclick="cardNo()">No</button>
     </div>
     <button class="c-more" onclick="cardAdjust()">
-      <span>Yes, but not as scheduled</span><i class="ph ph-arrow-right"></i></button>
+      <span>Yes, but not as scheduled</span><i class="ph ph-caret-right"></i></button>
     </div>`;
   updateTint();
 }
