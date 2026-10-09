@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-palette="oat-bright">
+<html lang="en" data-palette="oat-cool">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
@@ -50,6 +50,31 @@
    Stitch's hue and one step deeper than denim's (1.19:1).
    Checks: white on accent 6.6:1, accent on page 6.4:1, ink on band 12.5:1,
    muted text on band 5.2:1. All pass AA. */
+/* ── NAV DOCK FORK · PALETTE: cool band, two grounds (2026-10-09) ──
+   Tutu: keep Stitch's cooler blue for the band, deeper, and change the page.
+   Band #E1E5FB is Stitch's own hue (231°, a touch of lavender, where
+   oat + bright's band leans cyan at 218°) taken one step deeper, so it reads
+   at 1.21:1 against oat where Stitch's band managed 1.07. Two grounds to
+   compare it on:
+     oat-cool    the warm oat page. Warm ground, cool band: temperature tension.
+     white-cool  a neutral white page, no warmth and no blue, so the band is
+                 the only colour on screen. 1.20:1.
+   Both keep Stitch's ink ramp for the brighter blue. Checks on the band:
+   ink 12.3:1, muted text 5.2:1, accent 5.3:1; white on accent 6.6:1. */
+:root[data-palette="oat-cool"]{
+  --paper-0:#FFFDFA; --paper-50:#FCFBF7; --paper-100:#F4F2EC; --paper-200:#E8E5DD;
+  --paper-300:#D5D3CB; --paper-400:#A9AFB6; --paper-500:#7A8593; --paper-600:#53606D;
+  --paper-700:#3A4654; --paper-800:#263240; --paper-900:#192632;
+  --ink-100:#E1E5FB; --ink-400:#4A7BC8; --ink-500:#2B5BA9; --ink-600:#1E4380; --ink-700:#143059;
+  --hue-mark:#3B4E7A;
+}
+:root[data-palette="white-cool"]{
+  --paper-0:#FFFFFF; --paper-50:#FAFAF9; --paper-100:#F3F3F1; --paper-200:#E7E7E4;
+  --paper-300:#D6D6D2; --paper-400:#ABAFB5; --paper-500:#7B8290; --paper-600:#545C69;
+  --paper-700:#3A4250; --paper-800:#262D3A; --paper-900:#171C27;
+  --ink-100:#E1E5FB; --ink-400:#4A7BC8; --ink-500:#2B5BA9; --ink-600:#1E4380; --ink-700:#143059;
+  --hue-mark:#3B4E7A;
+}
 :root[data-palette="oat-bright"]{
   --paper-0:#FFFDFA; --paper-50:#FCFBF7; --paper-100:#F4F2EC; --paper-200:#E8E5DD;
   --paper-300:#D5D3CB; --paper-400:#A9AFB6; --paper-500:#7A8593; --paper-600:#53606D;
@@ -1087,7 +1112,7 @@ button.navrow{width:100%;text-align:left}
   <div class="demo-bar">
     <a class="demo-btn home" href="../index.html">← Home</a>
     <span class="db">Hi-fi · Nav dock · fork of v3</span>
-    <button class="demo-btn" id="palToggle" onclick="togglePalette()">palette: oat + bright</button>
+    <button class="demo-btn" id="palToggle" onclick="togglePalette()">palette: oat + cool</button>
     <button class="demo-btn" id="slotToggle" onclick="toggleLeftSlot()">bottom A: camera · note</button>
     <button class="demo-btn" onclick="openLock()">lock screen</button>
     <button class="demo-btn" onclick="demoAddDose()">+ due dose</button>
@@ -3131,6 +3156,8 @@ if (vv){
 
 /* Tint to the top: only while the dose card is the first thing on Today. */
 const PALETTES = [
+  { key:'oat-cool',   tag:'oat + cool' },
+  { key:'white-cool', tag:'white + cool' },
   { key:'oat-bright', tag:'oat + bright' },
   { key:'oat',        tag:'oat + denim' },
   { key:'stitch',     tag:'Stitch blue' }   /* no attribute: the base primitives */
