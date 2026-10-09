@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-palette="oat-cool">
+<html lang="en" data-palette="matched">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
@@ -64,6 +64,24 @@
                  the only colour on screen. 1.13:1.
    Both keep Stitch's ink ramp for the brighter blue. Checks on the band:
    ink 13.0:1, muted text 5.4:1, accent 5.6:1; white on accent 6.6:1. */
+/* ── NAV DOCK FORK · PALETTE: matched (2026-10-09), the default ──
+   Option 3 from the button study. With the cool band, Stitch's blue (217°)
+   sat 15° warmer than the band (232°) and leaned slightly teal beside it.
+   Here every blue shares one hue, 227°: the button ramp, the band, and the
+   timeline markers (which were a grey navy at 222°, now a little more
+   saturated so the icons belong to the same family). White controls stay
+   pure white: a cool white was 1.01:1 against oat and vanished.
+   Checks: white on accent 6.9:1, accent on page 6.7:1, white icon on marker
+   8.5:1, muted text on band 5.4:1. accent-quiet (400) is used as text by the
+   estimate mark (.est), so it is set to clear AA on page, white AND band:
+   5.2 / 5.4 / 4.6. */
+:root[data-palette="matched"]{
+  --paper-0:#FFFFFF; --paper-50:#FCFBF7; --paper-100:#F4F2EC; --paper-200:#E8E5DD;
+  --paper-300:#D5D3CB; --paper-400:#A9AFB6; --paper-500:#7A8593; --paper-600:#53606D;
+  --paper-700:#3A4654; --paper-800:#263240; --paper-900:#192632;
+  --ink-100:#E8EBFF; --ink-400:#4362D0; --ink-500:#3350BE; --ink-600:#27409B; --ink-700:#1D2F72;
+  --hue-mark:#35488D;
+}
 :root[data-palette="oat-cool"]{
   --paper-0:#FFFDFA; --paper-50:#FCFBF7; --paper-100:#F4F2EC; --paper-200:#E8E5DD;
   --paper-300:#D5D3CB; --paper-400:#A9AFB6; --paper-500:#7A8593; --paper-600:#53606D;
@@ -1115,7 +1133,7 @@ button.navrow{width:100%;text-align:left}
   <div class="demo-bar">
     <a class="demo-btn home" href="../index.html">← Home</a>
     <span class="db">Hi-fi · Nav dock · fork of v3</span>
-    <button class="demo-btn" id="palToggle" onclick="togglePalette()">palette: oat + cool</button>
+    <button class="demo-btn" id="palToggle" onclick="togglePalette()">palette: matched</button>
     <button class="demo-btn" id="slotToggle" onclick="toggleLeftSlot()">bottom A: camera · note</button>
     <button class="demo-btn" onclick="openLock()">lock screen</button>
     <button class="demo-btn" onclick="demoAddDose()">+ due dose</button>
@@ -3159,6 +3177,7 @@ if (vv){
 
 /* Tint to the top: only while the dose card is the first thing on Today. */
 const PALETTES = [
+  { key:'matched',    tag:'matched' },
   { key:'oat-cool',   tag:'oat + cool' },
   { key:'white-cool', tag:'white + cool' },
   { key:'oat-bright', tag:'oat + bright' },
