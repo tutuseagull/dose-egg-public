@@ -24,8 +24,29 @@
   --paper-700:#3E4658; --paper-800:#262C3A; --paper-900:#141B2B;
   --ink-400:#4A7BC8; --ink-500:#2B5BA9; --ink-600:#1E4380; --ink-700:#143059;
   --hue-mark:#3B4E7A;   /* one mark colour — icon carries the type, colour carries nothing */
+  --ink-100:#F1F3FF;    /* NAV DOCK FORK: accent tint for a card band. Stitch neutrals are
+                           already blue, so this equals paper-100; oat needs its own */
   --red-600:#A33A2A;
   --backdrop:#D9DDE8;   /* review frame only — not a product surface */
+}
+/* ── NAV DOCK FORK · PALETTE TEST: oat + denim, primitives only ──
+   Question (Tutu, 2026-10-08): how much of the ChatGPT oat and denim study fits
+   our existing definitions? Rule of the test: only this layer changes. Anything
+   the study does that cannot be reproduced from here is a gap in the system.
+   Page, ink, muted, accent and band are lifted from the study; the steps
+   between them are interpolated.
+   FINDING: one primitive and one semantic token were missing. The study's card
+   band is a tint of the ACCENT, not a neutral. Stitch blue never needed that
+   because its neutrals are already blue; oat neutrals are warm, so the band
+   needs ink-100, and the card needs surface-accent to point at it.
+   NOT reproduced, on purpose: the glass treatments. Blur and translucent fills
+   would need new tokens and lower contrast, which C-16 rules out as a lever. */
+:root[data-palette="oat"]{
+  --paper-0:#FFFDFA; --paper-50:#FCFBF7; --paper-100:#F4F2EC; --paper-200:#E8E5DD;
+  --paper-300:#D5D3CB; --paper-400:#A9AFB6; --paper-500:#7A8593; --paper-600:#53606D;
+  --paper-700:#3A4654; --paper-800:#263240; --paper-900:#192632;
+  --ink-100:#E4EBF6; --ink-400:#5C7DAE; --ink-500:#345788; --ink-600:#29466E; --ink-700:#1D3352;
+  --hue-mark:#345788;
 }
 /* ═══════════════════ LAYER 2 — SEMANTIC ═══════════════════ */
 :root{
@@ -37,6 +58,7 @@
   --accent:var(--ink-500); --accent-hover:var(--ink-600); --accent-quiet:var(--ink-400);
   --on-accent:var(--paper-0);
   --mark:var(--hue-mark);
+  --surface-accent:var(--ink-100);   /* NAV DOCK FORK: the dose card band */
   --focus-ring:var(--ink-500); --focus-ring-width:3px; --focus-ring-offset:2px;
   --feedback-error:var(--red-600);
 
@@ -821,14 +843,24 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 /* ═════════ NAV DOCK FORK (2026-10-08) ═════════ */
 /* top: menu button, then the two views as one segmented control */
 .top{justify-content:flex-start;gap:var(--space-2)}
-.tabs{flex:1;display:flex;gap:var(--space-1);padding:var(--space-1);
-      background:var(--surface-sunken);border-radius:var(--radius-full)}
-.tab{flex:1;min-height:var(--target-routine);border-radius:var(--radius-full);
-     font-size:var(--text-small);color:var(--text-secondary);
-     display:flex;align-items:center;justify-content:center;padding:0 var(--space-3)}
-/* where you are is weight plus a raised shape, never a colour alone */
-.tab[aria-selected="true"]{background:var(--surface-card);color:var(--text-primary);
-     font-weight:600;box-shadow:0 1px 3px rgba(20,27,43,.10)}
+/* After Notion (Tutu, 2026-10-08): the current tab is a wide pill with its
+   name; the other collapses to an icon bubble. Where you are is carried by
+   SHAPE and the name, never by colour alone. The bubble keeps its name for
+   screen readers via aria-label, but a sighted person has only the icon, so
+   the Look Back icon has to be recognisable on its own: test it with P01.
+   Motion between the two states: parked, Tutu wants to come back to it. */
+.tabs{flex:1;display:flex;gap:var(--space-2);min-width:0}
+.tab{flex:0 0 var(--target-routine);min-height:var(--target-routine);
+     border-radius:var(--radius-full);background:var(--surface-raised);
+     color:var(--text-secondary);display:flex;align-items:center;justify-content:center;
+     gap:var(--space-2);padding:0}
+.tab i{font-size:22px}
+.tab .tab-lab{display:none}
+.tab[aria-selected="true"]{flex:1 1 auto;padding:0 var(--space-4);
+     background:var(--surface-sunken);color:var(--text-primary);font-weight:600;
+     font-size:var(--text-small)}
+.tab[aria-selected="true"] i{font-weight:bold}
+.tab[aria-selected="true"] .tab-lab{display:inline}
 .scroll[hidden]{display:none}
 .lb-note{margin-top:var(--space-4);padding:var(--space-4);border-radius:var(--radius-md);
          border:1px dashed var(--border-interactive);color:var(--text-secondary);
@@ -895,6 +927,27 @@ button.navrow{width:100%;text-align:left}
 .feel-pill i{font-size:24px;color:var(--mark)}
 .note-bar[hidden],.feel-pill[hidden]{display:none}
 
+
+/* ── dose card, restyled (NAV DOCK FORK) ── */
+.confirm{background:var(--surface-accent);border-color:transparent}
+.c-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);
+        flex-wrap:wrap;margin-bottom:var(--space-3)}
+.c-time{font-size:var(--text-display);line-height:var(--leading-tight);font-weight:400;
+        font-variant-numeric:tabular-nums;color:var(--text-primary)}
+.c-type{display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-small);
+        color:var(--text-secondary)}
+.c-type i{font-size:22px}
+.confirm-q{font-weight:500;margin-bottom:var(--space-3)}
+.c-anchor{font-size:var(--text-body);line-height:var(--leading-body)}
+.c-name{font-weight:600;color:var(--text-primary)}
+.c-dose{color:var(--text-muted)}
+.c-addon{font-size:var(--text-body);line-height:var(--leading-body);
+         color:var(--text-secondary)}
+.c-actions{margin-top:var(--space-4)}
+.c-btn:not(.primary){background:var(--surface-card);border-color:var(--border-subtle)}
+.c-more{justify-content:space-between;color:var(--text-primary);padding:0 var(--space-1)}
+.c-more i{font-size:22px}
+
 /* five tiles: the odd one out takes the full row */
 .grid .tile:last-child:nth-child(odd){grid-column:1 / -1}
 </style>
@@ -905,6 +958,7 @@ button.navrow{width:100%;text-align:left}
   <div class="demo-bar">
     <a class="demo-btn home" href="../index.html">← Home</a>
     <span class="db">Hi-fi · Nav dock · fork of v3</span>
+    <button class="demo-btn" id="palToggle" onclick="togglePalette()">palette: Stitch blue</button>
     <button class="demo-btn" id="slotToggle" onclick="toggleLeftSlot()">bottom A: camera · note</button>
     <button class="demo-btn" onclick="openLock()">lock screen</button>
     <button class="demo-btn" onclick="demoAddDose()">+ due dose</button>
@@ -961,10 +1015,12 @@ button.navrow{width:100%;text-align:left}
     <button class="icon-btn" id="menuBtn" onclick="openDrawer()" aria-haspopup="true"
             aria-label="Menu" aria-expanded="false"><i class="ph ph-list"></i></button>
     <div class="tabs" role="tablist" aria-label="Views">
-      <button class="tab" role="tab" id="tab-today" aria-selected="true"
-              aria-controls="scroll" onclick="showTab('today')">Today</button>
-      <button class="tab" role="tab" id="tab-lb" aria-selected="false"
-              aria-controls="lookback" onclick="showTab('lookback')">Look Back</button>
+      <button class="tab" role="tab" id="tab-today" aria-selected="true" aria-label="Today"
+              aria-controls="scroll" onclick="showTab('today')">
+        <i class="ph ph-sun"></i><span class="tab-lab">Today</span></button>
+      <button class="tab" role="tab" id="tab-lb" aria-selected="false" aria-label="Look Back"
+              aria-controls="lookback" onclick="showTab('lookback')">
+        <i class="ph ph-clock-counter-clockwise"></i><span class="tab-lab">Look Back</span></button>
     </div>
   </div>
 
@@ -1529,22 +1585,31 @@ function renderTimeline(){
 function renderCard(){
   const a = el('card-area');
   if (!currentSlot){ a.innerHTML=''; return; }
-  /* COPY CHANGE v2: v1's middle button said "Edit", which didn't tell you whether
-     pressing it counted as a yes. It now sits below as its own path and says so. */
-  const meds = slotMeds(currentSlot), n = meds.length;
-  const q = n === 1 ? `Did you take ${esc(meds[0].split(' ')[0])}?`
-          : n <= 3  ? 'Did you take these?'
-                    : `Did you take your ${currentSlot.sched} medication?`;
+  /* NAV DOCK FORK: hierarchy borrowed from the oat and denim study. The
+     scheduled time leads, because it is how a person recognises which dose
+     this is. Then the anchor, strong, with its dose quiet beside it. Then the
+     add-ons on their own line, "with ...": an add-on is never taken alone
+     [D-16], and "with" says so where "+" reads like a button. Both lines stay
+     at body size; the difference is weight and hue, never size [C-16]. */
+  const sl = currentSlot, n = 1 + sl.addons.length;
+  const q = n === 1 ? 'Did you take this?' : n <= 3 ? 'Did you take these?' : `Did you take all ${n}?`;
+  const split = name => { const m = name.match(/^(.*?)\s+(\d.*)$/);
+                          return m ? [m[1], m[2]] : [name, '']; };   /* free-text names may carry no dose */
+  const [an, ad] = split(sl.anchor);
+  const adds = sl.addons.length <= 2 ? sl.addons.join(' and ')
+             : `${sl.addons[0]} and ${sl.addons.length - 1} more`;
   a.innerHTML = `<div class="confirm">
+    <div class="c-head"><span class="c-time">${esc(sl.sched)}</span>
+      <span class="c-type"><i class="ph ph-pill"></i>Medication</span></div>
     <div class="confirm-q">${q}</div>
-    ${n > 1 ? `<div class="confirm-list">${esc(medSummary(meds))}</div>` : ''}
-    <div class="confirm-meta">Scheduled ${currentSlot.sched} · now ${nowTime()}</div>
+    <div class="c-anchor"><span class="c-name">${esc(an)}</span>${ad ? ` <span class="c-dose">${esc(ad)}</span>` : ''}</div>
+    ${sl.addons.length ? `<div class="c-addon">with ${esc(adds)}</div>` : ''}
     <div class="c-actions">
       <button class="c-btn primary" onclick="cardYes()">Yes</button>
       <button class="c-btn" onclick="cardNo()">No</button>
     </div>
     <button class="c-more" onclick="cardAdjust()">
-      Yes, but not as scheduled<i class="ph ph-caret-right"></i></button>
+      <span>Yes, but not as scheduled</span><i class="ph ph-arrow-right"></i></button>
     </div>`;
 }
 
@@ -2934,7 +2999,18 @@ if (vv){
 
 
 /* ═════════ NAV DOCK FORK (2026-10-08) ═════════ */
+
+function togglePalette(){
+  const oat = document.documentElement.dataset.palette !== 'oat';
+  if (oat) document.documentElement.dataset.palette = 'oat';
+  else delete document.documentElement.dataset.palette;
+  el('palToggle').textContent = 'palette: ' + (oat ? 'oat + denim' : 'Stitch blue');
+}
+
 function showTab(t){
+  /* the icon goes solid when its tab is current: fill = "here" */
+  el('tab-today').querySelector('i').className = 'ph' + (t === 'today' ? '-fill' : '') + ' ph-sun';
+  el('tab-lb').querySelector('i').className = 'ph' + (t === 'lookback' ? '-fill' : '') + ' ph-clock-counter-clockwise';
   el('tab-today').setAttribute('aria-selected', String(t === 'today'));
   el('tab-lb').setAttribute('aria-selected', String(t === 'lookback'));
   el('scroll').hidden   = t !== 'today';
