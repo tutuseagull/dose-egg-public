@@ -1723,6 +1723,7 @@ function renderTimeline(){
 function renderCard(){
   const a = el('card-area');
   if (!currentSlot){ a.innerHTML=''; updateTint(); return; }
+  if (ensurePending(currentSlot)) renderTimeline();
   /* HIERARCHY, revised 2026-10-09 (Tutu, mock D): the QUESTION leads,
      because the card is a question and the person's job is to answer it.
      Time-first (from the ChatGPT style study, a style piece, not a flow) made
@@ -2774,7 +2775,10 @@ function openDetail(e, day){
   renderDetail();
   openSheet('sheet-detail');
 }
-function tapEntry(di, i){ openDetail(DAYS[di].list[i], di); }
+function tapEntry(di, i){
+  if (isLivePending(DAYS[di].list[i])) return openSlotSheet(currentSlot, null);
+  openDetail(DAYS[di].list[i], di);
+}
 function toggleBasis(){ basisOpen = !basisOpen; renderDetail(); }
 function setBasis(k){
   active.e.basis = k;
@@ -2860,8 +2864,40 @@ function undoRemove(di, i){ delete DAYS[di].list[i].removed; renderTimeline(); }
 /* One answer, every drug in the slot. Each still lands as its own entry, because
    the record a clinician reads is per drug - the BATCHING IS IN THE ASK, not in
    the data. */
+/* ═════════ DOSE SLOT LIFECYCLE (v4, 2026-10-09) ═════════
+   Presence is structure, content is state. A slot is on the timeline from the
+   moment it comes due, not from the moment it is answered:
+     due         card shows, AND rows sit on the rail at the scheduled time as
+                 basis 'assumed', pending:true ("Not confirmed", hollow marker)
+     answered    card, notification or sheet REPLACES those rows with
+                 asserted / declined rows in the same place; the card leaves
+     yielded     the next slot comes due unanswered: the old rows simply stop
+                 being pending and stay 'assumed'. Nothing moves, nothing
+                 re-alerts, the card switches to the new slot
+   Supersedes "Card waits, then yields" (flow-daily-loop.html), where rows only
+   appeared at yield time and a confirmed dose popped into the middle of the
+   rail. Assumed still never renders as taken in the export. */
+const pendingOf = sl => DAYS[0].list.filter(e => e.pending && e.slot === sl.sched);
+function ensurePending(sl){            /* returns true when it added rows */
+  if (!sl || pendingOf(sl).length) return false;
+  slotMeds(sl).forEach((m, ord) =>
+    DAYS[0].list.push({ time:sl.sched, recorded:nowTime(), text:m, type:'dose',
+                        basis:'assumed', pending:true,
+                        slot:sl.sched, role:roleOf(sl, m), ord }));
+  sortDay(DAYS[0]);
+  return true;
+}
+function clearPending(sl){
+  DAYS[0].list = DAYS[0].list.filter(e => !(e.pending && e.slot === sl.sched));
+}
+function yieldSlot(sl){                 /* unanswered: stays assumed, stops waiting */
+  pendingOf(sl).forEach(e => { delete e.pending; });
+}
+const isLivePending = e => !!(e && e.pending && currentSlot && e.slot === currentSlot.sched);
+
 function resolveSlot(basis){
   const sl = currentSlot;
+  clearPending(sl);
   slotMeds(sl).forEach((m, ord) =>
     addEntry({ time:sl.sched, recorded:nowTime(), text:m, type:'dose', basis,
                slot:sl.sched, role:roleOf(sl, m), ord }, 0));
@@ -2981,6 +3017,7 @@ function slotToggle(i){ slotEdit.rows[i].taken = !slotEdit.rows[i].taken; render
    the app talking about itself. */
 function slotDone(){
   const s = slotEdit;
+  if (s.fromCard && currentSlot) clearPending(currentSlot);   /* the waiting rows are replaced, not joined */
   if (s.ents){                       /* editing an existing group: drop, then rewrite */
     DAYS[s.di].list = DAYS[s.di].list.filter(e => !s.ents.includes(e));
   }
@@ -2994,7 +3031,12 @@ function slotDone(){
   renderTimeline();
 }
 
-function tapGroup(di, idxs){ openSlotSheet(null, { di, idxs }); }
+/* A row that is still waiting on the card opens the card's sheet: one
+   question, one surface. Older assumed rows keep their own path. */
+function tapGroup(di, idxs){
+  if (isLivePending(DAYS[di].list[idxs[0]])) return openSlotSheet(currentSlot, null);
+  openSlotSheet(null, { di, idxs });
+}
 
 /* ═════════ lock screen ═════════
    Answering here writes the same entries the in-app card would, and never opens
@@ -3021,14 +3063,7 @@ function lockAnswer(basis){
 
 /* a new dose falling due quietly collapses the unanswered one into the timeline as 'assumed' */
 function demoAddDose(){
-  if (currentSlot){
-    const old = currentSlot;
-    slotMeds(old).forEach((m, ord) =>
-      DAYS[0].list.push({ time:old.sched, recorded:nowTime(), text:m, type:'dose',
-                          basis:'assumed', slot:old.sched, role:roleOf(old, m), ord }));
-    sortDay(DAYS[0]);
-    renderTimeline();
-  }
+  if (currentSlot){ yieldSlot(currentSlot); renderTimeline(); }
   const t = ['14:00','17:30','21:00'];
   currentSlot = { sched:t[Math.floor(Math.random()*3)],
                   anchor:'Levodopa 100mg', addons:['Entacapone 200mg'] };
@@ -3037,6 +3072,7 @@ function demoAddDose(){
 /* The 47-medication case P01 described is not hypothetical, so the card and the
    notification have to be seen at that size rather than reasoned about. */
 function demoBigSlot(){
+  if (currentSlot){ clearPending(currentSlot); }   /* a demo swap, not a dose falling due */
   currentSlot = { sched:'08:00', anchor:'Levodopa 100mg', addons:[
     'Entacapone 200mg','Amantadine 100mg','Rasagiline 1mg','Pramipexole 0.25mg',
     'Clonazepam 0.5mg','Vitamin D 1000IU','Calcium 500mg','Melatonin 3mg',
