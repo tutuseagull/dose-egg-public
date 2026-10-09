@@ -848,6 +848,8 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
    SHAPE and the name, never by colour alone. The bubble keeps its name for
    screen readers via aria-label, but a sighted person has only the icon, so
    the Look Back icon has to be recognisable on its own: test it with P01.
+   Icon is chart-line (Tutu, 2026-10-08), not chart-line-up: an arrow going up
+   is a verdict on the trend, and a progressive condition will not oblige.
    Motion between the two states: parked, Tutu wants to come back to it. */
 .tabs{flex:1;display:flex;gap:var(--space-2);min-width:0}
 .tab{flex:0 0 var(--target-routine);min-height:var(--target-routine);
@@ -1020,7 +1022,7 @@ button.navrow{width:100%;text-align:left}
         <i class="ph ph-sun"></i><span class="tab-lab">Today</span></button>
       <button class="tab" role="tab" id="tab-lb" aria-selected="false" aria-label="Look Back"
               aria-controls="lookback" onclick="showTab('lookback')">
-        <i class="ph ph-clock-counter-clockwise"></i><span class="tab-lab">Look Back</span></button>
+        <i class="ph ph-chart-line"></i><span class="tab-lab">Look Back</span></button>
     </div>
   </div>
 
@@ -3010,7 +3012,7 @@ function togglePalette(){
 function showTab(t){
   /* the icon goes solid when its tab is current: fill = "here" */
   el('tab-today').querySelector('i').className = 'ph' + (t === 'today' ? '-fill' : '') + ' ph-sun';
-  el('tab-lb').querySelector('i').className = 'ph' + (t === 'lookback' ? '-fill' : '') + ' ph-clock-counter-clockwise';
+  el('tab-lb').querySelector('i').className = 'ph' + (t === 'lookback' ? '-fill' : '') + ' ph-chart-line';
   el('tab-today').setAttribute('aria-selected', String(t === 'today'));
   el('tab-lb').setAttribute('aria-selected', String(t === 'lookback'));
   el('scroll').hidden   = t !== 'today';
