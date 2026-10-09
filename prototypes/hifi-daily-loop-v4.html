@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" data-palette="matched">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-<title>DoseEgg — Nav dock (fork of hi-fi v3)</title>
-<!-- FORK OF hifi-daily-loop-v3.html, 2026-10-08. Tests one idea from Tutu, after
+<title>DoseEgg — Timeline (hi-fi v4 · tabs, dock, matched)</title>
+<!-- TIMELINE v4, 2026-10-09. Began as a fork of v3 called "nav dock" on 2026-10-08
+     and replaced it once every v3 interaction was carried over.
+     Original fork note: Tests one idea from Tutu, after
      Notion's mobile app: views become two tabs at the top (Today / Look Back),
      the hamburger shrinks to a small menu for places you rarely go, and the
      bottom becomes a row of ways IN: camera, a quick note, and + for a
@@ -15,100 +17,31 @@
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <style>
 /* ═══════════════════ LAYER 1 — PRIMITIVES ═══════════════════
-   "Stitch blue" — swapped 2026-08-06 on the domain lead's preference. Provisional.
-   Oat+petrol preserved in palette-*.html; restore by swapping this block only.
-   Token names stay unchanged — they are positional, not descriptive.      */
-:root{
-  --paper-0:#FFFFFF; --paper-50:#F9F9FF; --paper-100:#F1F3FF; --paper-200:#E4E8F5;
-  --paper-300:#D3D9E8; --paper-400:#ABB3C6; --paper-500:#7C8598; --paper-600:#5F6879;
-  --paper-700:#3E4658; --paper-800:#262C3A; --paper-900:#141B2B;
-  --ink-400:#4A7BC8; --ink-500:#2B5BA9; --ink-600:#1E4380; --ink-700:#143059;
-  --hue-mark:#3B4E7A;   /* one mark colour — icon carries the type, colour carries nothing */
-  --ink-100:#F1F3FF;    /* NAV DOCK FORK: accent tint for a card band. Stitch neutrals are
-                           already blue, so this equals paper-100; oat needs its own */
-  --red-600:#A33A2A;
-  --backdrop:#D9DDE8;   /* review frame only — not a product surface */
-}
-/* ── NAV DOCK FORK · PALETTE TEST: oat + denim, primitives only ──
-   Question (Tutu, 2026-10-08): how much of the ChatGPT oat and denim study fits
-   our existing definitions? Rule of the test: only this layer changes. Anything
-   the study does that cannot be reproduced from here is a gap in the system.
-   Page, ink, muted, accent and band are lifted from the study; the steps
-   between them are interpolated.
-   FINDING: one primitive and one semantic token were missing. The study's card
-   band is a tint of the ACCENT, not a neutral. Stitch blue never needed that
-   because its neutrals are already blue; oat neutrals are warm, so the band
-   needs ink-100, and the card needs surface-accent to point at it.
-   NOT reproduced, on purpose: the glass treatments. Blur and translucent fills
-   would need new tokens and lower contrast, which C-16 rules out as a lever. */
-/* ── NAV DOCK FORK · PALETTE: oat + bright (2026-10-09), the default ──
-   Tutu: Stitch's blue is the better blue, denim's card stands off the page
-   better. Why denim's did: its band is 1.16:1 against the page, Stitch's only
-   1.07:1, because Stitch's neutrals are already blue and the tint had nothing
-   to stand against. So: oat neutrals (warm ground, the temperature tension),
-   Stitch's ink ramp (the brighter blue), and a band tint pulled toward
-   Stitch's hue and one step deeper than denim's (1.19:1).
-   Checks: white on accent 6.6:1, accent on page 6.4:1, ink on band 12.5:1,
-   muted text on band 5.2:1. All pass AA. */
-/* ── NAV DOCK FORK · PALETTE: cool band, two grounds (2026-10-09) ──
-   Tutu: keep Stitch's cooler blue for the band, deeper, and change the page.
-   Band #E8EBFF is Stitch's own hue (232°, a touch of lavender, where
-   oat + bright's band leans cyan at 218°) at Stitch's FULL saturation, a
-   little deeper: 1.14:1 against oat, where Stitch's band managed 1.07.
-   Saturation was the thing: E1E5FB and E6E9FC were 79% saturated and read
-   slightly grey next to Stitch's 100%. (History, 2026-10-09: E1E5FB, then
-   E6E9FC for lighter, then this for brighter.) Two grounds to
-   compare it on:
-     oat-cool    the warm oat page. Warm ground, cool band: temperature tension.
-     white-cool  a neutral white page, no warmth and no blue, so the band is
-                 the only colour on screen. 1.13:1.
-   Both keep Stitch's ink ramp for the brighter blue. Checks on the band:
-   ink 13.0:1, muted text 5.4:1, accent 5.6:1; white on accent 6.6:1. */
-/* ── NAV DOCK FORK · PALETTE: matched (2026-10-09), the default ──
-   Option 3 from the button study. With the cool band, Stitch's blue (217°)
-   sat 15° warmer than the band (232°) and leaned slightly teal beside it.
-   Here every blue shares one hue, 227°: the button ramp, the band, and the
-   timeline markers (which were a grey navy at 222°, now a little more
-   saturated so the icons belong to the same family). White controls stay
-   pure white: a cool white was 1.01:1 against oat and vanished.
+   "Matched", DECIDED 2026-10-09 (Tutu). Supersedes Stitch blue (2026-08-06).
+   Oat neutrals for the ground, and every blue on one hue, 227°: the button
+   ramp, the card band and the timeline markers.
+   How it was reached, in one afternoon of side-by-sides:
+     - Stitch's band was 1.07:1 against its own bluish page and nearly vanished;
+       a warm oat page gives a cool band something to stand against.
+     - Denim (from the ChatGPT study) separated better but its blue was duller.
+     - Stitch's band hue (232°) at FULL saturation is what read as "Stitch";
+       79% versions looked grey. Band ink-100 = E8EBFF, 1.14:1 on oat.
+     - Stitch's button blue sat at 217°, 15° warmer than the band, and leaned
+       teal beside it; matched moves the ramp to 227°.
+   White controls are pure white: a cool white vanished on oat (1.01:1).
    Checks: white on accent 6.9:1, accent on page 6.7:1, white icon on marker
-   8.5:1, muted text on band 5.4:1. accent-quiet (400) is used as text by the
-   estimate mark (.est), so it is set to clear AA on page, white AND band:
-   5.2 / 5.4 / 4.6. */
-:root[data-palette="matched"]{
+   8.5:1, muted text on band 5.4:1; ink-400 is used as text by .est, so it
+   clears AA on page, white and band (5.2 / 5.4 / 4.6).
+   The losing palettes are in git history (commit 4a657cd).
+   Token names stay positional, not descriptive.      */
+:root{
   --paper-0:#FFFFFF; --paper-50:#FCFBF7; --paper-100:#F4F2EC; --paper-200:#E8E5DD;
   --paper-300:#D5D3CB; --paper-400:#A9AFB6; --paper-500:#7A8593; --paper-600:#53606D;
   --paper-700:#3A4654; --paper-800:#263240; --paper-900:#192632;
   --ink-100:#E8EBFF; --ink-400:#4362D0; --ink-500:#3350BE; --ink-600:#27409B; --ink-700:#1D2F72;
-  --hue-mark:#35488D;
-}
-:root[data-palette="oat-cool"]{
-  --paper-0:#FFFDFA; --paper-50:#FCFBF7; --paper-100:#F4F2EC; --paper-200:#E8E5DD;
-  --paper-300:#D5D3CB; --paper-400:#A9AFB6; --paper-500:#7A8593; --paper-600:#53606D;
-  --paper-700:#3A4654; --paper-800:#263240; --paper-900:#192632;
-  --ink-100:#E8EBFF; --ink-400:#4A7BC8; --ink-500:#2B5BA9; --ink-600:#1E4380; --ink-700:#143059;
-  --hue-mark:#3B4E7A;
-}
-:root[data-palette="white-cool"]{
-  --paper-0:#FFFFFF; --paper-50:#FAFAF9; --paper-100:#F3F3F1; --paper-200:#E7E7E4;
-  --paper-300:#D6D6D2; --paper-400:#ABAFB5; --paper-500:#7B8290; --paper-600:#545C69;
-  --paper-700:#3A4250; --paper-800:#262D3A; --paper-900:#171C27;
-  --ink-100:#E8EBFF; --ink-400:#4A7BC8; --ink-500:#2B5BA9; --ink-600:#1E4380; --ink-700:#143059;
-  --hue-mark:#3B4E7A;
-}
-:root[data-palette="oat-bright"]{
-  --paper-0:#FFFDFA; --paper-50:#FCFBF7; --paper-100:#F4F2EC; --paper-200:#E8E5DD;
-  --paper-300:#D5D3CB; --paper-400:#A9AFB6; --paper-500:#7A8593; --paper-600:#53606D;
-  --paper-700:#3A4654; --paper-800:#263240; --paper-900:#192632;
-  --ink-100:#DFE8F7; --ink-400:#4A7BC8; --ink-500:#2B5BA9; --ink-600:#1E4380; --ink-700:#143059;
-  --hue-mark:#3B4E7A;
-}
-:root[data-palette="oat"]{
-  --paper-0:#FFFDFA; --paper-50:#FCFBF7; --paper-100:#F4F2EC; --paper-200:#E8E5DD;
-  --paper-300:#D5D3CB; --paper-400:#A9AFB6; --paper-500:#7A8593; --paper-600:#53606D;
-  --paper-700:#3A4654; --paper-800:#263240; --paper-900:#192632;
-  --ink-100:#E4EBF6; --ink-400:#5C7DAE; --ink-500:#345788; --ink-600:#29466E; --ink-700:#1D3352;
-  --hue-mark:#345788;
+  --hue-mark:#35488D;   /* one mark colour — icon carries the type, colour carries nothing */
+  --red-600:#A33A2A;
+  --backdrop:#D9DDE8;   /* review frame only — not a product surface */
 }
 /* ═══════════════════ LAYER 2 — SEMANTIC ═══════════════════ */
 :root{
@@ -122,6 +55,10 @@
   --mark:var(--hue-mark);
   --surface-accent:var(--ink-100);   /* NAV DOCK FORK: the dose card band */
   --radius-xl:24px;                  /* NAV DOCK FORK: the band's bottom corners */
+  /* Content-layer controls: solid white, a hairline instead of a border, a
+     faint lift. Glass is for the navigation layer only (see GLASS below). */
+  --content-edge:0 0 0 1px color-mix(in srgb, var(--ink-700) 8%, transparent);
+  --content-lift:0 1px 3px color-mix(in srgb, var(--ink-700) 8%, transparent);
 
   --focus-ring:var(--ink-500); --focus-ring-width:3px; --focus-ring-offset:2px;
   --feedback-error:var(--red-600);
@@ -1011,6 +948,7 @@ button.navrow{width:100%;text-align:left}
 .c-type{display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-small);
         color:var(--text-secondary);margin-top:var(--space-2)}   /* centres on the big time's line */
 .c-type i{font-size:22px}
+i.c-type{font-size:24px;line-height:1}   /* the icon alone, no word */
 .confirm-q{font-weight:500;margin-bottom:var(--space-3)}
 .c-anchor{font-size:var(--text-body);line-height:var(--leading-body)}
 .c-name{font-weight:600;color:var(--text-primary)}
@@ -1082,8 +1020,7 @@ button.navrow{width:100%;text-align:left}
 /* content layer: solid and quiet */
 .c-btn:not(.primary){
   background:var(--surface-card);border-color:transparent;
-  box-shadow:0 0 0 1px color-mix(in srgb, var(--ink-700) 8%, transparent),
-             0 1px 3px color-mix(in srgb, var(--ink-700) 8%, transparent);
+  box-shadow:var(--content-edge), var(--content-lift);
   -webkit-backdrop-filter:none;backdrop-filter:none}
 /* primary: flat accent, a single lit rim, no gradient */
 .c-btn.primary,
@@ -1128,6 +1065,22 @@ button.navrow{width:100%;text-align:left}
   box-shadow:inset 0 1px 3px color-mix(in srgb, var(--ink-700) 25%, transparent)}
 .top .icon-btn:first-child{margin-left:0}
 
+
+/* ═════════ NAV DOCK FORK · SHEETS IN THE NEW LOOK (2026-10-09) ═════════
+   Every plain button inside a sheet takes the same content recipe as No on
+   the dose card. STATES stay flat on purpose, so a state still reads as a
+   state and not as one more button: a dropped medication stays dashed, a
+   set or picked chip stays filled, a disabled nudge stays flat. */
+.nudge, .medrow, .quick, .tile, .photo-add, .opt, .chip{
+  background:var(--surface-card);border-color:transparent;
+  box-shadow:var(--content-edge), var(--content-lift)}
+.medrow.off{background:var(--surface-page);border-color:var(--border-interactive);box-shadow:none}
+.nudge[disabled]{background:transparent;border-color:var(--border-subtle);box-shadow:none}
+.chip.set, .chip.pick.on{box-shadow:none}
+.chip.set{border-color:transparent}
+.chip.set.guess{border-color:var(--border-interactive)}
+.photo-add{border-style:solid}
+
 /* five tiles: the odd one out takes the full row */
 .grid .tile:last-child:nth-child(odd){grid-column:1 / -1}
 </style>
@@ -1137,8 +1090,7 @@ button.navrow{width:100%;text-align:left}
 
   <div class="demo-bar">
     <a class="demo-btn home" href="../index.html">← Home</a>
-    <span class="db">Hi-fi · Nav dock · fork of v3</span>
-    <button class="demo-btn" id="palToggle" onclick="togglePalette()">palette: matched</button>
+    <span class="db">Hi-fi · Timeline · v4</span>
     <button class="demo-btn" id="slotToggle" onclick="toggleLeftSlot()">bottom A: camera · note</button>
     <button class="demo-btn" onclick="openLock()">lock screen</button>
     <button class="demo-btn" onclick="demoAddDose()">+ due dose</button>
@@ -1781,14 +1733,15 @@ function renderCard(){
      unlabelled clock times would compete; one labelled time plus a quiet
      "now" reads as a fact. Within 15 min of the schedule, "now" only
      repeats the big number, so it is left out. Never the word "late". */
-  /* "Medication" type label removed 2026-10-09 (Tutu): the question and the
-     drug names already say what this is, and it was the most text in the
-     header for the least information. */
+  /* The "Medication" WORD was removed 2026-10-09 (Tutu): the question and the
+     drug names already say what this is. The pill icon stays, as the card's
+     type mark, the same way every timeline row carries one. */
   const drift = Math.abs(toMin(nowTime()) - toMin(sl.sched));
   const sub = Math.min(drift, 1440 - drift) >= 15 ? `Scheduled · now ${nowTime()}` : 'Scheduled';
   a.innerHTML = `<div class="confirm">
     <div class="c-head"><span class="c-when"><span class="c-time">${esc(sl.sched)}</span>
       <span class="c-sub">${sub}</span></span>
+      <i class="ph ph-pill c-type" aria-hidden="true"></i>
     </div>
     <div class="confirm-q">${q}</div>
     <div class="c-anchor"><span class="c-name">${esc(an)}</span>${ad ? ` <span class="c-dose">${esc(ad)}</span>` : ''}</div>
@@ -2069,6 +2022,13 @@ function labelChoices(type){
   return mine.concat((SUGGEST[type] || []).filter(t => !mine.includes(t)));
 }
 
+/* Photo lives in the dock in layouts A and C. Layout B has no camera in the
+   dock, so Photo comes back into the grid there, or photo logging would only
+   be reachable inside Food. Six tiles, so the grid is even again. */
+function tilesNow(){
+  if (LAYOUTS[layoutN].left === 'camera') return TILES;
+  const t = TILES.slice(); t.splice(1, 0, ['note','ph-camera','Photo']); return t;
+}
 function renderLogSheet(){
   let h = '';
   if (!logStep){
@@ -2076,7 +2036,7 @@ function renderLogSheet(){
     /* Photo is a tile now rather than a strip of its own. It keeps the thing
        that mattered — one tap to the shutter — and loses the special shape that
        was making it read as a different kind of thing. */
-    h += '<div class="grid">' + TILES.map(([t,ico,name]) =>
+    h += '<div class="grid">' + tilesNow().map(([t,ico,name]) =>
       `<button class="tile" onclick="${t === 'note' ? "pickPhoto('note')" : `openCategory('${t}')`}">
         <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ${ico}"></i></span>
         <span class="tile-name">${name}</span></button>`).join('') + '</div>';
@@ -3195,22 +3155,6 @@ if (vv){
 
 
 /* Tint to the top: only while the dose card is the first thing on Today. */
-const PALETTES = [
-  { key:'matched',    tag:'matched' },
-  { key:'oat-cool',   tag:'oat + cool' },
-  { key:'white-cool', tag:'white + cool' },
-  { key:'oat-bright', tag:'oat + bright' },
-  { key:'oat',        tag:'oat + denim' },
-  { key:'stitch',     tag:'Stitch blue' }   /* no attribute: the base primitives */
-];
-let palN = 0;
-function togglePalette(){
-  palN = (palN + 1) % PALETTES.length;
-  const k = PALETTES[palN].key;
-  if (k === 'stitch') delete document.documentElement.dataset.palette;
-  else document.documentElement.dataset.palette = k;
-  el('palToggle').textContent = 'palette: ' + PALETTES[palN].tag;
-}
 function updateTint(){
   const today = !el('scroll').hidden;
   document.querySelector('.shell').classList.toggle('tinted', !!currentSlot && today);
@@ -3265,6 +3209,7 @@ function renderLeftSlot(){
     el('quickNote').value = ''; el('quickNote').style.height = ''; setComposing(false);
   }
   el('slotToggle').textContent = 'bottom ' + L.tag;
+  renderLogSheet();
 }
 function toggleLeftSlot(){ layoutN = (layoutN + 1) % LAYOUTS.length; renderLeftSlot(); }
 /* Opens the feelings LIST, never a guess. Inside the + sheet, v3 prefills the
