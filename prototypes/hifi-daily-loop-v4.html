@@ -961,7 +961,14 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
          color:var(--text-secondary)}
 .c-actions{margin-top:var(--space-4)}
 .c-btn:not(.primary){background:var(--surface-card);border-color:var(--border-subtle)}
-.c-more{justify-content:space-between;color:var(--text-primary);padding:0 var(--space-1)}
+/* Same idea for the third path: its wash bleeds past the card's content edge,
+   so the text keeps its alignment and the wash still has room inside it. */
+.c-more{justify-content:space-between;color:var(--text-primary);
+        padding:0 var(--space-3);margin-left:calc(var(--space-3) * -1);
+        margin-right:calc(var(--space-3) * -1);width:calc(100% + var(--space-3) * 2)}
+.c-more:hover{background:transparent}
+@media (hover:hover){ .c-more:hover{background:color-mix(in srgb, var(--paper-0) 55%, transparent)} }
+.c-more:active{background:color-mix(in srgb, var(--paper-0) 55%, transparent)}
 .c-more i{font-size:22px}
 
 
@@ -1059,7 +1066,19 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
      repeated on every row is loud. */
 .ecard{background:transparent;border:none;border-radius:var(--radius-md);
        padding:var(--space-2) var(--space-3);margin:0 calc(var(--space-3) * -1)}
-.entry:hover .ecard, .entry:active .ecard{background:var(--surface-raised)}
+/* PRESS WASH (refined 2026-10-09, Tutu). The wash runs to the screen's right
+   edge, so the chevron is not squeezed against a rounded corner; the content
+   column does not move, only the wash reaches past it. Left side keeps its
+   corner because the rail is there. */
+.ecard{margin:0 calc(var(--gutter) * -1) 0 calc(var(--space-3) * -1);
+       padding:var(--space-2) var(--gutter) var(--space-2) var(--space-3);
+       border-radius:var(--radius-md) 0 0 var(--radius-md)}
+/* Phones have no hover, but iOS keeps :hover on the last thing tapped, so a
+   hover wash shows up as a stuck highlight. Hover only where a real pointer
+   exists; touch gets the press. */
+.entry:hover .ecard{background:transparent}
+@media (hover:hover){ .entry:hover .ecard{background:var(--surface-raised)} }
+.entry:active .ecard{background:var(--surface-raised)}
 .entry.fresh .ecard{border:none}
 .ehead{display:flex;align-items:flex-start;gap:var(--space-3)}
 .ehead .etext{flex:1;min-width:0;padding-right:0;font-size:var(--text-body)}
