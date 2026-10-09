@@ -3214,6 +3214,10 @@ function updateTint(){
 
 
 function showTab(t){
+  /* Look Back is its own file (look-back.html) while the two are prototyped
+     apart, so its tab goes there; Look Back's Today tab comes back here.
+     2026-10-09, so the pair can be walked through on a phone. */
+  if (t === 'lookback'){ location.href = 'look-back.html'; return; }
   /* the icon goes solid when its tab is current: fill = "here" */
   el('tab-today').querySelector('i').className = 'ph' + (t === 'today' ? '-fill' : '') + ' ph-sun';
   el('tab-lb').querySelector('i').className = 'ph' + (t === 'lookback' ? '-fill' : '') + ' ph-chart-line';
