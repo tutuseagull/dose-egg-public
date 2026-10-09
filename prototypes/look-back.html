@@ -153,13 +153,20 @@ button.navrow{width:100%;text-align:left}
 .period .r2{font-size:var(--text-meta);color:var(--text-muted)}
 /* Fixed-height row under the stepper. It always exists, so the "this week"
    button appearing and disappearing never moves the chart under your finger. */
-.periodfoot{display:flex;align-items:center;gap:var(--space-2);
+.periodfoot{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;
   min-height:var(--target-routine);margin-bottom:var(--space-2)}
 .periodfoot .cov{flex:1;font-size:var(--text-meta);color:var(--text-muted)}
 .periodfoot .jump{min-height:var(--target-min);padding:0 var(--space-3);
-  border-radius:var(--radius-full);border:1px solid var(--border-subtle);
-  background:var(--surface-card);color:var(--accent);font-size:var(--text-meta);
-  font-weight:600;display:flex;align-items:center}
+  margin-right:calc(var(--space-3) * -1);border-radius:var(--radius-md);
+  color:var(--text-primary);font-size:var(--text-small);font-weight:400;
+  display:flex;align-items:center;gap:var(--space-2);flex:0 0 auto}
+/* A text button, the same tertiary style as "Taken, but not as scheduled" on
+   Today (Tutu, 2026-10-09): a bordered pill read as a big, unclear control.
+   The arrow points right because this week is later, the same way the > stepper
+   points. Its press wash bleeds past the text so the words stay aligned. */
+.periodfoot .jump i{font-size:18px}
+.periodfoot .jump:active{background:var(--surface-raised)}
+@media (hover:hover){ .periodfoot .jump:hover{background:var(--surface-raised)} }
 
 /* ═══════════════════ readout above the chart ═══════════════════
    Never empty. With nothing chosen it summarises the period, which is more
@@ -291,7 +298,7 @@ svg{display:block;width:100%;height:auto}
       </div>
       <div class="periodfoot">
         <span class="cov" id="wCoverage"></span>
-        <button class="jump" id="wJump" onclick="jumpToThisWeek()" hidden>This week</button>
+        <button class="jump" id="wJump" onclick="jumpToThisWeek()" hidden>Back to this week<i class="ph ph-arrow-line-right" aria-hidden="true"></i></button>
       </div>
 
       <div class="readout"><div id="roWeek"></div></div>
