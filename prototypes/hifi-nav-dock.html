@@ -1039,6 +1039,7 @@ button.navrow{width:100%;text-align:left}
     <span class="db">Hi-fi · Nav dock · fork of v3</span>
     <button class="demo-btn" id="palToggle" onclick="togglePalette()">palette: oat + denim</button>
     <button class="demo-btn" id="typeToggle" onclick="toggleType()">type: Manrope</button>
+    <button class="demo-btn" id="feelIcoToggle" onclick="cycleFeelIcon()">feel icon: body</button>
     <button class="demo-btn" id="slotToggle" onclick="toggleLeftSlot()">bottom A: camera · note</button>
     <button class="demo-btn" onclick="openLock()">lock screen</button>
     <button class="demo-btn" onclick="demoAddDose()">+ due dose</button>
@@ -1133,7 +1134,7 @@ button.navrow{width:100%;text-align:left}
               enterkeyhint="send" oninput="noteInput(this)" onkeydown="noteKey(event)"></textarea>
   </div>
   <button class="feel-pill" id="feelPill" onclick="feelTap()" hidden>
-    <i class="ph ph-waveform"></i><span>How I feel</span></button>
+    <i class="ph ph-person-simple" id="feelPillIco"></i><span>How I feel</span></button>
   <button class="fab" id="fab" onclick="rightSlotTap()" aria-label="Add to today">
     <i class="ph ph-plus"></i></button>
 </div>
@@ -1214,7 +1215,7 @@ button.navrow{width:100%;text-align:left}
    fields = editable context, keyed by CONTEXT below
    meta   = derived/computed display pairs the user cannot edit here
    note   = free text  [C-12: stored raw so phrases can be tagged later] */
-const ICON = { sleep:'ph-moon', dose:'ph-pill', symptom:'ph-waveform', activity:'ph-footprints',
+const ICON = { sleep:'ph-moon', dose:'ph-pill', symptom:'ph-person-simple', activity:'ph-footprints',
                meal:'ph-fork-knife', note:'ph-note-pencil' };
 const TYPE_NAME = { sleep:'Sleep', dose:'Medication', symptom:'How I feel', activity:'Activity',
                     meal:'Food', note:'Note' };
@@ -1388,7 +1389,7 @@ function fieldsFor(e){
   }
   if (e.type !== 'symptom') return base;
   const extra = SYMPTOM_FIELDS[e.text] || SYMPTOM_DEFAULT;
-  return [{ ...extra, icon:'ph-waveform', multi:true }].concat(base);
+  return [{ ...extra, icon:ICON.symptom, multi:true }].concat(base);
 }
 
 /* Basis, written for the person whose record it is. The sub-line names the
@@ -1917,7 +1918,7 @@ let logStep = null;          // null = categories · otherwise the chosen type
 const TILES = [
   ['sleep','ph-moon','Sleep'],        ['meal','ph-fork-knife','Food'],
   ['activity','ph-footprints','Activity'], ['dose','ph-pill','Medication'],
-  ['symptom','ph-waveform','How I feel']
+  ['symptom','ph-person-simple','How I feel']
 ];
 const q = t => JSON.stringify(t).replace(/"/g,'&quot;');
 
@@ -3094,6 +3095,39 @@ function toggleType(){
   el('typeToggle').textContent = 'type: ' + (on ? 'Manrope' : 'Inter + Newsreader');
 }
 
+
+/* How I feel icon test (Tutu, 2026-10-09). The waveform read as VOICE INPUT,
+   which is what that glyph means almost everywhere now, and next to a text
+   field it promised dictation. Candidates, all rejected alternatives noted:
+     body      person-simple. Plain "my body"; nothing else in the app uses a
+               person, since there is no profile in MVP.
+     check-in  user-focus. A person inside focus brackets: checking in with
+               yourself. Risk: reads as Face ID or a scan.
+     care      hand-heart. Warm, self-care. Risk: reads as donate or support.
+     hand      hand-palm. Hands are where many people feel PD first. Risk:
+               reads as stop.
+   Rejected without building: heartbeat / pulse (claims a measurement we do
+   not take), smiley (a mood score, and a face invites a verdict [C-08]),
+   thermometer (frames every entry as sickness), tai-chi (collides with
+   Activity). */
+const FEEL_ICONS = [
+  { ico:'ph-person-simple', tag:'body' },
+  { ico:'ph-user-focus',    tag:'check-in' },
+  { ico:'ph-hand-heart',    tag:'care' },
+  { ico:'ph-hand-palm',     tag:'hand' }
+];
+let feelIcoN = 0;
+function cycleFeelIcon(){
+  feelIcoN = (feelIcoN + 1) % FEEL_ICONS.length;
+  const f = FEEL_ICONS[feelIcoN];
+  ICON.symptom = f.ico;
+  TILES.find(t => t[0] === 'symptom')[1] = f.ico;
+  LEFT.feel.ico = f.ico;
+  el('feelPillIco').className = 'ph ' + f.ico;
+  el('feelIcoToggle').textContent = 'feel icon: ' + f.tag;
+  renderTimeline(); renderLogSheet(); renderLeftSlot();
+}
+
 function togglePalette(){
   const oat = document.documentElement.dataset.palette !== 'oat';
   if (oat) document.documentElement.dataset.palette = 'oat';
@@ -3128,7 +3162,7 @@ const LAYOUTS = [
   { key:'C', left:'camera', middle:'feel', tag:'C: camera · feel' }
 ];
 const LEFT = { camera:{ ico:'ph-camera',   label:'Add a photo' },
-               feel:  { ico:'ph-waveform', label:'How I feel' } };
+               feel:  { ico:'ph-person-simple', label:'How I feel' } };
 let layoutN = 0;
 function renderLeftSlot(){
   const L = LAYOUTS[layoutN], m = LEFT[L.left], b = el('leftSlot');
