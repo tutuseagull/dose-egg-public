@@ -985,8 +985,26 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
    the screen, so the ask and the header read as one surface. When there is no
    card, the header sits on the page colour as before. .tinted is set by
    updateTint(), which runs on every card render and every tab change. */
-.top{transition:background var(--motion-base) var(--ease-out)}
-.shell.tinted .top{background:var(--surface-accent)}
+/* PERSISTENT HEADER (Tutu, 2026-10-09): the top bar stays put like the bottom
+   dock, and both are glass, so the page scrolls BEHIND them. That means the
+   header itself has no background. The blue band it used to paint is now
+   .shell::before, which sits in the page and scrolls away with the card, so
+   the glass shows blue at rest and the timeline once you scroll.
+   --top-h is the header's measured height (set by syncTopHeight), never a
+   fixed number: it changes with the text-size setting. */
+.top{position:sticky;top:0;z-index:30;background:transparent}
+.shell::before{content:'';position:absolute;top:0;left:0;right:0;height:var(--top-h, 0px);
+               background:var(--surface-accent);opacity:0;pointer-events:none;
+               transition:opacity var(--motion-base) var(--ease-out)}
+.shell.tinted::before{opacity:1}
+/* once scrolled, a soft wash behind the header keeps the page from reading
+   through the gaps between the buttons, the same job the dock's wash does */
+.top::before{content:'';position:absolute;inset:0 0 calc(var(--space-4) * -1) 0;z-index:-1;
+             background:linear-gradient(to bottom,
+               color-mix(in srgb, var(--surface-page) 88%, transparent) 0%,
+               color-mix(in srgb, var(--surface-page) 60%, transparent) 60%, transparent 100%);
+             opacity:0;transition:opacity var(--motion-base) var(--ease-out);pointer-events:none}
+.shell.scrolled .top::before{opacity:1}
 /* With no dose card, the timeline needs its own air under the nav: the card's
    top padding was the only buffer and it leaves with the card. Not applied
    while tinted, or a page-coloured strip would cut the band off the header. */
@@ -3246,6 +3264,15 @@ if (vv){
 
 
 /* Tint to the top: only while the dose card is the first thing on Today. */
+/* the header floats, so the page needs to know how tall it is (see .shell::before) */
+function syncTopHeight(){
+  const t = document.querySelector('.top');
+  document.querySelector('.shell').style.setProperty('--top-h', t.offsetHeight + 'px');
+}
+if (window.ResizeObserver) new ResizeObserver(syncTopHeight).observe(document.querySelector('.top'));
+window.addEventListener('scroll', () =>
+  document.querySelector('.shell').classList.toggle('scrolled', window.scrollY > 4),
+  { passive:true });
 function updateTint(){
   const today = !el('scroll').hidden;
   document.querySelector('.shell').classList.toggle('tinted', !!currentSlot && today);
