@@ -1778,12 +1778,15 @@ function renderCard(){
      unlabelled clock times would compete; one labelled time plus a quiet
      "now" reads as a fact. Within 15 min of the schedule, "now" only
      repeats the big number, so it is left out. Never the word "late". */
+  /* "Medication" type label removed 2026-10-09 (Tutu): the question and the
+     drug names already say what this is, and it was the most text in the
+     header for the least information. */
   const drift = Math.abs(toMin(nowTime()) - toMin(sl.sched));
   const sub = Math.min(drift, 1440 - drift) >= 15 ? `Scheduled · now ${nowTime()}` : 'Scheduled';
   a.innerHTML = `<div class="confirm">
     <div class="c-head"><span class="c-when"><span class="c-time">${esc(sl.sched)}</span>
       <span class="c-sub">${sub}</span></span>
-      <span class="c-type"><i class="ph ph-pill"></i>Medication</span></div>
+    </div>
     <div class="confirm-q">${q}</div>
     <div class="c-anchor"><span class="c-name">${esc(an)}</span>${ad ? ` <span class="c-dose">${esc(ad)}</span>` : ''}</div>
     ${sl.addons.length ? `<div class="c-addon">with ${esc(adds)}</div>` : ''}
