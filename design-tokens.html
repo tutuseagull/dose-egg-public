@@ -4,169 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DoseEgg — Design Tokens (v1)</title>
-<!-- v1, 2026-10-09. Rewritten to match prototypes/hifi-daily-loop-v4.html, which
-     is where the look was decided. v0 (2026-08-05, Stitch blue + Inter/Newsreader)
-     is in git history. The values in LAYER 1 and LAYER 2 below must stay identical
-     to v4's; if they ever differ, v4 is the one that was tested on a phone. -->
+<!-- v1, 2026-10-09. Documents tokens.css, the one shared copy of the tokens.
+     v0 (2026-08-05, Stitch blue + Inter/Newsreader) is in git history. -->
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<!-- every token on this page comes from tokens.css; this page documents it -->
+<link rel="stylesheet" href="tokens.css">
 
 <style>
-/* ═══════════════════════════════════════════════════════════════════
-   LAYER 1 — PRIMITIVES
-   Raw values. Never referenced directly by a component.
-   Their only job is to be the single place a value is written down.
-   ═══════════════════════════════════════════════════════════════════ */
-:root {
-  /* "Matched", decided 2026-10-09. Oat neutrals for the ground, and every blue
-     on one hue, 227°: the button ramp, the card band, the timeline marks.
-     Names stay positional (paper = ground 0-900, ink = accent 100-700), not
-     descriptive, so a palette change never renames a token. */
-  --paper-0:   #FFFFFF;
-  --paper-50:  #FCFBF7;
-  --paper-100: #F4F2EC;
-  --paper-200: #E8E5DD;
-  --paper-300: #D5D3CB;
-  --paper-400: #A9AFB6;
-  --paper-500: #7A8593;
-  --paper-600: #53606D;
-  --paper-700: #3A4654;
-  --paper-800: #263240;
-  --paper-900: #192632;
-
-  --ink-100: #E8EBFF;   /* the dose card band */
-  --ink-400: #4362D0;
-  --ink-500: #3350BE;
-  --ink-600: #27409B;
-  --ink-700: #1D2F72;
-
-  /* ONE mark colour. Entry type is carried by the ICON; colour carries nothing. */
-  --hue-mark: #35488D;
-
-  /* Reserved. UI failure only, never a body state. */
-  --red-600: #A33A2A;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   LAYER 2 — SEMANTIC
-   What components actually use. Named by role.
-   ═══════════════════════════════════════════════════════════════════ */
-:root {
-  /* Surfaces */
-  --surface-page:    var(--paper-50);
-  --surface-card:    var(--paper-0);
-  --surface-raised:  var(--paper-100);
-  --surface-sunken:  var(--paper-200);
-  --surface-accent:  var(--ink-100);
-
-  /* Text */
-  --text-primary:    var(--paper-900);
-  --text-secondary:  var(--paper-700);
-  --text-muted:      var(--paper-600);
-  --text-inverse:    var(--paper-50);
-
-  /* Borders: three, by what the line is FOR */
-  --border-subtle:      var(--paper-200);  /* 1.26:1, dividers only */
-  --border-control:     var(--paper-300);  /* 1.5:1, hairline on a flat control whose LABEL identifies it */
-  --border-interactive: var(--paper-500);  /* 3.75:1, where the line itself is the only cue */
-
-  /* Accent: actions, not meaning */
-  --accent:          var(--ink-500);
-  --accent-hover:    var(--ink-600);
-  --accent-quiet:    var(--ink-400);
-  --on-accent:       var(--paper-0);
-
-  --mark: var(--hue-mark);
-
-  /* Focus */
-  --focus-ring:        var(--ink-500);
-  --focus-ring-width:  3px;
-  --focus-ring-offset: 2px;
-  --focus-glow: 0 0 0 var(--focus-ring-width) color-mix(in srgb, var(--focus-ring) 22%, transparent);
-
-  /* Epistemic state: fill and outline, never hue */
-  --entry-asserted-fill:   currentColor;
-  --entry-assumed-fill:    transparent;
-  --entry-assumed-border:  var(--paper-500);
-  --entry-unknown-fill:    transparent;
-  --entry-unknown-border:  var(--paper-500);
-  --entry-unknown-style:   dashed;
-
-  --feedback-error:  var(--red-600);
-
-  /* Elevation: depth belongs to a LAYER, not to the things inside it */
-  --content-edge:   0 0 0 1px color-mix(in srgb, var(--ink-700) 8%, transparent);
-  --shadow-float:   0 6px 20px color-mix(in srgb, var(--ink-700) 10%, transparent);
-  --shadow-overlay: 0 -6px 32px color-mix(in srgb, var(--ink-700) 18%, transparent);
-  --glass-fill:        color-mix(in srgb, var(--paper-0) 74%, transparent);
-  --glass-fill-strong: color-mix(in srgb, var(--paper-0) 86%, transparent);
-  --glass-blur:        blur(20px) saturate(180%);
-  --glass-rim:         inset 0 0 0 1px color-mix(in srgb, var(--paper-0) 60%, transparent);
-  --glass-shadow:      0 0 0 1px color-mix(in srgb, var(--ink-700) 7%, transparent), var(--shadow-float);
-
-  /* Type: one family */
-  --font-sans:  'Manrope', -apple-system, system-ui, sans-serif;
-  --font-serif: var(--font-sans);   /* kept as a name so no component had to change */
-
-  --text-display:  2rem;      /* 32 */
-  --text-title:    1.5rem;    /* 24 */
-  --text-heading:  1.1875rem; /* 19, 600 */
-  --text-body:     1.0625rem; /* 17, the base */
-  --text-small:    1rem;      /* 16 */
-  --text-label:    0.875rem;  /* 14, THE FLOOR */
-
-  --leading-tight: 1.2;
-  --leading-body:  1.55;
-
-  /* Motion */
-  --motion-fast:  120ms;
-  --motion-base:  200ms;
-  --motion-slow:  320ms;
-  --ease-out:     cubic-bezier(.2, 0, 0, 1);
-
-  /* Data visualisation */
-  --viz-ink:           var(--ink-500);
-  --viz-grid:          var(--paper-200);
-  --viz-axis:          var(--paper-400);
-  --viz-axis-label:    var(--text-muted);
-  --viz-band:          color-mix(in srgb, var(--ink-500) 7%, transparent);
-  --viz-annotation:    var(--paper-500);
-  --viz-missing:       var(--paper-300);
-  --viz-missing-style: dashed;
-
-  /* Space, 4px base */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-12: 48px;
-
-  /* Radius */
-  --radius-sm:   6px;
-  --radius-md:   10px;
-  --radius-lg:   16px;
-  --radius-xl:   24px;
-  --radius-full: 999px;
-
-  /* Touch targets: tiers by context of use */
-  --target-min:      48px;
-  --target-routine:  48px;
-  --target-critical: 56px;
-  --target-gap:      16px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :root { --motion-fast: 0ms; --motion-base: 0ms; --motion-slow: 0ms; }
-  *, *::before, *::after { animation-duration: .01ms !important;
-    transition-duration: .01ms !important; scroll-behavior: auto !important; }
-}
-@media (prefers-reduced-transparency: reduce) {
-  :root { --glass-fill: var(--paper-0); --glass-fill-strong: var(--paper-0); --glass-blur: none; }
-}
-
 /* ─── page styling for this sheet ─────────────────────────────────── */
 * { box-sizing: border-box; }
 body {
@@ -317,9 +163,9 @@ preference) → <strong>matched</strong> (2026-10-09). Stitch's band nearly vani
 bluish page (1.07:1); a warm page gives a cool band something to stand against. Stitch's button
 blue sat 15° warmer than its band and leaned teal beside it, so matched puts the whole ramp on
 one hue. The losing palettes are in <code>archive.html</code> and git history.</p>
-<p><strong>Source of truth:</strong> the Layer 1 and Layer 2 blocks in this file are copied
-from <code>prototypes/hifi-daily-loop-v4.html</code>. If they ever disagree, v4 wins, because v4
-is what was tested on a phone. A shared stylesheet would end the copying; see Still open.</p>
+<p><strong>Source of truth:</strong> <code>tokens.css</code>, one file linked by this page,
+Timeline v4 and Look Back. Change a value there and every screen follows. A prototype may add
+its own layout tokens, but never redefines one of these.</p>
 </div>
 
 <h2>Primitives</h2>
@@ -642,9 +488,6 @@ above: borders split by role, and colour demoted below icon for entry type.</p>
 <h2>Still open</h2>
 <ul class="absent">
 <li><strong>Is 1.5:1 enough for flat controls?</strong> See Borders. Test with P01.</li>
-<li><strong>One shared stylesheet.</strong> The tokens are copied into each prototype, and Look Back has
-already drifted (old palette, Inter, Newsreader). A shared <code>tokens.css</code> would end the copying;
-the cost is that <code>tools/check-tokens.mjs</code> has to learn to read it.</li>
 <li><strong>Freezing of gait</strong> has no icon in any family. Likely a custom glyph [C-04].</li>
 <li><strong>Dyskinesia and tremor must not share an icon</strong>; they are opposite states [C-01].</li>
 <li><strong>Dark mode.</strong> The two-layer structure supports it (swap Layer 2), but the values don't exist.</li>

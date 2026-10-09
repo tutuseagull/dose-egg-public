@@ -4,58 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>DoseEgg · Look Back</title>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
 <style>
-/* ═══════════════════ LAYER 1 — PRIMITIVES ═══════════════════
-   "Stitch blue" — copied verbatim from hifi-daily-loop-v2.html so the two
-   files cannot drift on colour. Token names are positional, not descriptive.  */
+/* Every shared token comes from ../tokens.css (linked above), the one copy,
+   documented in design-tokens.html. Moved onto it 2026-10-09: until then this
+   file kept its own copy and was still on Stitch blue, Inter and Newsreader.
+   Only this screen's own layout tokens live here. */
 :root{
-  --paper-0:#FFFFFF; --paper-50:#F9F9FF; --paper-100:#F1F3FF; --paper-200:#E4E8F5;
-  --paper-300:#D3D9E8; --paper-400:#ABB3C6; --paper-500:#7C8598; --paper-600:#5F6879;
-  --paper-700:#3E4658; --paper-800:#262C3A; --paper-900:#141B2B;
-  --ink-400:#4A7BC8; --ink-500:#2B5BA9; --ink-600:#1E4380; --ink-700:#143059;
-  --hue-mark:#3B4E7A;   /* one mark colour — every dose dot is the same colour */
-  --red-600:#A33A2A;
-  --backdrop:#D9DDE8;   /* review frame only — not a product surface */
-}
-/* ═══════════════════ LAYER 2 — SEMANTIC ═══════════════════ */
-:root{
-  --surface-page:var(--paper-50); --surface-card:var(--paper-0);
-  --surface-raised:var(--paper-100); --surface-sunken:var(--paper-200);
-  --text-primary:var(--paper-900); --text-secondary:var(--paper-700);
-  --text-muted:var(--paper-600); --text-inverse:var(--paper-50);
-  --border-subtle:var(--paper-200); --border-interactive:var(--paper-500);
-  --accent:var(--ink-500); --accent-hover:var(--ink-600); --accent-quiet:var(--ink-400);
-  --on-accent:var(--paper-0);
-  --mark:var(--hue-mark);
-  --focus-ring:var(--ink-500); --focus-ring-width:3px; --focus-ring-offset:2px;
-  --feedback-error:var(--red-600);
-
-  --font-serif:'Newsreader',Georgia,serif;
-  --font-sans:'Inter',-apple-system,system-ui,sans-serif;
-  --text-display:2rem; --text-title:1.5rem; --text-heading:1.1875rem;
-  --text-body:1.0625rem; --text-small:1rem; --text-label:.875rem;
-  --leading-tight:1.2; --leading-body:1.55;
-
-  --motion-fast:120ms; --motion-base:200ms; --motion-slow:320ms;
-  --ease-out:cubic-bezier(.2,0,0,1);
-
-  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
-  --space-6:24px; --space-8:32px; --space-12:48px;
-  --radius-sm:6px; --radius-md:10px; --radius-lg:16px; --radius-full:999px;
-
-  --target-min:48px; --target-routine:48px; --target-critical:56px; --target-gap:16px;
-
   --gutter:16px;
   --card-pad:16px;
   --text-meta:.875rem;
   --shell-w:420px;
-  --drawer-w:320px;     /* menu panel width cap — same family as --shell-w */
-}
-@media (prefers-reduced-motion:reduce){
-  :root{--motion-fast:0ms;--motion-base:0ms;--motion-slow:0ms}
-  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  --drawer-w:320px;     /* menu panel width cap, same family as --shell-w */
 }
 
 /* ═══════════════════ base ═══════════════════ */
@@ -83,21 +45,46 @@ button{font-family:inherit;font-size:inherit;border:0;background:none;color:inhe
 .demo-btn{font-size:12px;font-weight:500;color:var(--paper-100);
           background:rgba(255,255,255,.12);padding:5px 10px;border-radius:var(--radius-full);
           display:flex;align-items:center;min-height:32px;text-decoration:none}
-.demo-btn:hover{background:rgba(255,255,255,.2)}
+@media (hover:hover){ .demo-btn:hover{background:rgba(255,255,255,.2)} }
 .demo-btn.home{background:rgba(255,255,255,.22);font-weight:600}
 .demo-btn.on{background:var(--ink-400);color:var(--paper-0)}
 
-/* ── top bar ── */
+/* ── top bar ──
+   Same as Today (hifi-daily-loop-v4.html), 2026-10-09: menu, then the two views
+   as tabs, Look Back selected. Glass and persistent, so the page scrolls behind
+   it; once scrolled a soft page wash fades in so text does not read through the
+   gaps. Today's tab is a plain link here because they are still two files. */
 .top{display:flex;align-items:center;gap:var(--space-2);
-     padding:var(--space-4) var(--space-4) var(--space-2)}
-.top h1{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
-        line-height:var(--leading-tight);margin:0;color:var(--text-primary);flex:1}
+     padding:var(--space-4) var(--space-4) var(--space-2);
+     position:sticky;top:0;z-index:30;background:transparent}
+.top::before{content:'';position:absolute;inset:0 0 calc(var(--space-4) * -1) 0;z-index:-1;
+             background:linear-gradient(to bottom,
+               color-mix(in srgb, var(--surface-page) 88%, transparent) 0%,
+               color-mix(in srgb, var(--surface-page) 60%, transparent) 60%, transparent 100%);
+             opacity:0;transition:opacity var(--motion-base) var(--ease-out);pointer-events:none}
+.shell.scrolled .top::before{opacity:1}
+.tabs{flex:1;display:flex;gap:var(--space-2);min-width:0}
+.tab{flex:0 0 var(--target-routine);min-height:var(--target-routine);
+     border-radius:var(--radius-full);color:var(--text-secondary);text-decoration:none;
+     display:flex;align-items:center;justify-content:center;gap:var(--space-2);padding:0}
+.tab i{font-size:22px}
+.tab .tab-lab{display:none}
+.tab[aria-current="page"]{flex:1 1 auto;padding:0 var(--space-4);color:var(--text-primary);
+     font-weight:600;font-size:var(--text-small)}
+.tab[aria-current="page"] i{font-weight:bold}
+.tab[aria-current="page"] .tab-lab{display:inline}
+/* navigation layer: glass (tokens in tokens.css) */
+.tab, .top .icon-btn{
+  background:var(--glass-fill);box-shadow:var(--glass-rim), var(--glass-shadow);
+  color:var(--text-primary);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)}
+.tab[aria-current="page"]{background:var(--glass-fill-strong)}
 .icon-btn{width:var(--target-min);height:var(--target-min);display:flex;align-items:center;
           justify-content:center;border-radius:var(--radius-full);color:var(--text-muted);
           flex:0 0 auto}
 .icon-btn i{font-size:22px}
-.icon-btn:hover{background:var(--surface-raised)}
-.top .icon-btn:first-child{margin-left:calc(var(--space-3) * -1)}
+@media (hover:hover){ .icon-btn:hover{background:var(--surface-raised)} }
+
 
 .scroll{flex:1;overflow-y:auto;padding:0 var(--gutter) var(--space-12)}
 
@@ -114,6 +101,16 @@ button{font-family:inherit;font-size:inherit;border:0;background:none;color:inhe
   pointer-events:auto;display:flex;flex-direction:column;
   padding:var(--space-4) 0}
 .drawer.open{transform:translateX(0)}
+/* popover, as on Today: same element, different shape */
+.drawer{bottom:auto;width:min(80%,var(--drawer-w));padding:var(--space-2) 0;
+        border:1px solid var(--border-subtle);border-radius:var(--radius-lg);
+        box-shadow:var(--shadow-overlay);opacity:0;
+        transform:translateY(calc(var(--space-2) * -1));transform-origin:top left;
+        transition:opacity var(--motion-base) var(--ease-out),
+                   transform var(--motion-base) var(--ease-out)}
+.drawer.open{opacity:1;transform:none}
+.drawer .drawer-head, .drawer .drawer-foot{display:none}   /* beats the panel rules further down */
+button.navrow{width:100%;text-align:left}
 .drawer-head{display:flex;align-items:center;padding:0 var(--space-2) var(--space-4) var(--gutter)}
 .drawer-head .brand{font-family:var(--font-serif);font-size:var(--text-heading);flex:1}
 .navrow{display:flex;align-items:center;gap:var(--space-3);
@@ -130,7 +127,7 @@ button{font-family:inherit;font-size:inherit;border:0;background:none;color:inhe
 .drawer-foot{margin-top:auto;padding:var(--space-4) var(--gutter) 0;
   border-top:1px solid var(--border-subtle);
   color:var(--text-muted);font-size:var(--text-meta);line-height:var(--leading-body)}
-.scrim{position:fixed;inset:0;background:rgba(20,27,43,.34);opacity:0;pointer-events:none;
+.scrim{position:fixed;inset:0;background:color-mix(in srgb, var(--paper-900) 34%, transparent);opacity:0;pointer-events:none;
   transition:opacity var(--motion-base) var(--ease-out);z-index:50}
 .scrim.open{opacity:1;pointer-events:auto}
 
@@ -140,7 +137,7 @@ button{font-family:inherit;font-size:inherit;border:0;background:none;color:inhe
 .scales button{flex:1;min-height:var(--target-routine);border-radius:var(--radius-sm);
   font-size:var(--text-small);font-weight:500;color:var(--text-secondary)}
 .scales button[aria-selected="true"]{background:var(--surface-card);color:var(--text-primary);
-  font-weight:600;box-shadow:0 1px 2px rgba(20,27,43,.10)}
+  font-weight:600;box-shadow:var(--content-edge)}
 
 /* ═══════════════════ period control ═══════════════════ */
 .period{display:flex;align-items:stretch;gap:var(--space-2)}
@@ -225,7 +222,7 @@ svg{display:block;width:100%;height:auto}
   transition:background var(--motion-fast) var(--ease-out)}
 .switch::after{content:"";position:absolute;top:var(--space-3);left:var(--space-1);
   width:var(--space-6);height:var(--space-6);border-radius:var(--radius-full);
-  background:var(--paper-0);box-shadow:0 1px 2px rgba(20,27,43,.20);
+  background:var(--paper-0);box-shadow:var(--content-edge);
   transition:transform var(--motion-fast) var(--ease-out)}
 .switch[aria-checked="true"]::before{background:var(--accent)}
 .switch[aria-checked="true"]::after{
@@ -243,7 +240,7 @@ svg{display:block;width:100%;height:auto}
 .stmt p{margin:0 0 var(--space-2);font-size:var(--text-small);
   line-height:var(--leading-body)}
 .stmt .cov{margin:0;font-size:var(--text-meta);color:var(--text-muted)}
-.sec-h{font-family:var(--font-serif);font-size:var(--text-heading);font-weight:400;
+.sec-h{font-size:var(--text-heading);font-weight:600;
   margin:var(--space-6) 0 var(--space-2)}
 .lede{color:var(--text-muted);font-size:var(--text-meta);margin:0 0 var(--space-4)}
 </style>
@@ -253,15 +250,20 @@ svg{display:block;width:100%;height:auto}
 
   <div class="demo-bar">
     <a class="demo-btn home" href="../index.html">← Home</a>
-    <span class="db">Hi-fi · Look Back · v1</span>
+    <span class="db">Hi-fi · Look Back · v1 · tokens v1</span>
     <button class="demo-btn" id="sparseBtn" onclick="toggleSparse()">early record</button>
     <button class="demo-btn" onclick="location.reload()">reset</button>
   </div>
 
   <div class="top">
-    <button class="icon-btn" id="menuBtn" onclick="openDrawer()"
+    <button class="icon-btn" id="menuBtn" onclick="openDrawer()" aria-haspopup="true"
             aria-label="Menu" aria-expanded="false"><i class="ph ph-list"></i></button>
-    <h1>Look Back</h1>
+    <nav class="tabs" aria-label="Views">
+      <a class="tab" href="hifi-daily-loop-v4.html" aria-label="Today">
+        <i class="ph ph-sun"></i><span class="tab-lab">Today</span></a>
+      <a class="tab" aria-current="page" aria-label="Look Back">
+        <i class="ph ph-chart-line"></i><span class="tab-lab">Look Back</span></a>
+    </nav>
   </div>
 
   <div class="scroll">
@@ -395,14 +397,11 @@ svg{display:block;width:100%;height:auto}
       <button class="icon-btn" onclick="closeDrawer()" aria-label="Close menu">
         <i class="ph ph-x"></i></button>
     </div>
-    <div class="navrow"><i class="ph ph-list-dashes"></i>
-      <span class="lab">Timeline<span class="sub">Today, and the days behind it</span></span></div>
-    <div class="navrow here"><i class="ph ph-chart-scatter"></i>
-      <span class="lab">Look Back<span class="sub">What the record can say so far</span></span></div>
-    <div class="navrow"><i class="ph ph-first-aid-kit"></i>
-      <span class="lab">Medicine Cabinet<span class="sub">What you take, and when</span></span></div>
-    <div class="navrow"><i class="ph ph-gear"></i>
-      <span class="lab">Settings<span class="sub">Text size, AI, your data</span></span></div>
+    <!-- Same two rows as Today: the views moved to the tabs (2026-10-08) -->
+    <button class="navrow"><i class="ph ph-first-aid-kit"></i>
+      <span class="lab">Medicine Cabinet<span class="sub">What you take, and when</span></span></button>
+    <button class="navrow"><i class="ph ph-gear"></i>
+      <span class="lab">Settings<span class="sub">Text size, AI, your data</span></span></button>
     <div class="drawer-foot">
       Rows are not wired to their screens yet. This menu is here to test what it
       holds and how the labels read.
@@ -846,12 +845,20 @@ function toggleSparse(){
   render();
 }
 function openDrawer(){
+  /* a popover under the button, placed from its real position (the demo bar wraps) */
+  const r = el('menuBtn').getBoundingClientRect();
+  const w = el('drawerWrap').getBoundingClientRect();
+  el('drawer').style.top  = (r.bottom + 8) + 'px';
+  el('drawer').style.left = Math.max(16, r.left - w.left) + 'px';
   el('drawerWrap').removeAttribute('inert');
   el('drawer').classList.add('open');
   el('scrim').classList.add('open');
   el('menuBtn').setAttribute('aria-expanded', 'true');
-  el('drawer').querySelector('.icon-btn').focus();
+  el('drawer').querySelector('.navrow').focus();
 }
+window.addEventListener('scroll', () =>
+  document.querySelector('.shell').classList.toggle('scrolled', window.scrollY > 4),
+  { passive:true });
 function closeDrawer(){
   if (!el('drawer').classList.contains('open')) return;
   el('drawer').classList.remove('open');
