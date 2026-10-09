@@ -3,10 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DoseEgg — Design Tokens (v0 proposal)</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<title>DoseEgg — Design Tokens (v1)</title>
+<!-- v1, 2026-10-09. Rewritten to match prototypes/hifi-daily-loop-v4.html, which
+     is where the look was decided. v0 (2026-08-05, Stitch blue + Inter/Newsreader)
+     is in git history. The values in LAYER 1 and LAYER 2 below must stay identical
+     to v4's; if they ever differ, v4 is the one that was tested on a phone. -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 
 <style>
 /* ═══════════════════════════════════════════════════════════════════
@@ -15,155 +19,123 @@
    Their only job is to be the single place a value is written down.
    ═══════════════════════════════════════════════════════════════════ */
 :root {
-  /* ── PALETTE SWAPPED 2026-08-06: "Stitch blue" ──
-     The domain lead's preference, and they are the user — so it wins. Provisional; the oat+petrol
-     exploration is preserved in palette-*.html and can be restored by swapping this
-     block back. Nothing below Layer 1 changes, which is the whole point of the split.
-
-     Values traced from the Google Stitch mocks: #2B5BA9 "calm blue", #F9F9FF surface,
-     #F1F3FF surface-container-low, #141B2B on-surface. The neutral ramp is blue-tinted
-     to match, rather than the warm oat it replaces.
-
-     NOTE the names stay `paper-*` and `ink-*` even though nothing is papery or inky
-     now. Renaming primitives touches every reference and buys nothing — they're
-     positional names (ground level 0-900, accent level 400-700), not descriptions. */
+  /* "Matched", decided 2026-10-09. Oat neutrals for the ground, and every blue
+     on one hue, 227°: the button ramp, the card band, the timeline marks.
+     Names stay positional (paper = ground 0-900, ink = accent 100-700), not
+     descriptive, so a palette change never renames a token. */
   --paper-0:   #FFFFFF;
-  --paper-50:  #F9F9FF;
-  --paper-100: #F1F3FF;
-  --paper-200: #E4E8F5;
-  --paper-300: #D3D9E8;
-  --paper-400: #ABB3C6;
-  --paper-500: #7C8598;
-  --paper-600: #5F6879;
-  --paper-700: #3E4658;
-  --paper-800: #262C3A;
-  --paper-900: #141B2B;
+  --paper-50:  #FCFBF7;
+  --paper-100: #F4F2EC;
+  --paper-200: #E8E5DD;
+  --paper-300: #D5D3CB;
+  --paper-400: #A9AFB6;
+  --paper-500: #7A8593;
+  --paper-600: #53606D;
+  --paper-700: #3A4654;
+  --paper-800: #263240;
+  --paper-900: #192632;
 
-  /* Accent — Stitch's calm blue. */
-  --ink-400: #4A7BC8;
-  --ink-500: #2B5BA9;
-  --ink-600: #1E4380;
-  --ink-700: #143059;
+  --ink-100: #E8EBFF;   /* the dose card band */
+  --ink-400: #4362D0;
+  --ink-500: #3350BE;
+  --ink-600: #27409B;
+  --ink-700: #1D2F72;
 
-  /* ── ONE mark colour. Decided 2026-08-06. ──
-     Entry type is carried entirely by the ICON. Colour carries nothing.
-     The five-hue set was already failing its own purpose: under every type of
-     colour-vision deficiency they collapsed to 1.00–1.14:1, and they had to be held
-     at near-equal lightness anyway so no type looked more severe than another.
-     A set of five colours that must not differ in weight and cannot be told apart
-     is not a system — it is decoration that looks like information.
-     Parked, not deleted — restoring differentiation is a swap, not a re-derivation:
-       dose #3B4E7A · symptom #7E5257 · activity #456A5D · meal #7A6A48 · note #616875 */
-  --hue-mark: #3B4E7A;   /* deeper than the accent, so a timeline mark never competes
-                            with a button. 7.8:1 on the page ground. */
+  /* ONE mark colour. Entry type is carried by the ICON; colour carries nothing. */
+  --hue-mark: #35488D;
 
-  /* Reserved. UI failure only — never a body state. */
+  /* Reserved. UI failure only, never a body state. */
   --red-600: #A33A2A;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
    LAYER 2 — SEMANTIC
-   What components actually use. Named by role, so values can change
-   without any name becoming a lie.
+   What components actually use. Named by role.
    ═══════════════════════════════════════════════════════════════════ */
 :root {
-  /* ── Surfaces ── three levels, not Material's six.
-     If you can't say what the fourth level is for, you don't need it. */
+  /* Surfaces */
   --surface-page:    var(--paper-50);
   --surface-card:    var(--paper-0);
   --surface-raised:  var(--paper-100);
   --surface-sunken:  var(--paper-200);
+  --surface-accent:  var(--ink-100);
 
-  /* ── Text ── */
+  /* Text */
   --text-primary:    var(--paper-900);
   --text-secondary:  var(--paper-700);
   --text-muted:      var(--paper-600);
   --text-inverse:    var(--paper-50);
 
-  /* ── Borders ──
-     Two kinds, and the difference is an accessibility rule, not taste:
-     `subtle` is decorative separation (exempt from WCAG 1.4.11).
-     `interactive` DEFINES a control's edge and must clear 3:1. */
-  --border-subtle:      var(--paper-200);  /* 1.2:1 — dividers only, never a control edge */
-  --border-interactive: var(--paper-500);  /* 3.2:1 — outlined buttons, inputs, chips */
+  /* Borders: three, by what the line is FOR */
+  --border-subtle:      var(--paper-200);  /* 1.26:1, dividers only */
+  --border-control:     var(--paper-300);  /* 1.5:1, hairline on a flat control whose LABEL identifies it */
+  --border-interactive: var(--paper-500);  /* 3.75:1, where the line itself is the only cue */
 
-  /* ── Accent ── one accent. Actions, not meaning. */
+  /* Accent: actions, not meaning */
   --accent:          var(--ink-500);
   --accent-hover:    var(--ink-600);
   --accent-quiet:    var(--ink-400);
   --on-accent:       var(--paper-0);
 
-  /* ── Focus ── WCAG 2.4.7. Non-optional: keyboard and switch-control users
-     include people whose tremor makes touch unreliable. */
+  --mark: var(--hue-mark);
+
+  /* Focus */
   --focus-ring:        var(--ink-500);
   --focus-ring-width:  3px;
   --focus-ring-offset: 2px;
+  --focus-glow: 0 0 0 var(--focus-ring-width) color-mix(in srgb, var(--focus-ring) 22%, transparent);
 
-  /* ── Entry mark ── one colour for every entry type.
-     ICON CARRIES THE TYPE. Colour carries nothing at all.
-     See the note in Layer 1 for why the five-hue set was retired. */
-  --mark: var(--hue-mark);   /* one token, because there is one decision */
-
-  /* ── Epistemic state ── mirrors the `basis` field in the entry schema.
-     Expressed as FILL and OUTLINE STYLE, never as hue — so it reads
-     as certainty, not as quality. An assumed dose must never look taken.
-     All outlines clear 3:1 (WCAG 1.4.11): this distinction is safety-critical,
-     so it cannot be allowed to fade out for a low-vision user. */
-  --entry-asserted-fill:   currentColor;      /* solid        — the user said so */
-  --entry-assumed-fill:    transparent;       /* hollow       — proposed, no answer */
-  --entry-assumed-border:  var(--paper-500);  /* 3.2:1 */
-  --entry-unknown-fill:    transparent;       /* hollow dashed — we cannot know */
-  --entry-unknown-border:  var(--paper-500);  /* 3.2:1 — differs from assumed by STYLE, not weight */
+  /* Epistemic state: fill and outline, never hue */
+  --entry-asserted-fill:   currentColor;
+  --entry-assumed-fill:    transparent;
+  --entry-assumed-border:  var(--paper-500);
+  --entry-unknown-fill:    transparent;
+  --entry-unknown-border:  var(--paper-500);
   --entry-unknown-style:   dashed;
 
-  /* ── Feedback ── APP failure only.
-     There is deliberately no token for a body state being wrong. */
   --feedback-error:  var(--red-600);
 
-  /* ── Type ── */
-  --font-serif: 'Newsreader', Georgia, serif;
-  --font-sans:  'Inter', -apple-system, system-ui, sans-serif;
+  /* Elevation: depth belongs to a LAYER, not to the things inside it */
+  --content-edge:   0 0 0 1px color-mix(in srgb, var(--ink-700) 8%, transparent);
+  --shadow-float:   0 6px 20px color-mix(in srgb, var(--ink-700) 10%, transparent);
+  --shadow-overlay: 0 -6px 32px color-mix(in srgb, var(--ink-700) 18%, transparent);
+  --glass-fill:        color-mix(in srgb, var(--paper-0) 74%, transparent);
+  --glass-fill-strong: color-mix(in srgb, var(--paper-0) 86%, transparent);
+  --glass-blur:        blur(20px) saturate(180%);
+  --glass-rim:         inset 0 0 0 1px color-mix(in srgb, var(--paper-0) 60%, transparent);
+  --glass-shadow:      0 0 0 1px color-mix(in srgb, var(--ink-700) 7%, transparent), var(--shadow-float);
 
-  /* Every size is rem, so the whole scale moves from ONE root value.
-     That is the entire mechanism for system font scaling — see §Text size.
-     FLOOR: nothing below 0.875rem (14px). Not a guideline.
-     Six sizes, deliberately. 13px and 15px were removed rather than kept
-     "for small labels" — an unused small size is a temptation. */
-  --text-display:  2rem;      /* 32 — serif, screen titles */
-  --text-title:    1.5rem;    /* 24 — serif, section titles */
-  --text-heading:  1.1875rem; /* 19 — sans 600 */
-  --text-body:     1.0625rem; /* 17 — sans 400. Base is 17, not 16. */
-  --text-small:    1rem;      /* 16 — secondary content */
-  --text-label:    0.875rem;  /* 14 — THE FLOOR. Timestamps, meta. */
+  /* Type: one family */
+  --font-sans:  'Manrope', -apple-system, system-ui, sans-serif;
+  --font-serif: var(--font-sans);   /* kept as a name so no component had to change */
+
+  --text-display:  2rem;      /* 32 */
+  --text-title:    1.5rem;    /* 24 */
+  --text-heading:  1.1875rem; /* 19, 600 */
+  --text-body:     1.0625rem; /* 17, the base */
+  --text-small:    1rem;      /* 16 */
+  --text-label:    0.875rem;  /* 14, THE FLOOR */
 
   --leading-tight: 1.2;
   --leading-body:  1.55;
 
-  /* ── Motion ── minimal for MVP, but the structure needs to exist now.
-     Every duration must have a reduced-motion path (see media query below). */
-  --motion-fast:  120ms;  /* state change: press, toggle, chip select */
-  --motion-base:  200ms;  /* enter / exit: sheet, card, snackbar */
-  --motion-slow:  320ms;  /* full-screen transition */
-  --ease-out:     cubic-bezier(0.2, 0, 0, 1);
-  --ease-in-out:  cubic-bezier(0.4, 0, 0.2, 1);
+  /* Motion */
+  --motion-fast:  120ms;
+  --motion-base:  200ms;
+  --motion-slow:  320ms;
+  --ease-out:     cubic-bezier(.2, 0, 0, 1);
 
-  /* ── Data visualisation ──
-     Trends / Analyze. Same rules as everywhere: no gradient severity scales,
-     no red-green, nothing that ranks a day against another day. */
-  --viz-ink:           var(--ink-500);        /* default single series */
-  --viz-grid:          var(--paper-200);      /* gridlines — decorative */
-  --viz-axis:          var(--paper-400);      /* axis rule */
-  --viz-axis-label:    var(--text-muted);     /* 4.96:1 — real text, must pass */
-  --viz-band:          rgba(43, 91, 169, .07); /* dose-window / time-of-day shading */
-  --viz-annotation:    var(--paper-500);      /* 3.2:1 — reference lines */
-
-  /* Missing data. The most important viz token in this product.
-     A gap must NEVER render as zero — "didn't log" is not "didn't happen",
-     and `unknown` is not the number 0. [entry-schema.md §basis] */
+  /* Data visualisation */
+  --viz-ink:           var(--ink-500);
+  --viz-grid:          var(--paper-200);
+  --viz-axis:          var(--paper-400);
+  --viz-axis-label:    var(--text-muted);
+  --viz-band:          color-mix(in srgb, var(--ink-500) 7%, transparent);
+  --viz-annotation:    var(--paper-500);
   --viz-missing:       var(--paper-300);
   --viz-missing-style: dashed;
 
-  /* ── Space ── 4px base */
+  /* Space, 4px base */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -172,83 +144,63 @@
   --space-8: 32px;
   --space-12: 48px;
 
-  /* ── Radius ── */
+  /* Radius */
   --radius-sm:   6px;
   --radius-md:   10px;
   --radius-lg:   16px;
+  --radius-xl:   24px;
   --radius-full: 999px;
 
-  /* ── Touch targets ── three tiers, by CONTEXT OF USE rather than one global
-     number. The reasoning: sizing everything for the worst moment costs vertical
-     space in every ordinary one. But "day-to-day" doesn't reliably mean "steady
-     hands" — PD tremor is often worse at rest, and dyskinesia peaks during ON —
-     so the floor still has to be generous.
-
-     These are four SEPARATE tokens even though two currently share a value.
-     Same value ≠ same token: --target-routine can be raised to 52 later without
-     touching the floor, and neither should quietly follow the other. */
-  --target-min:      48px;  /* floor — every interactive element, no exceptions */
-  --target-routine:  48px;  /* ordinary moments: dose confirm, log tiles, nav */
-  --target-critical: 56px;  /* low-capacity paths: FOG, low energy, instant chips, FAB.
-                               ~10mm — where the motor-impairment research starts to pay */
-  --target-gap:      16px;  /* between adjacent targets in a row. For the dose card the
-                               real error is hitting the WRONG neighbour, not missing —
-                               so separation matters more than height. Was 8px. */
-
-  /* Reach, not size, may be the bigger lever in a bad moment: one-handed thumb
-     use wants the crisis actions in the lower third. */
-  --reach-zone: 33vh;       /* bottom third — where low-capacity actions belong */
+  /* Touch targets: tiers by context of use */
+  --target-min:      48px;
+  --target-routine:  48px;
+  --target-critical: 56px;
+  --target-gap:      16px;
 }
 
-/* Reduced motion. Vestibular sensitivity is common, and PD medication
-   side-effects can include dizziness — this matters more here than usual. */
 @media (prefers-reduced-motion: reduce) {
   :root { --motion-fast: 0ms; --motion-base: 0ms; --motion-slow: 0ms; }
   *, *::before, *::after { animation-duration: .01ms !important;
     transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root { --glass-fill: var(--paper-0); --glass-fill-strong: var(--paper-0); --glass-blur: none; }
 }
 
 /* ─── page styling for this sheet ─────────────────────────────────── */
 * { box-sizing: border-box; }
 body {
   margin: 0; padding: var(--space-8) var(--space-6) var(--space-12);
-  background: var(--surface-page);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: var(--text-body);
-  line-height: var(--leading-body);
-  -webkit-font-smoothing: antialiased;
+  background: var(--surface-page); color: var(--text-primary);
+  font-family: var(--font-sans); font-size: var(--text-body);
+  line-height: var(--leading-body); -webkit-font-smoothing: antialiased;
 }
 .wrap { max-width: 880px; margin: 0 auto; }
-h1 { font-family: var(--font-serif); font-size: var(--text-display);
-     line-height: var(--leading-tight); font-weight: 400; margin: 0 0 var(--space-2); }
-h2 { font-family: var(--font-serif); font-size: var(--text-title);
-     line-height: var(--leading-tight); font-weight: 400;
+h1 { font-size: var(--text-display); line-height: var(--leading-tight);
+     font-weight: 700; letter-spacing: -.01em; margin: 0 0 var(--space-2); }
+h2 { font-size: var(--text-title); line-height: var(--leading-tight); font-weight: 600;
      margin: var(--space-12) 0 var(--space-2);
      padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-subtle); }
 h3 { font-size: var(--text-heading); font-weight: 600; margin: var(--space-6) 0 var(--space-2); }
-p  { margin: 0 0 var(--space-3); max-width: 62ch; color: var(--text-secondary); }
-.lede { font-size: var(--text-body); color: var(--text-muted); margin-bottom: var(--space-4); }
-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-       font-size: 0.85em; background: var(--surface-sunken);
-       padding: 2px 5px; border-radius: var(--radius-sm); }
-.label { font-size: var(--text-label); font-weight: 500; letter-spacing: .02em;
+p  { margin: 0 0 var(--space-3); max-width: 64ch; color: var(--text-secondary); }
+.lede { color: var(--text-muted); margin-bottom: var(--space-4); }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em;
+       background: var(--surface-raised); padding: 0 var(--space-1); border-radius: var(--radius-sm); }
+.label { font-size: var(--text-label); font-weight: 600; letter-spacing: .04em;
          text-transform: uppercase; color: var(--text-muted); }
 
 .ramp { display: flex; border-radius: var(--radius-md); overflow: hidden;
         margin: var(--space-3) 0 var(--space-6); border: 1px solid var(--border-subtle); }
-.ramp div { flex: 1; height: 56px; }
+.ramp div { flex: 1; height: var(--space-12); }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
         gap: var(--space-3); margin: var(--space-3) 0 var(--space-6); }
 .tok { background: var(--surface-card); border: 1px solid var(--border-subtle);
        border-radius: var(--radius-md); padding: var(--space-3); }
-.tok .sw { height: 40px; border-radius: var(--radius-sm); margin-bottom: var(--space-2);
-           border: 1px solid rgba(0,0,0,.06); }
-.tok .nm { font-family: ui-monospace, monospace; font-size: 12px; color: var(--text-primary); }
-.tok .vl { font-family: ui-monospace, monospace; font-size: 11px; color: var(--text-muted); }
-.tok .us { font-size: 12px; color: var(--text-muted); margin-top: var(--space-1);
-           line-height: 1.4; }
+.tok .sw { height: var(--space-8); border-radius: var(--radius-sm); margin-bottom: var(--space-2);
+           box-shadow: var(--content-edge); }
+.tok .nm { font-family: ui-monospace, monospace; font-size: var(--text-label); color: var(--text-primary); }
+.tok .us { font-size: var(--text-label); color: var(--text-muted); margin-top: var(--space-1); line-height: 1.4; }
 
 .card { background: var(--surface-card); border: 1px solid var(--border-subtle);
         border-radius: var(--radius-lg); padding: var(--space-6); margin: var(--space-4) 0; }
@@ -256,76 +208,123 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
         border-radius: 0 var(--radius-md) var(--radius-md) 0;
         padding: var(--space-4); margin: var(--space-4) 0; }
 .note p:last-child { margin-bottom: 0; }
+.warn { border-left-color: var(--feedback-error); }
 
 table { width: 100%; border-collapse: collapse; margin: var(--space-3) 0 var(--space-6); }
+/* long token names may break inside a cell, so a 4-column table fits a phone */
+td code { overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  body { padding: var(--space-6) var(--space-4) var(--space-12); }
+  th, td { padding: var(--space-2); }
+}
 th, td { text-align: left; padding: var(--space-2) var(--space-3);
-         border-bottom: 1px solid var(--border-subtle); font-size: var(--text-small);
-         vertical-align: top; }
-th { font-size: var(--text-label); text-transform: uppercase; letter-spacing: .02em;
-     color: var(--text-muted); font-weight: 500; }
-td code { font-size: 12px; }
+         border-bottom: 1px solid var(--border-subtle); font-size: var(--text-small); vertical-align: top; }
+th { font-size: var(--text-label); text-transform: uppercase; letter-spacing: .04em;
+     color: var(--text-muted); font-weight: 600; }
 
-.dots { display: flex; gap: var(--space-6); flex-wrap: wrap; align-items: flex-start;
-        margin: var(--space-4) 0; }
-.dotcase { text-align: center; width: 108px; }
-.dot { width: 18px; height: 18px; border-radius: 50%; margin: 0 auto var(--space-2); }
-.dotcase .label { display: block; margin-bottom: 2px; }
-.dotcase small { font-size: 12px; color: var(--text-muted); line-height: 1.35; display: block; }
-
-.type-row { display: flex; align-items: baseline; gap: var(--space-4);
+.type-row { display: flex; align-items: baseline; gap: var(--space-4); flex-wrap: wrap;
             padding: var(--space-3) 0; border-bottom: 1px solid var(--border-subtle); }
-.type-row .meta { font-family: ui-monospace, monospace; font-size: 11px;
-                  color: var(--text-muted); width: 150px; flex-shrink: 0; }
+.type-row .meta { font-family: ui-monospace, monospace; font-size: var(--text-label);
+                  color: var(--text-muted); width: 190px; flex-shrink: 0; }
 
-.spacer { background: var(--accent-quiet); height: 20px; border-radius: 2px; }
+.spacer { background: var(--accent-quiet); height: var(--space-4); border-radius: var(--radius-sm); }
 .sp-row { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2); }
-.sp-row .meta { font-family: ui-monospace, monospace; font-size: 12px;
-                color: var(--text-muted); width: 110px; }
+.sp-row .meta { font-family: ui-monospace, monospace; font-size: var(--text-label);
+                color: var(--text-muted); width: 120px; }
 
-.btn { font-family: var(--font-sans); font-size: var(--text-body); font-weight: 500;
-       min-height: var(--touch-min); padding: 0 var(--space-6);
+/* demo controls, built from the tokens exactly as v4 builds them */
+.row { display: flex; gap: var(--target-gap); flex-wrap: wrap; }
+.btn { flex: 1 1 8rem; font-family: var(--font-sans); font-size: var(--text-body); font-weight: 600;
+       min-height: var(--target-routine); padding: 0 var(--space-6);
        border-radius: var(--radius-md); border: 1px solid transparent; cursor: pointer; }
 .btn-primary { background: var(--accent); color: var(--on-accent); }
-.btn-quiet { background: var(--surface-raised); color: var(--text-primary);
-             border-color: var(--border-interactive); }
+.btn-quiet { background: var(--surface-card); color: var(--text-primary); box-shadow: var(--content-edge); }
+.btn:active { background: var(--accent-hover); }
+.btn-quiet:active { background: var(--surface-raised); }
+@media (hover: hover) {
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-quiet:hover { background: var(--surface-raised); }
+}
 .btn:focus-visible { outline: var(--focus-ring-width) solid var(--focus-ring);
                      outline-offset: var(--focus-ring-offset); }
-.absent { color: var(--text-muted); }
-.absent li { margin-bottom: var(--space-2); }
+
+/* elevation stage: a miniature Today screen */
+.stage { position: relative; border-radius: var(--radius-lg); overflow: hidden;
+         border: 1px solid var(--border-subtle); background: var(--surface-page);
+         max-width: 380px; margin: var(--space-4) 0; }
+.stage .band { background: var(--surface-accent); padding: calc(var(--target-routine) + var(--space-6)) var(--space-4) var(--space-6);
+               border-radius: 0 0 var(--radius-xl) var(--radius-xl); }
+.stage .band b { display: block; font-size: var(--text-heading); margin-bottom: var(--space-3); }
+.stage .lines { padding: var(--space-4) var(--space-4) calc(var(--target-critical) + var(--space-8)); }
+.stage .lines p { margin: 0 0 var(--space-3); color: var(--text-primary); }
+.stage .lines small { display: block; font-size: var(--text-label); color: var(--text-muted); }
+.navtop { position: absolute; top: var(--space-3); left: var(--space-3); right: var(--space-3);
+          display: flex; gap: var(--space-2); }
+.navbot { position: absolute; bottom: var(--space-3); left: var(--space-3); right: var(--space-3);
+          display: flex; gap: var(--space-3); align-items: center; }
+.glass { background: var(--glass-fill); box-shadow: var(--glass-rim), var(--glass-shadow);
+         -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+         border-radius: var(--radius-full); min-height: var(--target-routine); min-width: var(--target-routine);
+         display: flex; align-items: center; justify-content: center; gap: var(--space-2);
+         font-weight: 500; color: var(--text-primary); }
+.glass.wide { flex: 1; }
+.glass.tall { min-height: var(--target-critical); min-width: var(--target-critical); }
+.glass i, .fab i { font-size: 22px; }
+.fab { background: var(--accent); color: var(--on-accent); box-shadow: var(--shadow-float);
+       border-radius: var(--radius-full); width: var(--target-critical); height: var(--target-critical);
+       display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.sheetdemo { background: var(--surface-card); box-shadow: var(--shadow-overlay);
+             border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: var(--space-4);
+             max-width: 380px; margin-top: var(--space-6); }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: var(--target-gap); }
+.tile { background: var(--surface-card); border: 1px solid var(--border-control);
+        border-radius: var(--radius-md); min-height: var(--target-critical); padding: var(--space-3);
+        display: flex; align-items: center; gap: var(--space-2); font-weight: 500; }
+.tile i { font-size: 22px; color: var(--mark); }
+.tile.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+
+/* epistemic marks */
+.marks { display: flex; gap: var(--space-6); flex-wrap: wrap; margin: var(--space-4) 0; }
+.mcase { width: 130px; text-align: center; }
+.mk { width: 36px; height: 36px; border-radius: var(--radius-full); margin: 0 auto var(--space-2);
+      display: flex; align-items: center; justify-content: center; }
+.mk i { font-size: 18px; }
+.mcase small { display: block; font-size: var(--text-label); color: var(--text-muted); line-height: 1.4; }
+.chip-nc { display: inline-block; font-size: var(--text-label); color: var(--text-secondary);
+           background: var(--surface-raised); border-radius: var(--radius-sm); padding: 0 var(--space-2); }
+
+.big { font-size: var(--text-display); font-weight: 700; letter-spacing: -.02em;
+       font-variant-numeric: tabular-nums; line-height: 1; }
+
+.absent li { margin-bottom: var(--space-2); color: var(--text-secondary); }
+.done { color: var(--text-muted); }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<span class="label">Proposal · v0 · 2026-08-05</span>
+<span class="label">v1 · 2026-10-09 · matches Timeline v4</span>
 <h1>DoseEgg Design Tokens</h1>
-<p class="lede">A first token set to react to, not a finished system. ~30 names total —
-deliberately small. Every name here should survive a change of palette; if renaming a
+<p class="lede">The token set the prototypes are built from. Two layers: primitives hold raw
+values, semantic tokens name roles. Every name should survive a palette change; if changing a
 value forces renaming a token, the token was named wrong.</p>
 
 <div class="note">
-<p><strong>Palette decided 2026-08-05 — "Oat + petrol."</strong> Chosen over ten
-alternatives across four exploration sheets. The organising idea is <strong>temperature
-tension</strong>: a warm-undertoned ground against a cool-undertoned ink. Every palette
-where accent and neutrals shared a temperature read as flat — harmony turned out to be the
-opposite of interest.</p>
-<p>1. <strong>Oat neutrals.</strong> Warm, but pulled back from cream — greyer, less yellow.
-Keeps the paper feel without the familiar AI-product association.</p>
-<p>2. <strong>One low-chroma petrol accent.</strong> Deep blue-teal, cool against the warm
-ground. Contrast carries emphasis instead of hue — which means colour can never accidentally
-rate anything. The palette enforcing the no-verdict rule structurally.</p>
-<p>3. <strong>Serif headlines, sans body — still provisional.</strong> Type options come
-next, including a sans-chrome / serif-for-the-user's-words inversion. Unlike the palette,
-this one hasn't been properly explored yet.</p>
-<p style="margin-bottom:0"><em>Component and layout treatments in these examples are
-placeholders — the UI language is not decided, only the tokens.</em></p>
+<p><strong>Current look, decided 2026-10-09 in Timeline v4.</strong> Oat neutrals for the ground,
+one blue hue (227°) for every accent, Manrope for all type, and depth only on the layers that float.</p>
+<p>How it got here: oat + petrol (2026-08-05) → Stitch blue (2026-08-06, the domain lead's
+preference) → <strong>matched</strong> (2026-10-09). Stitch's band nearly vanished on its own
+bluish page (1.07:1); a warm page gives a cool band something to stand against. Stitch's button
+blue sat 15° warmer than its band and leaned teal beside it, so matched puts the whole ramp on
+one hue. The losing palettes are in <code>archive.html</code> and git history.</p>
+<p><strong>Source of truth:</strong> the Layer 1 and Layer 2 blocks in this file are copied
+from <code>prototypes/hifi-daily-loop-v4.html</code>. If they ever disagree, v4 wins, because v4
+is what was tested on a phone. A shared stylesheet would end the copying; see Still open.</p>
 </div>
 
 <h2>Primitives</h2>
-<p>Raw values. Nothing in a component ever references these directly — they exist so each
-value is written down once.</p>
-
-<h3>Paper — warm neutrals</h3>
+<p>Raw values. Nothing in a component references these directly.</p>
+<h3>Paper: oat neutrals, 0 to 900</h3>
 <div class="ramp">
   <div style="background:var(--paper-0)"></div><div style="background:var(--paper-50)"></div>
   <div style="background:var(--paper-100)"></div><div style="background:var(--paper-200)"></div>
@@ -334,176 +333,219 @@ value is written down once.</p>
   <div style="background:var(--paper-700)"></div><div style="background:var(--paper-800)"></div>
   <div style="background:var(--paper-900)"></div>
 </div>
-
-<h3>Ink — the accent</h3>
-<div class="ramp" style="max-width:340px">
-  <div style="background:var(--ink-400)"></div><div style="background:var(--ink-500)"></div>
-  <div style="background:var(--ink-600)"></div><div style="background:var(--ink-700)"></div>
+<h3>Ink: the accent, one hue at 227°</h3>
+<div class="ramp" style="max-width:420px">
+  <div style="background:var(--ink-100)"></div><div style="background:var(--ink-400)"></div>
+  <div style="background:var(--ink-500)"></div><div style="background:var(--ink-600)"></div>
+  <div style="background:var(--ink-700)"></div><div style="background:var(--hue-mark)"></div>
 </div>
+<p><code>ink-100</code> is the dose card band. <code>hue-mark</code> (last) is deeper than the
+button blue, so a timeline mark never competes with a button.</p>
 
 <h2>Semantic tokens</h2>
-<p>What components use. Named by role.</p>
-
 <h3>Surfaces</h3>
-<p>Three levels, not Material's six. If you can't name what a fourth level is for, you
-don't need it.</p>
 <div class="grid">
   <div class="tok"><div class="sw" style="background:var(--surface-page)"></div>
-    <div class="nm">--surface-page</div><div class="vl">paper-50</div>
-    <div class="us">App background</div></div>
+    <div class="nm">--surface-page</div><div class="us">paper-50 · app background</div></div>
   <div class="tok"><div class="sw" style="background:var(--surface-card)"></div>
-    <div class="nm">--surface-card</div><div class="vl">paper-0</div>
-    <div class="us">Entries, sheets</div></div>
+    <div class="nm">--surface-card</div><div class="us">paper-0 · sheets, controls. Pure white: a cool white vanished on oat (1.01:1)</div></div>
   <div class="tok"><div class="sw" style="background:var(--surface-raised)"></div>
-    <div class="nm">--surface-raised</div><div class="vl">paper-100</div>
-    <div class="us">The dose confirmation card</div></div>
+    <div class="nm">--surface-raised</div><div class="us">paper-100 · press state, grouped wells</div></div>
   <div class="tok"><div class="sw" style="background:var(--surface-sunken)"></div>
-    <div class="nm">--surface-sunken</div><div class="vl">paper-200</div>
-    <div class="us">Inputs, wells</div></div>
+    <div class="nm">--surface-sunken</div><div class="us">paper-200 · inputs</div></div>
+  <div class="tok"><div class="sw" style="background:var(--surface-accent)"></div>
+    <div class="nm">--surface-accent</div><div class="us">ink-100 · the dose card band, tinted to the top</div></div>
 </div>
 
-<h3>Text &amp; borders</h3>
+<h3>Text</h3>
 <div class="grid">
   <div class="tok"><div class="sw" style="background:var(--text-primary)"></div>
-    <div class="nm">--text-primary</div><div class="vl">paper-900</div>
-    <div class="us">Entry content</div></div>
+    <div class="nm">--text-primary</div><div class="us">paper-900 · entry content</div></div>
   <div class="tok"><div class="sw" style="background:var(--text-secondary)"></div>
-    <div class="nm">--text-secondary</div><div class="vl">paper-700</div>
-    <div class="us">Supporting detail</div></div>
+    <div class="nm">--text-secondary</div><div class="us">paper-700 · supporting detail</div></div>
   <div class="tok"><div class="sw" style="background:var(--text-muted)"></div>
-    <div class="nm">--text-muted</div><div class="vl">paper-600</div>
-    <div class="us">Timestamps, labels</div></div>
-  <div class="tok"><div class="sw" style="background:var(--border-subtle)"></div>
-    <div class="nm">--border-subtle</div><div class="vl">paper-200</div>
-    <div class="us">Default separator</div></div>
-  <div class="tok"><div class="sw" style="background:var(--border-strong)"></div>
-    <div class="nm">--border-strong</div><div class="vl">paper-300</div>
-    <div class="us">Outlined controls</div></div>
+    <div class="nm">--text-muted</div><div class="us">paper-600 · timestamps, labels</div></div>
   <div class="tok"><div class="sw" style="background:var(--accent)"></div>
-    <div class="nm">--accent</div><div class="vl">ink-500</div>
-    <div class="us">Primary action. Actions, not meaning.</div></div>
+    <div class="nm">--accent</div><div class="us">ink-500 · primary action. Actions, not meaning</div></div>
 </div>
 
-<div class="card">
-  <button class="btn btn-primary">Taken</button>
-  <button class="btn btn-quiet" style="margin-left:var(--space-2)">Didn't take</button>
-  <button class="btn btn-quiet" style="margin-left:var(--space-2)">Snooze</button>
-  <p style="margin:var(--space-4) 0 0; font-size:var(--text-small)">All three at
-  <code>--touch-min</code> (48px). Note the middle button — the schema needs
-  <code>declined</code> to be reachable, so the card has to offer it.</p>
+<h3>Borders: three, by what the line is for</h3>
+<table>
+<tr><th>Token</th><th>Contrast on white</th><th>Use</th></tr>
+<tr><td><code>--border-subtle</code></td><td>1.26:1</td><td>Dividers. Decorative, never a control's edge.</td></tr>
+<tr><td><code>--border-control</code></td><td>1.5:1</td><td>The hairline on a flat control <strong>whose label or icon already says it is a control</strong>: log tiles, nudges, chips, med rows.</td></tr>
+<tr><td><code>--border-interactive</code></td><td>3.75:1</td><td>Where the line <strong>is</strong> the only cue: an empty text field, the hollow assumed mark, the dashed unknown mark.</td></tr>
+</table>
+
+<div class="note warn">
+<p><strong>Open, flagged 2026-10-09: is 1.5:1 enough?</strong> <code>--border-control</code> came
+with flat controls the same afternoon. WCAG 1.4.11 asks for 3:1 only where the boundary is
+needed to identify the component, and these controls carry a label, so it arguably passes. But
+Parkinson's reduces contrast sensitivity, and this page has always treated faint edges as a
+serious finding. The previous lifted style was no better (about 1.2:1 plus a shadow). Options:
+keep 1.5 with the label rule above, move to <code>--border-interactive</code> (3.75, reads
+outlined and busier), or a tonal fill. Worth asking P01 to find the tiles in a sheet on a bad day.</p>
 </div>
 
-<h2>Entry marks</h2>
-<p>Timeline dots and type indicators. <strong>Categorical, not a scale.</strong> Chosen at
-near-equal lightness so no entry type looks more severe or more urgent than another —
-a symptom must not appear "worse" than a meal.</p>
-<div class="dots">
-  <div class="dotcase"><div class="dot" style="background:var(--mark-dose)"></div>
-    <span class="label">Dose</span><small>--mark-dose</small></div>
-  <div class="dotcase"><div class="dot" style="background:var(--mark-symptom)"></div>
-    <span class="label">Symptom</span><small>--mark-symptom</small></div>
-  <div class="dotcase"><div class="dot" style="background:var(--mark-activity)"></div>
-    <span class="label">Activity</span><small>--mark-activity</small></div>
-  <div class="dotcase"><div class="dot" style="background:var(--mark-meal)"></div>
-    <span class="label">Meal</span><small>--mark-meal</small></div>
-  <div class="dotcase"><div class="dot" style="background:var(--mark-note)"></div>
-    <span class="label">Note</span><small>--mark-note</small></div>
+<h2>Material and elevation</h2>
+<p><strong>Depth belongs to a layer, not to what is inside it.</strong> Whatever floats on its
+own gets a shadow; its contents stay flat. Decided 2026-10-09 from a study of ChatGPT on iOS:
+one raised thing per layer reads as calm hierarchy, while a raised button inside a raised sheet
+is two depths competing. It also fixed a quiet bug: a lifted chip looked more "on" than a
+selected flat one.</p>
+
+<table>
+<tr><th>Use</th><th>Where</th><th>Why it floats</th></tr>
+<tr><td><strong>Glass</strong><br><code>--glass-*</code></td><td>The top bar and the bottom dock</td><td>The navigation layer. Both are persistent, and the page scrolls behind them.</td></tr>
+<tr><td><strong>Float</strong><br><code>--shadow-float</code></td><td>The + button</td><td>A single control that sits above the page on its own.</td></tr>
+<tr><td><strong>Overlay</strong><br><code>--shadow-overlay</code></td><td>Bottom sheet, menu drawer</td><td>The whole surface is interactive, so the surface carries the depth. A dim backdrop does most of the separating.</td></tr>
+<tr><td><strong>Flat</strong><br><code>--content-edge</code> <code>--border-control</code></td><td>The page, the dose card's buttons, everything inside a sheet</td><td>Separation comes from surface tone and a hairline.</td></tr>
+</table>
+
+<div class="stage" aria-label="Miniature Today screen showing glass navigation over a tinted band and the timeline">
+  <div class="navtop">
+    <span class="glass"><i class="ph ph-list"></i></span>
+    <span class="glass wide"><i class="ph ph-sun"></i>Today</span>
+    <span class="glass"><i class="ph ph-chart-line"></i></span>
+  </div>
+  <div class="band">
+    <b>Did you take these?</b>
+    <div class="row"><button class="btn btn-primary">Taken</button><button class="btn btn-quiet">Not taken</button></div>
+  </div>
+  <div class="lines">
+    <p>Walk<small>09:40 · ended 10:00 · 20 min</small></p>
+    <p>Meds kicked in<small>09:40 · 85 min after dose</small></p>
+    <p>Levodopa 100mg<small>08:15 · with food</small></p>
+  </div>
+  <div class="navbot">
+    <span class="glass tall"><i class="ph ph-camera"></i></span>
+    <span class="glass tall wide">Quick note</span>
+    <span class="fab"><i class="ph ph-plus"></i></span>
+  </div>
 </div>
 
-<h2>Epistemic state</h2>
-<p>Mirrors the <code>basis</code> field in <code>docs/entry-schema.md</code>. Expressed as
-<strong>fill and outline, never as hue</strong> — so it reads as <em>certainty</em>, not as
-<em>quality</em>. This is the token layer enforcing the export safety rule: an assumed dose
-cannot be styled to look taken, because there is no token that would let it.</p>
-<div class="dots">
-  <div class="dotcase">
-    <div class="dot" style="background:var(--mark-dose)"></div>
-    <span class="label">Asserted</span><small>Solid. The user said so.</small></div>
-  <div class="dotcase">
-    <div class="dot" style="background:transparent;border:2px solid var(--entry-assumed-border)"></div>
-    <span class="label">Assumed</span><small>Hollow. Proposed, no answer.</small></div>
-  <div class="dotcase">
-    <div class="dot" style="background:transparent;border:2px dashed var(--entry-unknown-border)"></div>
+<div class="sheetdemo" aria-label="A sheet carries the overlay shadow; its tiles are flat">
+  <span class="label">Overlay · flat contents</span>
+  <div class="tiles" style="margin-top:var(--space-3)">
+    <span class="tile"><i class="ph-fill ph-moon"></i>Sleep</span>
+    <span class="tile"><i class="ph-fill ph-fork-knife"></i>Food</span>
+    <span class="tile"><i class="ph-fill ph-footprints"></i>Activity</span>
+    <span class="tile on"><i class="ph-fill ph-pill"></i>Medication</span>
+  </div>
+</div>
+
+<h3>Glass rules</h3>
+<ul class="absent">
+<li><strong>Navigation layer only.</strong> Never on content: text that something else shows
+through is text competing with a label [C-16].</li>
+<li><strong>Fill at least 74% white</strong>, blur 20px with a saturation lift, so whatever
+passes behind is a soft wash, not legible text. One hairline, no lit top edge.</li>
+<li><strong>Reduce Transparency makes it solid white</strong> (the media query above).</li>
+<li><strong>The header has no background of its own.</strong> The card's band sits in the page
+and scrolls away under it; once scrolled, a soft page-coloured wash fades in behind the header,
+the same job the dock's wash does at the bottom.</li>
+</ul>
+
+<h2>Interaction states</h2>
+<table>
+<tr><th>State</th><th>Rule</th></tr>
+<tr><td>Press</td><td><code>:active</code>, always. The one feedback every input method gets.</td></tr>
+<tr><td>Hover</td><td>Only inside <code>@media (hover: hover)</code>. iOS keeps <code>:hover</code> on the last
+thing tapped, so an ungated hover becomes a stuck highlight. Hover is extra, never the only signal.</td></tr>
+<tr><td>Focus</td><td><code>--focus-ring</code> outline for keyboard and switch control; <code>--focus-glow</code> for fields
+that show focus inside their own edge. Not optional: tremor makes touch unreliable.</td></tr>
+<tr><td>Selected</td><td>Accent edge (<code>inset 0 0 0 1px var(--accent)</code> plus accent border), 6.9:1 on white.
+Selection is never carried by fill alone.</td></tr>
+</table>
+
+<h2>Entry marks and epistemic state</h2>
+<p><strong>One mark colour; the icon carries the type.</strong> The five-hue set was retired on
+2026-08-06 because it collapsed to 1.00 to 1.14:1 under every type of colour-vision deficiency.</p>
+<p>The <code>basis</code> field (<code>docs/entry-schema.md</code>) is drawn as fill and outline,
+never as hue, so it reads as certainty, not quality. There is no token that could make an
+assumed dose look taken.</p>
+<div class="marks">
+  <div class="mcase"><div class="mk" style="background:var(--mark);color:var(--on-accent)"><i class="ph-fill ph-pill"></i></div>
+    <span class="label">Asserted</span><small>Solid. The person said so.</small></div>
+  <div class="mcase"><div class="mk" style="border:2px solid var(--entry-assumed-border);color:var(--text-muted)"><i class="ph ph-pill"></i></div>
+    <span class="label">Assumed</span><small>Hollow. Planned, no answer.</small></div>
+  <div class="mcase"><div class="mk" style="border:2px dashed var(--entry-unknown-border);color:var(--text-muted)"><i class="ph ph-pill"></i></div>
     <span class="label">Unknown</span><small>Dashed. We cannot know.</small></div>
-  <div class="dotcase">
-    <div class="dot" style="background:var(--surface-card);border:2px solid var(--mark-dose);position:relative">
-    </div>
+  <div class="mcase"><div class="mk" style="border:2px solid var(--mark);color:var(--mark)"><i class="ph ph-pill"></i></div>
     <span class="label">Declined</span><small>Ringed. Reported not taken.</small></div>
 </div>
+<p><strong>Pending</strong> (added 2026-10-09) is not a basis. A dose that has fallen due and is
+still waiting for its answer is <code>assumed</code>, drawn hollow, with a
+<span class="chip-nc">Not confirmed</span> label. Pending is a view flag on the live slot only and
+is never exported.</p>
 
 <h2>Typography</h2>
-<div class="type-row"><span class="meta">--text-display · serif</span>
-  <span style="font-family:var(--font-serif);font-size:var(--text-display)">Today</span></div>
-<div class="type-row"><span class="meta">--text-title · serif</span>
-  <span style="font-family:var(--font-serif);font-size:var(--text-title)">Yesterday's record</span></div>
-<div class="type-row"><span class="meta">--text-heading · 600</span>
-  <span style="font-size:var(--text-heading);font-weight:600">Levodopa</span></div>
-<div class="type-row"><span class="meta">--text-body · 17px</span>
-  <span style="font-size:var(--text-body)">Started while reading. Passed after resting.</span></div>
-<div class="type-row"><span class="meta">--text-small · 15px</span>
-  <span style="font-size:var(--text-small)">Oatmeal and green tea.</span></div>
-<div class="type-row"><span class="meta">--text-label · 13px</span>
-  <span class="label">7:30 AM</span></div>
-<p style="margin-top:var(--space-4)">Base body is <strong>17px, not 16</strong>. A
-deliberate call for an audience that skews older and may have visual as well as motor
-symptoms — one step up costs nothing and helps everyone.</p>
+<p><strong>Manrope for everything</strong>, decided 2026-10-09. The serif token is kept as a name
+and points at the same family, so no component had to change.</p>
+<div class="type-row"><span class="meta">--text-display · 32 · 700</span>
+  <span style="font-size:var(--text-display);font-weight:700;letter-spacing:-.01em">Today</span></div>
+<div class="type-row"><span class="meta">--text-title · 24 · 600</span>
+  <span style="font-size:var(--text-title);font-weight:600">Look Back</span></div>
+<div class="type-row"><span class="meta">--text-heading · 19 · 600</span>
+  <span style="font-size:var(--text-heading);font-weight:600">Did you take these?</span></div>
+<div class="type-row"><span class="meta">--text-body · 17 · 400</span>
+  <span>Started while reading. Passed after resting.</span></div>
+<div class="type-row"><span class="meta">--text-small · 16</span>
+  <span style="font-size:var(--text-small)">with Entacapone 200mg</span></div>
+<div class="type-row"><span class="meta">--text-label · 14 · the floor</span>
+  <span class="label">Today · Fri 9 Oct</span></div>
+<p style="margin-top:var(--space-4)">Base body is <strong>17px</strong>; 14px is a floor, never a
+guideline [C-16]. To make a label quieter, use weight, space or hue, never smaller type or lower contrast.</p>
+
+<h3>Big numerals, where a number is the point</h3>
+<p>Manrope's figures are the part of the face worth showing off. Parked for Look Back: where a
+statement turns on a number, the number can be set large, tabular, at display size.</p>
+<div class="card" style="max-width:380px">
+  <div class="big">85 <span style="font-size:var(--text-body);font-weight:500;letter-spacing:0">min</span></div>
+  <p style="margin:var(--space-2) 0 0">from dose to "kicked in", on the 6 days you marked both.</p>
+</div>
+<p>The number always carries its coverage beside it. A big number is louder, so the honesty
+about how much data it rests on has to travel with it.</p>
 
 <h2>Space, radius, touch</h2>
-<div class="sp-row"><span class="meta">--space-1 · 4</span><div class="spacer" style="width:4px"></div></div>
-<div class="sp-row"><span class="meta">--space-2 · 8</span><div class="spacer" style="width:8px"></div></div>
-<div class="sp-row"><span class="meta">--space-3 · 12</span><div class="spacer" style="width:12px"></div></div>
-<div class="sp-row"><span class="meta">--space-4 · 16</span><div class="spacer" style="width:16px"></div></div>
-<div class="sp-row"><span class="meta">--space-6 · 24</span><div class="spacer" style="width:24px"></div></div>
-<div class="sp-row"><span class="meta">--space-8 · 32</span><div class="spacer" style="width:32px"></div></div>
-<div class="sp-row"><span class="meta">--space-12 · 48</span><div class="spacer" style="width:48px"></div></div>
+<div class="sp-row"><span class="meta">--space-1 · 4</span><div class="spacer" style="width:var(--space-1)"></div></div>
+<div class="sp-row"><span class="meta">--space-2 · 8</span><div class="spacer" style="width:var(--space-2)"></div></div>
+<div class="sp-row"><span class="meta">--space-3 · 12</span><div class="spacer" style="width:var(--space-3)"></div></div>
+<div class="sp-row"><span class="meta">--space-4 · 16</span><div class="spacer" style="width:var(--space-4)"></div></div>
+<div class="sp-row"><span class="meta">--space-6 · 24</span><div class="spacer" style="width:var(--space-6)"></div></div>
+<div class="sp-row"><span class="meta">--space-8 · 32</span><div class="spacer" style="width:var(--space-8)"></div></div>
+<div class="sp-row"><span class="meta">--space-12 · 48</span><div class="spacer" style="width:var(--space-12)"></div></div>
 
 <table style="margin-top:var(--space-6)">
 <tr><th>Token</th><th>Value</th><th>Use</th></tr>
-<tr><td><code>--radius-sm</code></td><td>6px</td><td>Chips, tags, inputs</td></tr>
-<tr><td><code>--radius-md</code></td><td>10px</td><td>Buttons, small cards</td></tr>
-<tr><td><code>--radius-lg</code></td><td>16px</td><td>Entry cards, sheets</td></tr>
-<tr><td><code>--radius-full</code></td><td>999px</td><td>Dots, avatars only</td></tr>
+<tr><td><code>--radius-sm</code></td><td>6px</td><td>Tags, the "Not confirmed" label</td></tr>
+<tr><td><code>--radius-md</code></td><td>10px</td><td>Buttons, tiles, fields</td></tr>
+<tr><td><code>--radius-lg</code></td><td>16px</td><td>Sheets, the menu drawer</td></tr>
+<tr><td><code>--radius-xl</code></td><td>24px</td><td>The dose card band's bottom corners</td></tr>
+<tr><td><code>--radius-full</code></td><td>999px</td><td>Marks, glass controls, the + button</td></tr>
 <tr><td><code>--target-min</code></td><td>48px</td><td><strong>Floor.</strong> Every interactive element.</td></tr>
-<tr><td><code>--target-routine</code></td><td>48px</td><td>Ordinary moments — dose confirm, log tiles, nav</td></tr>
-<tr><td><code>--target-critical</code></td><td>56px</td><td>Low-capacity paths — FOG, low energy, chips, FAB</td></tr>
-<tr><td><code>--target-gap</code></td><td>16px</td><td>Between adjacent targets. Separation &gt; height for wrong-neighbour errors.</td></tr>
+<tr><td><code>--target-routine</code></td><td>48px</td><td>Ordinary moments: dose confirm, tiles, top bar</td></tr>
+<tr><td><code>--target-critical</code></td><td>56px</td><td>Low-capacity paths: FOG, low energy, chips, the bottom dock, +</td></tr>
+<tr><td><code>--target-gap</code></td><td>16px</td><td>Between adjacent targets. Separation beats height for wrong-neighbour errors.</td></tr>
 </table>
+<p>Same value is not the same decision: <code>--target-min</code> and <code>--target-routine</code>
+stay separate tokens so either can move alone. Layout tokens that belong to one screen
+(<code>--gutter</code>, <code>--rail-*</code>, <code>--card-pad</code>) live in that prototype, not here.</p>
 
-<h2>Text size &amp; system scaling</h2>
-<p>Every size in the scale is <code>rem</code>, which means all of it moves from a single
-root value. That is the whole mechanism — <strong>never build a second hardcoded set of
-sizes.</strong> Two sets double the maintenance and drift apart within a month.</p>
-
-<pre style="background:var(--surface-sunken);padding:var(--space-4);border-radius:var(--radius-md);overflow-x:auto;font-size:var(--text-label);line-height:1.6"><code style="background:none;padding:0">html { font-size: 100%; }        /* one knob */
-html[data-text-scale="large"]  { font-size: 112.5%; }   /* 17px → 19px */
-html[data-text-scale="larger"] { font-size: 125%;   }   /* 17px → 21px */</code></pre>
-
-<p><strong>Who owns text size — the OS or the app?</strong> Both, and in a WebView it is
-messier than native. This is a real accessibility cost of the Capacitor decision, worth
-knowing now rather than discovering later:</p>
-<table>
-<tr><th>Platform</th><th>Situation</th></tr>
-<tr><td>iOS native</td><td>Dynamic Type. Nearly free.</td></tr>
-<tr><td>iOS WKWebView</td><td><code>font: -apple-system-body</code> in CSS <em>does</em> follow
-Dynamic Type — it's been in WebKit for years. But WKWebView has no
-<code>adjustsFontForContentSizeCategory</code>, so changing the setting mid-session needs
-native code listening for the content-size-change notification. Open Capacitor issue (#7770).</td></tr>
-<tr><td>Android WebView</td><td>Applies the system font scale to <code>textZoom</code> by
-default; can be read explicitly via <code>Settings.System.FONT_SCALE</code> +
-<code>WebSettings.setTextZoom()</code>.</td></tr>
-</table>
-
-<p><strong>So: do both.</strong> Follow the system scale where it works, <em>and</em> ship an
-in-app text-size control. The second isn't redundancy — someone may want large text in a
-medication journal without enlarging their entire phone, and for this audience reading
-ability genuinely varies between an ON and an OFF period within the same day. A setting they
-can change in thirty seconds is a real feature, not a fallback.</p>
-<p>And design to survive it: WCAG 1.4.4 requires 200% resize without loss. No fixed-height
-text containers, no truncation, no single-line assumptions.</p>
+<h2>Text size and system scaling</h2>
+<p>Every size is <code>rem</code>, so the whole scale moves from one root value. <strong>Never build
+a second hardcoded set of sizes.</strong></p>
+<pre style="background:var(--surface-raised);padding:var(--space-4);border-radius:var(--radius-md);overflow-x:auto;font-size:var(--text-label);line-height:1.6"><code style="background:none;padding:0">html { font-size: 100%; }                               /* one knob */
+html[data-text-scale="large"]  { font-size: 112.5%; }
+html[data-text-scale="larger"] { font-size: 125%;   }
+html[data-text-scale="huge"]   { font-size: 150%;   }
+html[data-text-scale="max"]    { font-size: 200%;   }   /* WCAG 1.4.4 corner case */</code></pre>
+<p>Follow the system scale where the platform allows, <em>and</em> ship an in-app control: reading
+ability varies between ON and OFF within one day. Layouts must survive 200%: no fixed-height text
+containers, no truncation, no single-line assumptions. Anything that depends on a measured height
+(the header band) is measured at runtime, never written as a number.</p>
 
 <h2>Data visualisation</h2>
-<p>Trends / Analyze will need charts, and chart structure is expensive to change later — so
-the tokens exist now even though the screens don't.</p>
 <div class="grid">
   <div class="tok"><div class="sw" style="background:var(--viz-ink)"></div>
     <div class="nm">--viz-ink</div><div class="us">Default single series</div></div>
@@ -518,141 +560,98 @@ the tokens exist now even though the screens don't.</p>
 </div>
 
 <h3>The rule that matters most</h3>
-<p>A day with no data must never be drawn as a value. Here is why, with the same week
-rendered both ways — Wednesday was not logged:</p>
-
+<p>A day with no data must never be drawn as a value. The same week both ways; Wednesday was not logged:</p>
 <div style="display:flex;gap:var(--space-6);flex-wrap:wrap;margin:var(--space-4) 0">
-<div class="card" style="flex:1;min-width:290px;margin:0">
-  <span class="label" style="color:var(--feedback-error)">✗ Missing drawn as zero</span>
+<div class="card" style="flex:1;min-width:280px;margin:0">
+  <span class="label" style="color:var(--feedback-error)">Wrong: missing drawn as zero</span>
   <svg viewBox="0 0 300 145" style="width:100%;height:auto;margin-top:var(--space-3)" role="img" aria-label="Line chart where the unlogged day drops to zero, appearing as the best day of the week">
     <line x1="20" y1="124" x2="290" y2="124" stroke="var(--viz-axis)" stroke-width="1"/>
     <polyline points="25,72 67,56 109,88 151,120 193,40 235,72 277,56"
       fill="none" stroke="var(--viz-ink)" stroke-width="2.5" stroke-linejoin="round"/>
     <circle cx="151" cy="120" r="4.5" fill="var(--feedback-error)"/>
-    <text x="151" y="140" text-anchor="middle" font-size="11" fill="var(--feedback-error)" font-family="Inter,sans-serif">Wed</text>
+    <text x="151" y="141" text-anchor="middle" style="font:500 14px var(--font-sans);fill:var(--feedback-error)">Wed</text>
   </svg>
-  <p style="font-size:var(--text-label);margin:var(--space-2) 0 0">Wednesday now reads as the
-  <em>best day of the week</em> — zero symptoms. It's a lie, and it's the kind that ends up
-  in front of a neurologist.</p>
+  <p style="font-size:var(--text-label);margin:var(--space-2) 0 0">Wednesday reads as the
+  <em>best day of the week</em>. It is a lie, and the kind that ends up in front of a neurologist.</p>
 </div>
-<div class="card" style="flex:1;min-width:290px;margin:0">
-  <span class="label" style="color:var(--accent)">✓ Missing drawn as a gap</span>
-  <svg viewBox="0 0 300 145" style="width:100%;height:auto;margin-top:var(--space-3)" role="img" aria-label="Line chart where the unlogged day is shown as a dashed gap with an open marker, not as a value">
+<div class="card" style="flex:1;min-width:280px;margin:0">
+  <span class="label" style="color:var(--accent)">Right: missing drawn as a gap</span>
+  <svg viewBox="0 0 300 145" style="width:100%;height:auto;margin-top:var(--space-3)" role="img" aria-label="Line chart where the unlogged day is a dashed gap with an open marker, not a value">
     <line x1="20" y1="124" x2="290" y2="124" stroke="var(--viz-axis)" stroke-width="1"/>
     <polyline points="25,72 67,56 109,88" fill="none" stroke="var(--viz-ink)" stroke-width="2.5" stroke-linejoin="round"/>
     <polyline points="193,40 235,72 277,56" fill="none" stroke="var(--viz-ink)" stroke-width="2.5" stroke-linejoin="round"/>
     <line x1="109" y1="88" x2="193" y2="40" stroke="var(--viz-missing)" stroke-width="2" stroke-dasharray="4 4"/>
     <circle cx="151" cy="64" r="5" fill="var(--surface-card)" stroke="var(--viz-missing)" stroke-width="2" stroke-dasharray="3 2"/>
-    <text x="151" y="140" text-anchor="middle" font-size="11" fill="var(--text-muted)" font-family="Inter,sans-serif">Wed · no entry</text>
+    <text x="151" y="141" text-anchor="middle" style="font:500 14px var(--font-sans);fill:var(--text-muted)">Wed · no entry</text>
   </svg>
-  <p style="font-size:var(--text-label);margin:var(--space-2) 0 0">The gap is visible and
-  labelled. The reader sees absence of <em>data</em>, not absence of <em>symptoms</em>.
-  Same dashed-hollow language as the <code>unknown</code> entry state.</p>
+  <p style="font-size:var(--text-label);margin:var(--space-2) 0 0">The reader sees absence of
+  <em>data</em>, not absence of <em>symptoms</em>. Same dashed-hollow language as <code>unknown</code>.</p>
 </div>
 </div>
-
-<h3>Series colour — same lesson as the entry marks</h3>
-<p>Maximum four series. Always paired with direct labelling or shape, never a colour-only
-legend — for the same colour-vision reason established above. And no severity gradients: a
-sequential colour scale <em>is</em> a ranking, which is a verdict. [C-08]</p>
+<p>At most four series, always with direct labels or shape, never a colour-only legend. No
+severity gradients: a sequential colour scale is a ranking, and a ranking is a verdict [C-08].
+Chart text sits at the 14px floor like everything else.</p>
 
 <h2>Deliberately absent</h2>
-<p>What a token set refuses to name matters as much as what it names. None of these exist,
-and adding one should require a decision, not a convenience:</p>
+<p>What a token set refuses to name matters as much as what it names. Adding any of these needs a decision, not a convenience:</p>
 <ul class="absent">
-<li><strong>No <code>success</code> / <code>error</code> / <code>warning</code> for health data.</strong>
-<code>--feedback-error</code> exists for app failures only — bad input, network down. There is
-no token for a body being wrong.</li>
-<li><strong>No severity scale.</strong> No <code>severity-1…5</code>, no red-amber-green.
-A scale invites ranking, and ranking is a verdict. [C-08]</li>
-<li><strong>No <code>adherence</code> or completion colour.</strong> There is nothing to
-score. [C-08]</li>
-<li><strong>No hover-only states.</strong> Touch has no hover. Press states only.</li>
-<li><strong>No elevation/shadow scale yet.</strong> Borders and surface tone carry
-separation. Shadows can come later if something genuinely needs to float — and each one
-should be argued for.</li>
+<li><strong>No success, error or warning for health data.</strong> <code>--feedback-error</code> is for app
+failures only. There is no token for a body being wrong.</li>
+<li><strong>No severity scale.</strong> No red-amber-green. A scale invites ranking, and ranking is a verdict [C-08].</li>
+<li><strong>No adherence or completion colour.</strong> There is nothing to score [C-08].</li>
+<li><strong>No hover-only states.</strong> Revised 2026-10-09: hover may exist behind
+<code>(hover: hover)</code>, as an extra. It is never the only signal.</li>
+<li><strong>No open shadow scale.</strong> Revised 2026-10-09: there are exactly three depth
+uses (glass, float, overlay), each argued for above. A fourth needs its own argument.</li>
 </ul>
 
-<h2>Accessibility audit — 2026-08-05</h2>
-<p>WCAG 2.1 AA, computed not estimated. Fixes below are already applied above.</p>
+<h2>Accessibility audit, 2026-10-09</h2>
+<p>WCAG 2.1 AA, computed for the matched palette. All text passes.</p>
+<div style="overflow-x:auto"><table>
+<tr><th>Token</th><th>page</th><th>white</th><th>raised</th><th>sunken</th><th>band</th></tr>
+<tr><td><code>--text-primary</code></td><td>14.9</td><td>15.4</td><td>13.8</td><td>12.2</td><td>13.0</td></tr>
+<tr><td><code>--text-secondary</code></td><td>9.3</td><td>9.6</td><td>8.6</td><td>7.6</td><td>8.1</td></tr>
+<tr><td><code>--text-muted</code></td><td>6.2</td><td>6.4</td><td>5.8</td><td>5.1</td><td>5.4</td></tr>
+<tr><td><code>--accent</code> as text</td><td>6.7</td><td>6.9</td><td>6.2</td><td>5.5</td><td>5.9</td></tr>
+<tr><td><code>--mark</code></td><td>8.2</td><td>8.5</td><td>7.6</td><td>6.8</td><td>7.2</td></tr>
+</table></div>
+<p>White on accent (the Taken button): <strong>6.9:1</strong>. White icon on a mark: <strong>8.5:1</strong>.
+<code>--text-muted</code> now passes on sunken too (5.1), so the v0 restriction on that pair is lifted.</p>
+<p><strong>Non-text (1.4.11):</strong> <code>--border-interactive</code> 3.75:1 on white, 3.6:1 on page;
+the epistemic outlines use it, because that distinction is what stops an assumed dose reading as taken.
+<code>--border-control</code> at 1.5:1 is the open question flagged under Borders.</p>
+<p><strong>Touch:</strong> 24px is the WCAG 2.2 AA bar; 48 and 56 are above it but below the smallest
+size in the Parkinson's targeting research (10mm), hence the tiers and <code>touch-target-test.html</code>.</p>
+<p class="done">The 2026-08-05 audit (Stitch blue) is in git history. Its two lasting findings live on
+above: borders split by role, and colour demoted below icon for entry type.</p>
 
-<h3>Text contrast — all pass</h3>
+<h2>Icons: Phosphor</h2>
+<p>Icons carry entry type rather than decorating it. Phosphor ships a native <code>fill</code> weight
+(the solid/hollow pair the epistemic states need) and a <code>bold</code> weight for large-text mode.</p>
 <table>
-<tr><th>Token</th><th>on page</th><th>on card</th><th>on raised</th><th>on sunken</th></tr>
-<tr><td><code>--text-primary</code></td><td>16.97</td><td>17.68</td><td>15.97</td><td>14.49</td></tr>
-<tr><td><code>--text-secondary</code></td><td>9.24</td><td>9.63</td><td>8.70</td><td>7.89</td></tr>
-<tr><td><code>--text-muted</code></td><td>5.35</td><td>5.61</td><td>5.08</td><td>4.62</td></tr>
-<tr><td><code>--accent</code></td><td>10.51</td><td>10.95</td><td>9.89</td><td>8.98</td></tr>
-<tr><td><code>--on-accent</code> on accent</td><td colspan="4">10.95</td></tr>
-</table>
-<p><strong>One usage rule:</strong> <code>--text-muted</code> on <code>--surface-sunken</code>
-is 4.24:1 — below the 4.5 threshold. Muted text is not permitted on sunken surfaces at body
-size. Use <code>--text-secondary</code> there.</p>
-
-<h3>Fixed — non-text contrast (1.4.11)</h3>
-<p>The original <code>--border-strong</code> (paper-300) was <strong>1.36:1</strong> and the
-unknown-state dot (paper-400) was <strong>1.86:1</strong>. Both fail the 3:1 requirement for
-component boundaries — which meant <em>the epistemic indicators were invisible to a low-vision
-user.</em> Given that this distinction is what stops an assumed dose reading as taken, that was
-the most serious finding in the audit.</p>
-<p>Fixed by splitting borders into <code>--border-subtle</code> (decorative only) and
-<code>--border-interactive</code> at paper-500 (<strong>3.2:1</strong>), and moving both
-epistemic outlines onto it.</p>
-
-<h3>Fixed — focus indicator (2.4.7)</h3>
-<p>No focus tokens existed. Added <code>--focus-ring</code> / <code>-width</code> /
-<code>-offset</code>. Not optional here: tremor makes touch unreliable, so keyboard and
-switch-control paths matter more for this audience than for most.</p>
-
-<h3>Unresolved by colour — the entry marks</h3>
-<p>Simulated under all three types of colour-vision deficiency, the five marks collapse:</p>
-<table>
-<tr><th>Pair</th><th>Protanopia</th><th>Deuteranopia</th><th>Tritanopia</th></tr>
-<tr><td>symptom / note</td><td>1.01</td><td>1.09</td><td>1.02</td></tr>
-<tr><td>activity / note</td><td>1.04</td><td>1.05</td><td>1.00</td></tr>
-<tr><td>symptom / activity</td><td>1.05</td><td>1.14</td><td>1.02</td></tr>
-</table>
-<p>1.00:1 means <em>identical</em>. This is not a fixable palette problem — it's a direct
-consequence of the design goal. Equal lightness is what makes the marks unranked, and equal
-lightness is also what makes them indistinguishable. Pulling them apart in lightness would
-reintroduce a visual hierarchy among entry types, which is the thing we were avoiding.</p>
-<p><strong>So colour is demoted to the secondary channel.</strong> Icon or shape always carries
-the entry type; colour reinforces it for people who can see it. This is better product design
-anyway — an icon says "meal" directly, whereas a colour requires learning a legend.</p>
-
-<h3>Touch targets — pass</h3>
-<p><strong>Corrected 2026-08-06.</strong> The WCAG picture: <strong>24×24 is the AA bar</strong> (2.2 SC 2.5.8, with a spacing exception); 44×44 is <strong>AAA</strong> (2.1 SC 2.5.5). 48px was originally my suggestion matching Material's guidance, not a research finding.
-The motor-impairment research is less comfortable: a study including Parkinson's participants tested 10–30mm buttons, found the disabled cohort missed 3.9× more often, and saw misses fall 84% from 10→30mm. 44px ≈ 8mm and 48px ≈ 8.7mm — both <em>below the smallest size tested</em>.
-So 48 is modest, not generous. Hence the tiering above, and <code>touch-target-test.html</code> for tapping it on a real device.</p>
-
-<h2>Icons — decided 2026-08-05: Phosphor</h2>
-<p>Icons <em>carry</em> entry type rather than decorating it, because colour failed the
-colour-vision test. Chosen over Lucide on two grounds: Phosphor ships a native
-<code>fill</code> weight, which gives the solid/hollow pair the epistemic states need without
-building a mechanism to maintain; and its <code>bold</code> weight is a real accessibility
-lever, since thin strokes fail first for low vision. Comparison and the size tests live in
-<code>icon-candidates.html</code>.</p>
-<table>
-<tr><th>Use</th><th>Weight</th><th>Why</th></tr>
-<tr><td>Asserted entries</td><td><code>ph-fill</code></td><td>Solid — the user said so</td></tr>
-<tr><td>Assumed / unknown</td><td><code>ph</code> (regular)</td><td>Hollow, inside a ringed container</td></tr>
-<tr><td>Large-text mode</td><td><code>ph-bold</code></td><td>Pairs with the in-app text size control</td></tr>
+<tr><th>Meaning</th><th>Icon</th><th>Note</th></tr>
+<tr><td>Medication</td><td><i class="ph ph-pill"></i> <code>pill</code></td><td>Also the dose card's type mark</td></tr>
+<tr><td>How I feel</td><td><i class="ph ph-hand-heart"></i> <code>hand-heart</code></td><td>Decided 2026-10-09. Waveform read as voice input.</td></tr>
+<tr><td>Activity</td><td><i class="ph ph-footprints"></i> <code>footprints</code></td><td></td></tr>
+<tr><td>Food</td><td><i class="ph ph-fork-knife"></i> <code>fork-knife</code></td><td></td></tr>
+<tr><td>Sleep</td><td><i class="ph ph-moon"></i> <code>moon</code></td><td></td></tr>
+<tr><td>Today / Look Back</td><td><i class="ph ph-sun"></i> <i class="ph ph-chart-line"></i></td><td>chart-line, not chart-line-up: an arrow going up is a verdict</td></tr>
+<tr><td>Open a row</td><td><i class="ph ph-caret-right"></i> <code>caret-right</code></td><td>Centred on the first line of the title</td></tr>
 </table>
 
 <h2>Still open</h2>
 <ul class="absent">
-<li><strong>Symptom icon</strong> — <code>ph-waveform</code> is the current pick for
-neutrality (<code>pulse</code> reads clinical, <code>brain</code> names the disease on every
-log), but it may read as "audio". Test with P01; it's the icon seen on the worst days.</li>
-<li><strong>Freezing of gait</strong> has no icon in any family. Likely a custom glyph. [C-04]</li>
-<li><strong>Dyskinesia and tremor must not share an icon</strong> — opposite states. [C-01]</li>
-<li><strong>Dark mode</strong> unaddressed. The two-layer structure supports it (swap Layer 2,
-leave Layer 1 alone), but the values don't exist.</li>
-<li><strong>Motion tokens</strong> don't exist, and when they do they need a
-<code>prefers-reduced-motion</code> path.</li>
-<li><strong>Newsreader vs. Instrument Serif</strong> — worth trying both against real entries.</li>
-<li><strong>Screen reader names</strong> for timeline dots — needs to be specified when the
-components get built, not at token level.</li>
+<li><strong>Is 1.5:1 enough for flat controls?</strong> See Borders. Test with P01.</li>
+<li><strong>One shared stylesheet.</strong> The tokens are copied into each prototype, and Look Back has
+already drifted (old palette, Inter, Newsreader). A shared <code>tokens.css</code> would end the copying;
+the cost is that <code>tools/check-tokens.mjs</code> has to learn to read it.</li>
+<li><strong>Freezing of gait</strong> has no icon in any family. Likely a custom glyph [C-04].</li>
+<li><strong>Dyskinesia and tremor must not share an icon</strong>; they are opposite states [C-01].</li>
+<li><strong>Dark mode.</strong> The two-layer structure supports it (swap Layer 2), but the values don't exist.</li>
+<li><strong>Motion choreography.</strong> Durations exist; transitions are not designed. Parked: the
+Notion-style tab change Tutu liked.</li>
+<li><strong>Screen reader names</strong> for timeline marks, to specify when components are built.</li>
+<li class="done"><strong>Resolved 2026-10-09:</strong> the symptom icon (hand-heart) and the serif question (Manrope only).</li>
 </ul>
 
 </div>
