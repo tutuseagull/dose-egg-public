@@ -362,8 +362,9 @@ function render(){
       <div class="row">
         <button class="btn primary" onclick="openPhoto()"><i class="ph ph-camera"></i>Photo of the label</button>
         <button class="btn quiet" onclick="openMed(null)"><i class="ph ph-keyboard"></i>Type it in</button>
-        <!-- third answer to the same question: same width, centred, no fill -->
-        <button class="btn ghost" onclick="firstRun=false;render()">Not now</button>
+        <!-- No "Not now" (Tutu, 2026-10-13): two choices are enough here. Leaving is
+             already one tap, the Back arrow, and nothing is lost by leaving: with
+             no schedule the app degrades honestly, it does not nag. -->
       </div>
     </div>`;
   }
