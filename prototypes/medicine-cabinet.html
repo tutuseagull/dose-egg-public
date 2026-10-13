@@ -215,9 +215,19 @@ section h2{margin:0 0 var(--space-1);font-size:var(--text-heading);font-weight:6
 .starts .lab{flex:1 1 12rem}
 .starts .lab b{display:block}
 .starts .lab small{display:block;font-size:var(--text-label);color:var(--text-muted)}
-.medlist{display:flex;flex-direction:column;gap:var(--space-2)}
-.medlist .m{display:flex;align-items:baseline;gap:var(--space-2)}
-.medlist .role{font-size:var(--text-label);color:var(--text-muted);margin-left:auto}
+.medlist{display:flex;flex-direction:column;border-top:1px solid var(--border-subtle)}
+/* each medication opens its own editing step: row + caret, the same affordance as
+   a timeline row [AGENTS.md: one affordance, one behaviour]. The press wash bleeds
+   past the text so the words stay aligned with the sheet. */
+.mrow{display:flex;align-items:center;gap:var(--space-3);width:calc(100% + var(--space-3) * 2);
+  min-height:var(--target-routine);padding:var(--space-2) var(--space-3);
+  margin:0 calc(var(--space-3) * -1);text-align:left;border-radius:var(--radius-md);
+  border-bottom:1px solid var(--border-subtle)}
+.mrow .nm{flex:1;min-width:0}
+.mrow .role{font-size:var(--text-label);color:var(--text-muted)}
+.mrow > i{font-size:18px;color:var(--text-muted)}
+.mrow:active{background:var(--surface-raised)}
+.sh-head .icon-btn.back{margin:calc(var(--space-2) * -1) 0 0 calc(var(--space-3) * -1)}
 
 /* ── the AI draft: outlined (dashed) until the person touches it [C-15] ── */
 .camera{aspect-ratio:3 / 4;border-radius:var(--radius-lg);background:var(--paper-800);
@@ -241,7 +251,7 @@ section h2{margin:0 0 var(--space-1);font-size:var(--text-heading);font-weight:6
 .privacy i{font-size:18px;flex:0 0 auto}
 
 @media (hover:hover){
-  .card:hover, .addbtn:hover, .textbtn:hover, .chip:hover, .iconbtn:hover{background:var(--surface-raised)}
+  .mrow:hover, .card:hover, .addbtn:hover, .textbtn:hover, .chip:hover, .iconbtn:hover{background:var(--surface-raised)}
   .btn.primary:hover{background:var(--accent-hover)}
   .demo-btn:hover{background:color-mix(in srgb, var(--paper-0) 20%, transparent)}
 }
@@ -412,8 +422,9 @@ function render(){
 
 /* ═════════ sheets ═════════ */
 let sheetKind = null, sheetId = null, sheetDirty = false, sheetNew = false;
+let parentSlot = null;    /* set when a medication was opened from a time of day */
 function openSheet(kind, id){
-  sheetKind = kind; sheetId = id; sheetDirty = false; sheetNew = false; changeStart = TODAY;
+  sheetKind = kind; sheetId = id; sheetDirty = false; sheetNew = false; parentSlot = null; changeStart = TODAY;
   const live = versions[versions.length - 1]; frozen = live && !live.summary ? scheduleSummary() : null;
   renderSheet();
   el('sheet').classList.add('open'); el('scrim').classList.add('open');
@@ -423,16 +434,27 @@ function closeSheet(){
   el('sheet').classList.remove('open'); el('scrim').classList.remove('open');
   /* a medication still without a name, and a time row never given a time, leave
      nothing behind: closing an empty form is not an entry */
+  tidyAll();
+  sheetKind = null; render();
+}
+function tidyAll(){
   meds = meds.filter(m => m.name.trim()); meds.forEach(m => delete m.fresh);
   slots = slots.filter(x => x.time && x.items.some(i => medOf(i.med)));
   slots.forEach(x => { x.items = x.items.filter(i => medOf(i.med)); });
   tidy();
-  sheetKind = null; render();
+}
+/* Back from a medication to the time it was opened from. If the edit moved the
+   medication out of that time, the time may be gone; then Back lands on the Cabinet. */
+function backToSlot(){
+  const sid = parentSlot; tidyAll(); render();
+  if (slotOf(sid)) openSheet('slot', sid); else closeSheet();
 }
 /* Writes are live, so closing loses nothing. Once something was written the X
    becomes a Done check and the hint becomes "Saved": it confirms, it never saves. */
 function headHTML(title, lede){
-  return `<div><div class="sh-head"><h2 id="sh-title">${title}</h2>
+  const parent = sheetKind === 'med' && parentSlot && slotOf(parentSlot);
+  return `<div><div class="sh-head">${parent ? `<button class="icon-btn back" onclick="backToSlot()" aria-label="Back to ${parent.time}">
+      <i class="ph ph-arrow-left"></i></button>` : ''}<h2 id="sh-title">${title}</h2>
     <button class="icon-btn" onclick="closeSheet()" aria-label="${sheetDirty ? 'Done' : 'Close'}">
       <i class="ph ${sheetDirty ? 'ph-check' : 'ph-x'}"></i></button></div>
     ${lede ? `<p class="lede">${lede}</p>` : ''}</div>`;
@@ -476,12 +498,12 @@ function openAdd(){
 /* ═════════ one medication ═════════ */
 const STARTER = ['Levodopa', 'Carbidopa-levodopa', 'Entacapone', 'Opicapone', 'Amantadine',
                  'Rasagiline', 'Safinamide', 'Pramipexole', 'Ropinirole', 'Rotigotine'];
-function openMed(id, preset){
+function openMed(id, preset, fromSlot){
   let md = id ? medOf(id) : null;
   const isNew = !md;
   if (!md){ md = { id: nid('m'), name: preset ? preset.name : '', amount: preset ? preset.amount || '' : '', fresh: true };
             meds.push(md); }
-  openSheet('med', md.id); sheetNew = isNew; renderSheet();
+  openSheet('med', md.id); sheetNew = isNew; parentSlot = fromSlot || null; renderSheet();
   if (preset && preset.time){ addTimeTo(md.id, preset.time); markDirty(); }
 }
 function medSheet(){
@@ -592,9 +614,9 @@ function slotSheet(){
   return headHTML(s.time, `${n} medication${n > 1 ? 's' : ''} at this time.`) + `
   <div class="field">
     <span class="lab">Taken at this time</span>
-    <div class="medlist">${s.items.map(i => { const m = medOf(i.med); return `<div class="m">
-      <span>${medLabel(m)}</span><span class="role">${i.role === 'main' ? 'Main' : 'Add-on'}</span></div>`; }).join('')}</div>
-    <p class="hint">To change who is in this dose, open the medication.</p>
+    <div class="medlist">${s.items.map(i => { const m = medOf(i.med); return `<button class="mrow" onclick="openMed('${m.id}', null, '${s.id}')">
+      <span class="nm">${medLabel(m)}</span><span class="role">${i.role === 'main' ? 'Main' : 'Add-on'}</span>
+      <i class="ph ph-caret-right" aria-hidden="true"></i></button>`; }).join('')}</div>
   </div>
   <div class="field">
     <span class="lab">Backup time</span>
