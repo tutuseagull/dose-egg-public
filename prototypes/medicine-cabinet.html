@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DoseEgg · Medicine Cabinet</title>
+<!-- MEDICINE CABINET, 2026-10-12. Where the schedule is authored; it is used
+     everywhere else (dose card, reminders, Look Back). Decisions this page tests,
+     agreed with Tutu 2026-10-12:
+       1. Enter by medication, review as your day. Labels and doctors speak per
+          medication ("1 tablet, 3 times a day"); the app runs on times of day, a
+          main medication plus add-ons [D-16]. So input is medication-shaped and the
+          review is day-shaped.
+       2. Setup starts as a guided task (first medication), then manual adding, and
+          the app offers a reminder the first time someone logs a medication or
+          combination it has not seen. It only proposes what it saw.
+       3. The schedule keeps DATED VERSIONS. A change starts a new version from a
+          date; the old one is never overwritten. Dose gaps and before/after need it.
+       4. Optional backup time per dose ("10:30, or by 11:00") [D-15]. One reminder
+          at each; answering the first means the second never fires. The only
+          repeat reminder is one the person set.
+       5. Photo of the label, faked here: read on the phone, the photo is not kept
+          or sent, and the AI's draft is outlined until the person touches it [C-15].
+     Settled before this page and kept: times first, amounts optional and never
+     "missing"; the person's own name for a medication is never corrected; the
+     starter list is names only; platform time and date controls, never a wheel. -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<style>
+/* Shared tokens come from ../tokens.css. Only this screen's layout tokens here. */
+:root{
+  --gutter:16px;
+  --card-pad:16px;
+  --shell-w:420px;
+}
+
+/* ═══════════════════ base ═══════════════════ */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:100%}
+body{margin:0;background:var(--backdrop);font-family:var(--font-sans);
+     font-size:var(--text-body);line-height:var(--leading-body);color:var(--text-primary);
+     -webkit-font-smoothing:antialiased;display:flex;justify-content:center}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+button{border:0;background:none;cursor:pointer;padding:0}
+:focus-visible{outline:var(--focus-ring-width) solid var(--focus-ring);
+               outline-offset:var(--focus-ring-offset);border-radius:var(--radius-sm)}
+[hidden]{display:none!important}
+.shell{width:100%;max-width:var(--shell-w);background:var(--surface-page);min-height:100vh;
+       position:relative;display:flex;flex-direction:column}
+
+/* ── demo bar (dev only) ── */
+.demo-bar{display:flex;gap:var(--space-2);padding:var(--space-2) var(--space-3);
+          background:var(--paper-800);align-items:center;flex-wrap:wrap}
+.demo-bar .db{font-size:var(--text-label);letter-spacing:.04em;text-transform:uppercase;
+              color:var(--paper-400);font-weight:500;padding-right:var(--space-1)}
+.demo-btn{font-size:var(--text-label);font-weight:500;color:var(--paper-100);
+          background:color-mix(in srgb, var(--paper-0) 12%, transparent);
+          padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);
+          display:flex;align-items:center;min-height:var(--space-8);text-decoration:none}
+.demo-btn.home{font-weight:600}
+
+/* ── top bar: a place you go from the menu, so Back and a title, in glass ── */
+.top{display:flex;align-items:center;gap:var(--space-2);
+     padding:var(--space-4) var(--space-4) var(--space-2);
+     position:sticky;top:0;z-index:30;background:transparent}
+.top::before{content:'';position:absolute;inset:0 0 calc(var(--space-4) * -1) 0;z-index:-1;
+             background:linear-gradient(to bottom,
+               color-mix(in srgb, var(--surface-page) 88%, transparent) 0%,
+               color-mix(in srgb, var(--surface-page) 60%, transparent) 60%, transparent 100%);
+             opacity:0;transition:opacity var(--motion-base) var(--ease-out);pointer-events:none}
+.shell.scrolled .top::before{opacity:1}
+.glassbtn{width:var(--target-min);height:var(--target-min);display:flex;align-items:center;
+  justify-content:center;border-radius:var(--radius-full);flex:0 0 auto;color:var(--text-primary);
+  background:var(--glass-fill);box-shadow:var(--glass-rim), var(--glass-shadow);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)}
+.glassbtn i{font-size:22px}
+.top h1{margin:0;font-size:var(--text-heading);font-weight:600}
+
+.scroll{flex:1;padding:var(--space-2) var(--gutter) var(--space-12);
+        display:flex;flex-direction:column;gap:var(--space-8)}
+section h2{margin:0 0 var(--space-1);font-size:var(--text-heading);font-weight:600}
+.sub{margin:0 0 var(--space-3);font-size:var(--text-label);color:var(--text-muted)}
+
+/* ── cards on the page: flat, a hairline, the label says what they are ── */
+.card{width:100%;text-align:left;background:var(--surface-card);border:1px solid var(--border-control);
+  border-radius:var(--radius-md);padding:var(--space-3) var(--card-pad);margin-bottom:var(--space-3);
+  display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-critical)}
+.card:active{background:var(--surface-raised)}
+.card > i{font-size:18px;color:var(--text-muted);flex:0 0 auto}
+.c-body{flex:1;min-width:0}
+.c-title{display:block;font-weight:600}
+.c-line{display:block;font-size:var(--text-small);color:var(--text-secondary)}
+.c-meta{display:flex;flex-wrap:wrap;gap:var(--space-1) var(--space-3);margin-top:var(--space-1);
+  font-size:var(--text-label);color:var(--text-muted)}
+.c-meta span{display:flex;align-items:center;gap:var(--space-1)}
+.c-meta i{font-size:16px}
+/* a dose time: the clock is the headline, the medications follow */
+.slot .time{font-size:var(--text-title);font-weight:700;letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums;line-height:var(--leading-tight)}
+.slot .backup{font-size:var(--text-small);color:var(--text-secondary);font-weight:500}
+.slot .meds{display:block;margin-top:var(--space-1)}
+.slot .meds b{font-weight:600}
+
+.addbtn{width:100%;min-height:var(--target-critical);border-radius:var(--radius-md);
+  background:var(--surface-card);box-shadow:var(--content-edge);font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:var(--space-2)}
+.addbtn i{font-size:20px}
+.addbtn:active{background:var(--surface-raised)}
+
+/* ── the guided first step, and the prompt after a first log ── */
+.task{background:var(--surface-accent);border-radius:var(--radius-lg);padding:var(--space-6) var(--card-pad);
+  display:flex;flex-direction:column;gap:var(--space-3)}
+.task h2{margin:0;font-size:var(--text-title)}
+.task p{margin:0;color:var(--text-secondary)}
+.task .row{display:flex;flex-direction:column;gap:var(--space-3)}
+.btn{min-height:var(--target-routine);border-radius:var(--radius-md);padding:0 var(--space-4);
+  font-weight:600;display:flex;align-items:center;justify-content:center;gap:var(--space-2)}
+.btn i{font-size:20px}
+.btn.primary{background:var(--accent);color:var(--on-accent)}
+.btn.primary:active{background:var(--accent-hover)}
+.btn.quiet{background:var(--surface-card);box-shadow:var(--content-edge)}
+.btn.quiet:active{background:var(--surface-raised)}
+.btn[disabled]{background:var(--surface-sunken);color:var(--text-muted);cursor:default}
+.textbtn{min-height:var(--target-min);padding:0 var(--space-3);border-radius:var(--radius-md);
+  display:inline-flex;align-items:center;gap:var(--space-2);color:var(--text-primary);font-size:var(--text-small)}
+.textbtn i{font-size:18px}
+.textbtn.accent{color:var(--accent);font-weight:600}
+.textbtn:active{background:var(--surface-raised)}
+.nudge{background:var(--surface-card);border:1px solid var(--border-control);border-radius:var(--radius-lg);
+  padding:var(--space-4) var(--card-pad);display:flex;flex-direction:column;gap:var(--space-2)}
+.nudge p{margin:0}
+.nudge .why{font-size:var(--text-label);color:var(--text-muted)}
+.nudge .acts{display:flex;gap:var(--target-gap);flex-wrap:wrap;margin-top:var(--space-1)}
+.nudge .acts .btn{flex:1 1 9rem}
+
+.hist{border-top:1px solid var(--border-subtle)}
+.hrow{display:flex;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--border-subtle)}
+.hrow .when{flex:0 0 7.5rem;font-size:var(--text-small);font-weight:600}
+.hrow .what{flex:1;font-size:var(--text-small);color:var(--text-secondary)}
+.hrow.now .when::after{content:' · now';font-weight:500;color:var(--accent)}
+.empty{color:var(--text-secondary);font-size:var(--text-small);margin:0}
+
+/* ═══════════════════ sheets ═══════════════════
+   The overlay carries the depth; everything inside it is flat. */
+.scrim{position:fixed;inset:0;background:color-mix(in srgb, var(--paper-900) 34%, transparent);
+  opacity:0;pointer-events:none;transition:opacity var(--motion-base) var(--ease-out);z-index:50}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;bottom:0;width:100%;max-width:var(--shell-w);z-index:60;
+  transform:translate(-50%,102%);transition:transform var(--motion-slow) var(--ease-out);
+  background:var(--surface-card);border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow:var(--shadow-overlay);max-height:92vh;overflow-y:auto;
+  padding:var(--space-2) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom))}
+.sheet.open{transform:translate(-50%,0)}
+/* group rhythm set once, on the body, never as margins on children [AGENTS.md] */
+#sheet-body{display:flex;flex-direction:column;gap:var(--space-6)}
+.pull{width:40px;height:var(--space-1);border-radius:var(--radius-full);background:var(--paper-300);
+  margin:0 auto var(--space-4)}
+.sh-head{display:flex;align-items:flex-start;gap:var(--space-2)}
+.sh-head h2{flex:1;margin:0;font-size:var(--text-title);font-weight:600;line-height:var(--leading-tight)}
+.sh-head .icon-btn{width:var(--target-min);height:var(--target-min);display:flex;align-items:center;
+  justify-content:center;border-radius:var(--radius-full);color:var(--text-secondary);
+  margin:calc(var(--space-2) * -1) calc(var(--space-3) * -1) 0 0;flex:0 0 auto}
+.sh-head .icon-btn i{font-size:22px}
+.lede{margin:var(--space-1) 0 0;color:var(--text-secondary)}
+.field > label, .field > .lab{display:block;font-weight:600;margin-bottom:var(--space-2)}
+.field .hint{margin:var(--space-2) 0 0;font-size:var(--text-label);color:var(--text-muted)}
+.tf{width:100%;min-height:var(--target-routine);border:1px solid var(--border-interactive);
+  border-radius:var(--radius-md);padding:0 var(--space-3);background:var(--surface-card)}
+.tf:focus{outline:none;border-color:var(--accent);box-shadow:var(--focus-glow)}
+.tf.time{width:auto;min-width:8.5rem;font-variant-numeric:tabular-nums}
+.saved{display:flex;align-items:center;gap:var(--space-1);margin:var(--space-2) 0 0;
+  font-size:var(--text-label);color:var(--text-secondary);font-weight:500}
+.saved i{font-size:16px;color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-2)}
+.chip{min-height:var(--target-min);padding:0 var(--space-3);border-radius:var(--radius-full);
+  border:1px solid var(--border-control);background:var(--surface-card);font-size:var(--text-small)}
+.chip:active{background:var(--surface-raised)}
+/* one time row: the time, its backup, its reminder, and who it is taken with */
+.trow{border:1px solid var(--border-control);border-radius:var(--radius-md);padding:var(--space-3);
+  display:flex;flex-direction:column;gap:var(--space-2);margin-bottom:var(--space-3)}
+.trow .line{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
+.trow .line .grow{flex:1}
+.trow .or{font-size:var(--text-small);color:var(--text-secondary)}
+.iconbtn{width:var(--target-min);height:var(--target-min);display:flex;align-items:center;
+  justify-content:center;border-radius:var(--radius-md);color:var(--text-secondary);flex:0 0 auto}
+.iconbtn i{font-size:20px}
+.iconbtn:active{background:var(--surface-raised)}
+.iconbtn.on{color:var(--accent)}
+.seg{display:flex;gap:var(--space-1);background:var(--surface-sunken);border-radius:var(--radius-md);
+  padding:var(--space-1)}
+.seg button{flex:1;min-height:var(--target-min);border-radius:var(--radius-sm);font-size:var(--text-small);
+  color:var(--text-secondary);padding:0 var(--space-2)}
+.seg button[aria-pressed="true"]{background:var(--surface-card);color:var(--text-primary);font-weight:600;
+  box-shadow:var(--content-edge)}
+.toggle{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-routine)}
+.toggle .lab{flex:1}
+.toggle .lab small{display:block;font-size:var(--text-label);color:var(--text-muted)}
+.switch{width:52px;height:var(--target-routine);position:relative;flex:0 0 auto;border-radius:var(--radius-full)}
+.switch::before{content:"";position:absolute;left:0;right:0;top:var(--space-2);height:var(--space-8);
+  border-radius:var(--radius-full);background:var(--paper-300);transition:background var(--motion-fast) var(--ease-out)}
+.switch::after{content:"";position:absolute;top:var(--space-3);left:var(--space-1);width:var(--space-6);
+  height:var(--space-6);border-radius:var(--radius-full);background:var(--paper-0);box-shadow:var(--content-edge);
+  transition:transform var(--motion-fast) var(--ease-out)}
+.switch[aria-checked="true"]::before{background:var(--accent)}
+.switch[aria-checked="true"]::after{transform:translateX(calc(var(--space-6) - var(--space-1)))}
+.preview{background:var(--surface-raised);border-radius:var(--radius-md);padding:var(--space-3);
+  font-size:var(--text-small);color:var(--text-secondary)}
+.preview b{color:var(--text-primary)}
+.starts{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;
+  border-top:1px solid var(--border-subtle);padding-top:var(--space-4)}
+.starts .lab{flex:1 1 12rem}
+.starts .lab b{display:block}
+.starts .lab small{display:block;font-size:var(--text-label);color:var(--text-muted)}
+.medlist{display:flex;flex-direction:column;gap:var(--space-2)}
+.medlist .m{display:flex;align-items:baseline;gap:var(--space-2)}
+.medlist .role{font-size:var(--text-label);color:var(--text-muted);margin-left:auto}
+
+/* ── the AI draft: outlined (dashed) until the person touches it [C-15] ── */
+.camera{aspect-ratio:3 / 4;border-radius:var(--radius-lg);background:var(--paper-800);
+  display:flex;align-items:center;justify-content:center;padding:var(--space-6)}
+.label{width:100%;background:var(--paper-0);border-radius:var(--radius-sm);padding:var(--space-4);
+  font-family:ui-monospace, Menlo, monospace;font-size:var(--text-label);line-height:1.4;color:var(--paper-900);
+  transform:rotate(-2deg);box-shadow:var(--shadow-float)}
+.label .redact{background:var(--paper-900);color:var(--paper-900);border-radius:var(--radius-sm)}
+.reading{display:flex;flex-direction:column;align-items:center;gap:var(--space-3);
+  padding:var(--space-12) 0;text-align:center;color:var(--text-secondary)}
+.reading i{font-size:32px;color:var(--accent);animation:spin 1.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.draft{border:1.5px dashed var(--border-interactive);border-radius:var(--radius-md);padding:var(--space-4);
+  display:flex;flex-direction:column;gap:var(--space-3)}
+.draft.ok{border:1px solid var(--border-control)}
+.draft.gone{opacity:.5}
+.draft .read{font-family:ui-monospace, Menlo, monospace;font-size:var(--text-label);color:var(--text-muted)}
+.est{color:var(--accent-quiet);font-weight:600}
+.draft .acts{display:flex;gap:var(--space-2);flex-wrap:wrap}
+.privacy{display:flex;gap:var(--space-2);font-size:var(--text-label);color:var(--text-muted)}
+.privacy i{font-size:18px;flex:0 0 auto}
+
+@media (hover:hover){
+  .card:hover, .addbtn:hover, .textbtn:hover, .chip:hover, .iconbtn:hover{background:var(--surface-raised)}
+  .btn.primary:hover{background:var(--accent-hover)}
+  .demo-btn:hover{background:color-mix(in srgb, var(--paper-0) 20%, transparent)}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="demo-bar">
+    <a class="demo-btn home" href="../index.html">← Home</a>
+    <span class="db">Medicine Cabinet · test</span>
+    <button class="demo-btn" onclick="demoFirstRun()">first run</button>
+    <button class="demo-btn" onclick="demoFirstLog()">log a new med</button>
+    <button class="demo-btn" onclick="location.reload()">reset</button>
+  </div>
+
+  <div class="top">
+    <a class="glassbtn" href="hifi-daily-loop-v4.html" aria-label="Back to Today"><i class="ph ph-arrow-left"></i></a>
+    <h1>Medicine Cabinet</h1>
+  </div>
+
+  <main class="scroll" id="main"></main>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-title">
+  <div class="pull"></div>
+  <div id="sheet-body"></div>
+</div>
+
+<script>
+const el = id => document.getElementById(id);
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+
+/* ═════════ the model ═════════
+   meds:  what the person takes, by THEIR name. Amount optional, never "missing".
+   slots: times of day. A slot holds medications with a role each: main or add-on
+          [D-16]. A backup time is a property of the slot [D-15]; so is the reminder.
+   A medication with no slot is taken as needed: it is in the Cabinet, it can be
+   logged, it never reminds.
+   versions: the schedule's history. Each has a start date and a frozen summary;
+   the last one is live. A change made today edits today's version, or starts one. */
+const TODAY = '2026-10-12';
+let meds = [], slots = [], versions = [];
+let seq = 100; const nid = p => p + (seq++);   /* above the sample's ids, so a new one never collides */
+
+function sampleCabinet(){
+  meds = [
+    { id: 'm1', name: 'Levodopa', amount: '100mg' },
+    { id: 'm2', name: 'Entacapone', amount: '200mg' },
+    { id: 'm3', name: 'the small white one', amount: '' },     /* her name, kept as is */
+  ];
+  slots = [
+    { id: 's1', time: '07:30', backup: '', remind: true,  items: [{ med: 'm1', role: 'main' }, { med: 'm2', role: 'addon' }] },
+    { id: 's2', time: '11:00', backup: '11:30', remind: true, items: [{ med: 'm1', role: 'main' }, { med: 'm2', role: 'addon' }] },
+    { id: 's3', time: '14:30', backup: '', remind: false, items: [{ med: 'm1', role: 'main' }, { med: 'm2', role: 'addon' }] },
+    { id: 's4', time: '18:00', backup: '', remind: true,  items: [{ med: 'm1', role: 'main' }] },
+    { id: 's5', time: '21:30', backup: '', remind: true,  items: [{ med: 'm1', role: 'main' }, { med: 'm3', role: 'addon' }] },
+  ];
+  versions = [
+    { from: '2026-01-05', summary: '4 times a day: 08:00, 12:00, 16:00, 20:00' },
+    { from: '2026-06-15', summary: null },       /* live: summarised from the slots */
+  ];
+}
+sampleCabinet();
+
+const medOf = id => meds.find(m => m.id === id);
+const slotOf = id => slots.find(s => s.id === id);
+const sortSlots = () => slots.sort((a, b) => a.time.localeCompare(b.time));
+const slotsOfMed = id => slots.filter(s => s.items.some(i => i.med === id));
+/* only slots with a time are part of the day; a row still waiting for its time is not */
+const timed = list => list.filter(s => s.time);
+const mainOf = s => s.items.find(i => i.role === 'main');
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtDate = iso => { const [y, m, d] = iso.split('-').map(Number); return `${MON[m - 1]} ${d}`; };
+const addDays = (iso, n) => { const d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n);
+                              return d.toISOString().slice(0, 10); };
+
+/* A slot in words: "Levodopa 100mg with Entacapone 200mg". The main medication
+   leads; add-ons follow in order. A slot with no main is a flat set, which the
+   model must still express (the complex-PD case). */
+const medLabel = m => m.amount ? `${esc(m.name)} ${esc(m.amount)}` : esc(m.name);
+function slotWords(s){
+  const main = s.items.filter(i => i.role === 'main').map(i => medOf(i.med)).filter(Boolean);
+  const adds = s.items.filter(i => i.role === 'addon').map(i => medOf(i.med)).filter(Boolean);
+  const lead = main.map(m => `<b>${medLabel(m)}</b>`).join(', ');
+  return lead && adds.length ? `${lead} with ${adds.map(medLabel).join(', ')}`
+       : lead || adds.map(m => `<b>${medLabel(m)}</b>`).join(', ');
+}
+const scheduleSummary = () => {
+  const ts = timed(sortSlots()).filter(s => s.items.length).map(s => s.time);
+  return ts.length ? `${ts.length} time${ts.length > 1 ? 's' : ''} a day: ${ts.join(', ')}` : 'No times set';
+};
+
+/* Every change to times, medications in a slot, or roles goes through here, so the
+   history can never be skipped. Reminder and backup changes are how the person
+   is reminded, not what they take, so they do not start a version. */
+let changeStart = TODAY;
+function scheduleChanged(){
+  const live = versions[versions.length - 1];
+  if (!live){ versions.push({ from: changeStart, summary: null }); return; }
+  if (live.from < changeStart){
+    live.summary = live.summary || frozen;    /* freeze what was true until now */
+    versions.push({ from: changeStart, summary: null });
+  }
+}
+let frozen = null;     /* the live summary as it stood when a sheet opened */
+
+/* ═════════ the page ═════════ */
+let firstRun = false, firstLog = null;
+function render(){
+  const m = el('main'); let h = '';
+  if (firstRun && !meds.length){
+    h += `<div class="task">
+      <span style="font-size:var(--text-label);font-weight:600;color:var(--text-secondary)">Getting started</span>
+      <h2>Add your first medication</h2>
+      <p>The times you take it matter most. Amounts are optional, and you can use your own name for it.</p>
+      <div class="row">
+        <button class="btn primary" onclick="openPhoto()"><i class="ph ph-camera"></i>Photo of the label</button>
+        <button class="btn quiet" onclick="openMed(null)"><i class="ph ph-keyboard"></i>Type it in</button>
+      </div>
+      <button class="textbtn" style="align-self:flex-start;margin-left:calc(var(--space-3) * -1)" onclick="firstRun=false;render()">Not now</button>
+    </div>`;
+  }
+  if (firstLog){
+    h += `<div class="nudge" role="status">
+      <p><b>${esc(firstLog.name)}</b> was logged at ${firstLog.time} today, for the first time. Want a reminder for it?</p>
+      <p class="why">Only what you logged is suggested. Nothing else changes.</p>
+      <div class="acts">
+        <button class="btn primary" onclick="acceptFirstLog()">Set a reminder</button>
+        <button class="btn quiet" onclick="firstLog=null;render()">Not now</button>
+      </div></div>`;
+  }
+  if (firstRun && !meds.length){ m.innerHTML = h; return; }   /* the task is the whole page until there is something to show */
+  const live = timed(sortSlots()).filter(s => s.items.length);
+  h += `<section><h2>Your day</h2>
+    <p class="sub">${live.length ? 'Each time you take medication. Reminders come with Taken and Not taken.' : 'Times appear here once a medication has one.'}</p>
+    ${live.map(s => `<button class="card slot" onclick="openSlot('${s.id}')">
+      <span class="c-body">
+        <span class="time">${s.time}</span>${s.backup ? ` <span class="backup">or by ${s.backup}</span>` : ''}
+        <span class="meds c-line">${slotWords(s)}</span>
+        <span class="c-meta"><span><i class="ph ${s.remind ? 'ph-bell' : 'ph-bell-slash'}" aria-hidden="true"></i>${s.remind ? 'Reminder on' : 'No reminder'}</span></span>
+      </span><i class="ph ph-caret-right" aria-hidden="true"></i></button>`).join('')}
+  </section>`;
+  h += `<section><h2>Medications</h2>
+    <p class="sub">What you take, by your names for them.</p>
+    ${meds.map(md => { const ts = timed(slotsOfMed(md.id)).map(s => s.time);
+      return `<button class="card" onclick="openMed('${md.id}')"><span class="c-body">
+        <span class="c-title">${esc(md.name)}${md.amount ? ` <span style="font-weight:400;color:var(--text-secondary)">${esc(md.amount)}</span>` : ''}</span>
+        <span class="c-meta"><span><i class="ph ph-clock" aria-hidden="true"></i>${ts.length ? ts.join(' · ') : 'As needed, no set time'}</span></span>
+      </span><i class="ph ph-caret-right" aria-hidden="true"></i></button>`; }).join('')}
+    <button class="addbtn" onclick="openAdd()"><i class="ph ph-plus"></i>Add medication</button>
+  </section>`;
+  if (versions.length){
+    h += `<section><h2>Schedule history</h2>
+      <p class="sub">Each change starts a new version. Older ones stay, so Look Back can compare before and after.</p>
+      <div class="hist">${[...versions].reverse().map((v, k, arr) => {
+        const idx = versions.length - 1 - k, next = versions[idx + 1];
+        const when = next ? `${fmtDate(v.from)} – ${fmtDate(addDays(next.from, -1))}` : `Since ${fmtDate(v.from)}`;
+        return `<div class="hrow${next ? '' : ' now'}"><span class="when">${when}</span>
+          <span class="what">${esc(v.summary || scheduleSummary())}</span></div>`; }).join('')}</div>
+    </section>`;
+  }
+  m.innerHTML = h;
+}
+
+/* ═════════ sheets ═════════ */
+let sheetKind = null, sheetId = null, sheetDirty = false, sheetNew = false;
+function openSheet(kind, id){
+  sheetKind = kind; sheetId = id; sheetDirty = false; sheetNew = false; changeStart = TODAY;
+  const live = versions[versions.length - 1]; frozen = live && !live.summary ? scheduleSummary() : null;
+  renderSheet();
+  el('sheet').classList.add('open'); el('scrim').classList.add('open');
+  el('sheet').scrollTop = 0;
+}
+function closeSheet(){
+  el('sheet').classList.remove('open'); el('scrim').classList.remove('open');
+  /* a medication still without a name, and a time row never given a time, leave
+     nothing behind: closing an empty form is not an entry */
+  meds = meds.filter(m => m.name.trim()); meds.forEach(m => delete m.fresh);
+  slots = slots.filter(x => x.time && x.items.some(i => medOf(i.med)));
+  slots.forEach(x => { x.items = x.items.filter(i => medOf(i.med)); });
+  tidy();
+  sheetKind = null; render();
+}
+/* Writes are live, so closing loses nothing. Once something was written the X
+   becomes a Done check and the hint becomes "Saved": it confirms, it never saves. */
+function headHTML(title, lede){
+  return `<div><div class="sh-head"><h2 id="sh-title">${title}</h2>
+    <button class="icon-btn" onclick="closeSheet()" aria-label="${sheetDirty ? 'Done' : 'Close'}">
+      <i class="ph ${sheetDirty ? 'ph-check' : 'ph-x'}"></i></button></div>
+    ${lede ? `<p class="lede">${lede}</p>` : ''}</div>`;
+}
+function markDirty(){ if (!sheetDirty){ sheetDirty = true; renderSheet(true); } }
+function renderSheet(keepFocus){
+  const a = document.activeElement, aid = a && a.id, pos = a && a.selectionStart;
+  const b = el('sheet-body');
+  if (sheetKind === 'med') b.innerHTML = medSheet();
+  else if (sheetKind === 'slot') b.innerHTML = slotSheet();
+  else if (sheetKind === 'photo') b.innerHTML = photoSheet();
+  if (keepFocus && aid && el(aid)){ el(aid).focus(); try { el(aid).setSelectionRange(pos, pos); } catch (e) {} }
+}
+
+/* ── when a change starts: shown once a schedule change has been made ── */
+function startsHTML(){
+  if (!sheetDirty || !versions.length) return '';
+  return `<div class="starts"><span class="lab"><b>These changes start</b>
+      <small>Your schedule before this date stays as it was.</small></span>
+    <input class="tf time" type="date" id="startDate" value="${changeStart}" max="${TODAY}"
+           aria-label="Date these changes start" onchange="setStart(this.value)"></div>`;
+}
+function setStart(v){
+  if (!v) return;
+  const live = versions[versions.length - 1], prev = versions[versions.length - 2];
+  if (live && live.from === changeStart && (!prev || v > prev.from)) live.from = v;
+  changeStart = v; render();
+}
+
+/* ═════════ add a medication: the two doors (photo, type), same editor ═════════ */
+function openAdd(){
+  openSheet('add');
+  el('sheet-body').innerHTML = headHTML('Add medication', '') + `
+    <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+      <button class="btn primary" onclick="openPhoto()"><i class="ph ph-camera"></i>Photo of the label</button>
+      <button class="btn quiet" onclick="openMed(null)"><i class="ph ph-keyboard"></i>Type it in</button>
+    </div>
+    <p class="privacy"><i class="ph ph-lock-simple" aria-hidden="true"></i>A label is read on your phone. The photo is not kept or sent.</p>`;
+}
+
+/* ═════════ one medication ═════════ */
+const STARTER = ['Levodopa', 'Carbidopa-levodopa', 'Entacapone', 'Opicapone', 'Amantadine',
+                 'Rasagiline', 'Safinamide', 'Pramipexole', 'Ropinirole', 'Rotigotine'];
+function openMed(id, preset){
+  let md = id ? medOf(id) : null;
+  const isNew = !md;
+  if (!md){ md = { id: nid('m'), name: preset ? preset.name : '', amount: preset ? preset.amount || '' : '', fresh: true };
+            meds.push(md); }
+  openSheet('med', md.id); sheetNew = isNew; renderSheet();
+  if (preset && preset.time){ addTimeTo(md.id, preset.time); markDirty(); }
+}
+function medSheet(){
+  const md = medOf(sheetId); if (!md) return '';
+  const mine = slotsOfMed(md.id);
+  const q = md.name.trim().toLowerCase();
+  const sugg = q ? STARTER.filter(n => n.toLowerCase().startsWith(q) && n.toLowerCase() !== q).slice(0, 4) : [];
+  return headHTML(md.fresh && !md.name ? 'New medication' : esc(md.name || 'New medication'), '') + `
+  <div class="field">
+    <label for="m-name">What do you call it?</label>
+    <input class="tf" id="m-name" type="text" autocomplete="off" value="${esc(md.name)}"
+      placeholder="Its name, or your own, like the white one" oninput="setMed('name', this.value)">
+    ${sugg.length ? `<div class="chips" aria-label="Spelling help">${sugg.map(n =>
+      `<button class="chip" onclick="setMed('name','${n}');renderSheet()">${n}</button>`).join('')}</div>` : ''}
+    <p class="hint">Your own name is fine. The app never changes it.</p>
+  </div>
+  <div class="field">
+    <label for="m-amt">Amount <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
+    <input class="tf" id="m-amt" type="text" autocomplete="off" value="${esc(md.amount)}"
+      placeholder="100mg, 1 tablet" oninput="setMed('amount', this.value)">
+  </div>
+  <div class="field">
+    <span class="lab">When do you take it?</span>
+    ${mine.map(s => timeRowHTML(md, s)).join('')}
+    <button class="textbtn accent" style="margin-left:calc(var(--space-3) * -1)" onclick="addTimeTo('${md.id}', '');renderSheet()">
+      <i class="ph ph-plus"></i>Add a time</button>
+    <p class="hint">${mine.length ? 'Each time gets its own reminder, with Taken and Not taken.' : 'No time means as needed: you can log it, and it never reminds you.'}</p>
+  </div>
+  ${sheetDirty ? `<p class="saved"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>Saved</p>` : ''}
+  ${startsHTML()}
+  ${!sheetNew ? `<button class="textbtn" style="align-self:flex-start;margin-left:calc(var(--space-3) * -1)" onclick="removeMed('${md.id}')">
+    <i class="ph ph-trash"></i>Stop taking this</button>` : ''}`;
+}
+/* One time row: the platform time control (never a wheel), the reminder, an
+   optional backup time, and, when someone else is already in that slot, who it is
+   taken with. The role is the person's choice, never inferred. */
+function timeRowHTML(md, s){
+  const me = s.items.find(i => i.med === md.id);
+  const others = s.items.filter(i => i.med !== md.id && i.role === 'main').map(i => medOf(i.med));
+  return `<div class="trow">
+    <div class="line">
+      <input class="tf time" type="time" value="${s.time}" aria-label="Time" onchange="moveTime('${md.id}','${s.id}',this.value)">
+      <span class="grow"></span>
+      <button class="iconbtn ${s.remind ? 'on' : ''}" aria-pressed="${s.remind}" aria-label="${s.remind ? 'Reminder on' : 'Reminder off'}"
+        onclick="toggleRemind('${s.id}')"><i class="ph ${s.remind ? 'ph-bell-ringing' : 'ph-bell-slash'}"></i></button>
+      <button class="iconbtn" aria-label="Remove this time" onclick="removeTime('${md.id}','${s.id}')"><i class="ph ph-x"></i></button>
+    </div>
+    ${s.backup ? `<div class="line"><span class="or">or by</span>
+        <input class="tf time" type="time" value="${s.backup}" aria-label="Backup time" onchange="setBackup('${s.id}',this.value)">
+        <button class="iconbtn" aria-label="Remove backup time" onclick="setBackup('${s.id}','')"><i class="ph ph-x"></i></button></div>`
+      : `<button class="textbtn" style="align-self:flex-start;margin-left:calc(var(--space-3) * -1)" onclick="setBackup('${s.id}', plus30('${s.time}'))">
+          <i class="ph ph-clock-clockwise"></i>Add a backup time</button>`}
+    ${others.length ? `<div class="seg" role="group" aria-label="Taken how">
+        <button aria-pressed="${me.role === 'main'}" onclick="setRole('${md.id}','${s.id}','main')">On its own</button>
+        <button aria-pressed="${me.role === 'addon'}" onclick="setRole('${md.id}','${s.id}','addon')">With ${esc(others[0].name)}</button>
+      </div>` : ''}
+  </div>`;
+}
+const plus30 = t => { if (!t) return '08:30'; let [h, m] = t.split(':').map(Number); m += 30; h += m >= 60 ? 1 : 0; m %= 60;
+                      return `${String(h % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}`; };
+function setMed(k, v){
+  const md = medOf(sheetId); md[k] = v; if (k === 'name') delete md.fresh;
+  const first = !sheetDirty; sheetDirty = true;
+  if (first || k === 'name') renderSheet(true); else renderSheet(true);
+}
+function slotAt(t){ let s = slots.find(x => x.time === t);
+  if (!s){ s = { id: nid('s'), time: t, backup: '', remind: true, items: [] }; slots.push(s); } return s; }
+function addTimeTo(mid, t){
+  /* an empty row is a slot with no time yet; it joins the day once a time is set */
+  const s = t ? slotAt(t) : { id: nid('s'), time: '', backup: '', remind: true, items: [] };
+  if (!t) slots.push(s);
+  if (!s.items.some(i => i.med === mid)) s.items.push({ med: mid, role: 'main' });
+  if (t){ scheduleChanged(); markDirty(); }
+}
+function moveTime(mid, sid, t){
+  if (!t) return;
+  const from = slotOf(sid); const item = from.items.find(i => i.med === mid);
+  from.items = from.items.filter(i => i.med !== mid);
+  const to = slotAt(t);
+  if (from.time === '' && !from.items.length){ to.backup = to.backup || from.backup; to.remind = from.remind; }
+  if (!to.items.some(i => i.med === mid)) to.items.push(item);
+  tidy(); scheduleChanged(); sheetDirty = true; renderSheet(); render();
+}
+function removeTime(mid, sid){ const s = slotOf(sid); s.items = s.items.filter(i => i.med !== mid);
+  tidy(); scheduleChanged(); sheetDirty = true; renderSheet(); render(); }
+function setRole(mid, sid, role){ slotOf(sid).items.find(i => i.med === mid).role = role;
+  scheduleChanged(); sheetDirty = true; renderSheet(); render(); }
+function toggleRemind(sid){ const s = slotOf(sid); s.remind = !s.remind; sheetDirty = true; renderSheet(); render(); }
+function setBackup(sid, t){ slotOf(sid).backup = t; sheetDirty = true; renderSheet(); render(); }
+/* a slot left with only add-ons promotes the first to main: an add-on is never
+   taken alone [D-16]; a slot left empty disappears */
+function tidy(){
+  slots = slots.filter(s => s.items.length || s.time === '');
+  slots.forEach(s => { if (s.items.length && !s.items.some(i => i.role === 'main')) s.items[0].role = 'main'; });
+}
+/* Stopping a medication ends it from a date; it stays in the history and the record. */
+function removeMed(mid){
+  slots.forEach(s => { s.items = s.items.filter(i => i.med !== mid); });
+  meds = meds.filter(m => m.id !== mid);
+  tidy(); scheduleChanged(); closeSheet();
+}
+
+/* ═════════ one time of day ═════════ */
+function openSlot(id){ openSheet('slot', id); }
+function slotSheet(){
+  const s = slotOf(sheetId); if (!s) return '';
+  const n = s.items.length;
+  return headHTML(s.time, `${n} medication${n > 1 ? 's' : ''} at this time.`) + `
+  <div class="field">
+    <span class="lab">Taken at this time</span>
+    <div class="medlist">${s.items.map(i => { const m = medOf(i.med); return `<div class="m">
+      <span>${medLabel(m)}</span><span class="role">${i.role === 'main' ? 'Main' : 'Add-on'}</span></div>`; }).join('')}</div>
+    <p class="hint">To change who is in this dose, open the medication.</p>
+  </div>
+  <div class="field">
+    <span class="lab">Backup time</span>
+    ${s.backup ? `<div class="line" style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
+        <span class="or" style="color:var(--text-secondary)">or by</span>
+        <input class="tf time" type="time" value="${s.backup}" aria-label="Backup time" onchange="setBackup('${s.id}',this.value)">
+        <button class="iconbtn" aria-label="Remove backup time" onclick="setBackup('${s.id}','')"><i class="ph ph-x"></i></button></div>`
+      : `<button class="textbtn" style="margin-left:calc(var(--space-3) * -1)" onclick="setBackup('${s.id}', plus30('${s.time}'))">
+          <i class="ph ph-clock-clockwise"></i>Add a backup time</button>`}
+    <p class="hint">For a dose you take at one time or, if not then, at a later one. The second reminder only comes if the first was not answered.</p>
+  </div>
+  <div class="toggle">
+    <span class="lab">Remind me<small>On your lock screen, with Taken and Not taken.</small></span>
+    <button class="switch" role="switch" aria-checked="${s.remind}" aria-label="Remind me" onclick="toggleRemind('${s.id}')"></button>
+  </div>
+  <div class="preview">${s.remind
+    ? `At <b>${s.time}</b>: "Your ${s.time} medication", with Taken and Not taken.${s.backup ? ` If unanswered, again at <b>${s.backup}</b>.` : ''} Nothing after that.`
+    : `No reminder. The question still waits on Today from ${s.time}, so the dose can be answered there.`}</div>
+  ${sheetDirty ? `<p class="saved" style="margin:0"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>Saved</p>` : ''}`;
+}
+
+/* ═════════ photo of the label (faked) ═════════
+   The model reads text off the photo ON THE PHONE; the photo is not kept or sent,
+   and the name, date of birth and prescriber on a label are never read in. What
+   comes back is a DRAFT: dashed until the person confirms or edits each item, and
+   nothing reaches the Cabinet until they add it [C-15]. A label says how often,
+   never when, so times are asked, not guessed. */
+let photo = null;
+function openPhoto(){ photo = { step: 'aim', items: [] }; openSheet('photo'); }
+function photoSheet(){
+  if (photo.step === 'aim') return headHTML('Photo of the label', 'Point at the pharmacy label. Several labels are fine, one at a time.') + `
+    <div class="camera"><div class="label">
+      <div>RX# 4410273 · <span class="redact">J SAMPLE PATIENT</span></div>
+      <div><b>CARBIDOPA/LEVODOPA 25-100MG TAB</b></div>
+      <div>TAKE 1 TABLET BY MOUTH 3 TIMES DAILY</div>
+      <div style="margin-top:var(--space-2)"><b>ENTACAPONE 200MG TAB</b></div>
+      <div>TAKE 1 TABLET WITH EACH DOSE OF CARBIDOPA/LEVODOPA</div>
+      <div style="margin-top:var(--space-2)">DR <span class="redact">A PRESCRIBER</span> · DOB <span class="redact">00/00/0000</span></div>
+    </div></div>
+    <button class="btn primary" onclick="readLabel()"><i class="ph ph-camera"></i>Take photo</button>
+    <p class="privacy"><i class="ph ph-lock-simple" aria-hidden="true"></i>Read on your phone. The photo is not kept or sent. Your name, date of birth and prescriber are not read in.</p>`;
+  if (photo.step === 'reading') return headHTML('Reading the label', '') +
+    `<div class="reading"><i class="ph ph-circle-notch" aria-hidden="true"></i><span>Reading, on your phone</span></div>`;
+  const ok = photo.items.filter(i => i.state === 'ok').length;
+  return headHTML('Check what was read', 'Nothing is added until you say so. Change anything that is not right.') +
+    photo.items.map((it, k) => draftHTML(it, k)).join('') + `
+    <button class="btn primary" ${ok ? '' : 'disabled'} onclick="addDrafts()">${ok ? `Add ${ok} to your cabinet` : 'Confirm at least one to add it'}</button>
+    <p class="privacy"><i class="ph ph-sparkle" aria-hidden="true"></i>Read by the app's AI. Values marked ≈ are its reading, not yours yet.</p>`;
+}
+function readLabel(){
+  photo.step = 'reading'; renderSheet();
+  setTimeout(() => {
+    photo.step = 'draft';
+    photo.items = [
+      { read: 'CARBIDOPA/LEVODOPA 25-100MG TAB · 3 TIMES DAILY', name: 'Carbidopa-levodopa', amount: '25-100mg', count: 3, times: ['', '', ''], withOf: null, state: 'draft' },
+      { read: 'ENTACAPONE 200MG TAB · WITH EACH DOSE OF CARBIDOPA/LEVODOPA', name: 'Entacapone', amount: '200mg', count: 0, times: [], withOf: 0, state: 'draft' },
+    ];
+    if (sheetKind === 'photo') renderSheet();
+  }, 1300);
+}
+function draftHTML(it, k){
+  if (it.state === 'gone') return `<div class="draft gone"><span>${esc(it.name)} will not be added.</span>
+    <button class="textbtn accent" style="align-self:flex-start;margin-left:calc(var(--space-3) * -1)" onclick="photo.items[${k}].state='draft';renderSheet()">
+      <i class="ph ph-arrow-counter-clockwise"></i>Undo</button></div>`;
+  const est = it.state === 'ok' ? '' : '<span class="est" aria-label="AI reading">≈ </span>';
+  const timesBlock = it.withOf != null
+    ? `<p style="margin:0">${est}Taken with each <b>${esc(photo.items[it.withOf].name)}</b> dose, as an add-on.</p>`
+    : `<div class="field"><span class="lab" style="margin-bottom:var(--space-1)">${est}${it.count} times a day. When?</span>
+         <p class="hint" style="margin:0 0 var(--space-2)">The label says how often, not when. Your times drive the reminders.</p>
+         <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">${it.times.map((t, j) =>
+           `<input class="tf time" type="time" value="${t}" aria-label="Time ${j + 1}" onchange="photo.items[${k}].times[${j}]=this.value;touchDraft(${k})">`).join('')}</div></div>`;
+  return `<div class="draft ${it.state === 'ok' ? 'ok' : ''}">
+    <span class="read">Read: ${esc(it.read)}</span>
+    <div class="field"><label for="d-name-${k}">${est}Call it</label>
+      <input class="tf" id="d-name-${k}" type="text" value="${esc(it.name)}" oninput="photo.items[${k}].name=this.value;touchDraft(${k},true)">
+      <p class="hint">Change it to whatever you call it.</p></div>
+    <div class="field"><label for="d-amt-${k}">${est}Amount</label>
+      <input class="tf" id="d-amt-${k}" type="text" value="${esc(it.amount)}" oninput="photo.items[${k}].amount=this.value;touchDraft(${k},true)"></div>
+    ${timesBlock}
+    <div class="acts">${it.state === 'ok'
+      ? `<span class="saved" style="margin:0"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>Confirmed</span>`
+      : `<button class="btn quiet" onclick="touchDraft(${k})"><i class="ph ph-check"></i>Looks right</button>`}
+      <button class="textbtn" onclick="photo.items[${k}].state='gone';renderSheet()"><i class="ph ph-x"></i>Do not add</button></div>
+  </div>`;
+}
+/* touching an item, by editing it or saying it looks right, is the confirmation */
+function touchDraft(k, typing){ photo.items[k].state = 'ok'; renderSheet(!!typing); }
+function addDrafts(){
+  const idMap = {};
+  photo.items.forEach((it, k) => {
+    if (it.state !== 'ok') return;
+    const md = { id: nid('m'), name: it.name.trim() || it.read, amount: it.amount.trim() };
+    meds.push(md); idMap[k] = md.id;
+  });
+  photo.items.forEach((it, k) => {
+    if (it.state !== 'ok') return;
+    if (it.withOf == null) it.times.filter(Boolean).forEach(t => { const s = slotAt(t);
+      s.items.push({ med: idMap[k], role: 'main' }); });
+  });
+  photo.items.forEach((it, k) => {      /* add-ons follow their main's times */
+    if (it.state !== 'ok' || it.withOf == null || !idMap[it.withOf]) return;
+    slots.filter(s => s.items.some(i => i.med === idMap[it.withOf]))
+         .forEach(s => s.items.push({ med: idMap[k], role: 'addon' }));
+  });
+  if (!versions.length) versions.push({ from: TODAY, summary: null }); else scheduleChanged();
+  firstRun = false; closeSheet();
+}
+
+/* ═════════ the reminder offered after a first log ═════════
+   Fires once, the first time a medication (or a new combination) is logged by hand.
+   It proposes only what it saw: the name and the time it was logged. Dismissed
+   means never asked again for that medication. */
+function demoFirstLog(){ firstLog = { name: 'Amantadine', amount: '100mg', time: '08:40' };
+  render(); window.scrollTo(0, 0); }
+function acceptFirstLog(){ const f = firstLog; firstLog = null;
+  openMed(null, { name: f.name, amount: f.amount, time: f.time }); }
+function demoFirstRun(){ meds = []; slots = []; versions = []; firstRun = true; firstLog = null;
+  render(); window.scrollTo(0, 0); }
+
+window.addEventListener('scroll', () =>
+  document.querySelector('.shell').classList.toggle('scrolled', window.scrollY > 4), { passive: true });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && sheetKind) closeSheet(); });
+render();
+</script>
+</body>
+</html>
