@@ -114,7 +114,7 @@ section h2{margin:0 0 var(--space-1);font-size:var(--text-heading);font-weight:6
   display:flex;flex-direction:column;gap:var(--space-3)}
 .task h2{margin:0;font-size:var(--text-title)}
 .task p{margin:0;color:var(--text-secondary)}
-.task .row{display:flex;flex-direction:column;gap:var(--space-3)}
+.task .row{display:flex;flex-direction:column;gap:var(--target-gap)}   /* adjacent targets: 16px, never less */
 .btn{min-height:var(--target-routine);border-radius:var(--radius-md);padding:0 var(--space-4);
   font-weight:600;display:flex;align-items:center;justify-content:center;gap:var(--space-2)}
 .btn i{font-size:20px}
@@ -122,6 +122,8 @@ section h2{margin:0 0 var(--space-1);font-size:var(--text-heading);font-weight:6
 .btn.primary:active{background:var(--accent-hover)}
 .btn.quiet{background:var(--surface-card);box-shadow:var(--content-edge)}
 .btn.quiet:active{background:var(--surface-raised)}
+.btn.ghost{background:transparent;font-weight:500}
+.btn.ghost:active{background:color-mix(in srgb, var(--paper-0) 55%, transparent)}
 .btn[disabled]{background:var(--surface-sunken);color:var(--text-muted);cursor:default}
 .textbtn{min-height:var(--target-min);padding:0 var(--space-3);border-radius:var(--radius-md);
   display:inline-flex;align-items:center;gap:var(--space-2);color:var(--text-primary);font-size:var(--text-small)}
@@ -360,8 +362,9 @@ function render(){
       <div class="row">
         <button class="btn primary" onclick="openPhoto()"><i class="ph ph-camera"></i>Photo of the label</button>
         <button class="btn quiet" onclick="openMed(null)"><i class="ph ph-keyboard"></i>Type it in</button>
+        <!-- third answer to the same question: same width, centred, no fill -->
+        <button class="btn ghost" onclick="firstRun=false;render()">Not now</button>
       </div>
-      <button class="textbtn" style="align-self:flex-start;margin-left:calc(var(--space-3) * -1)" onclick="firstRun=false;render()">Not now</button>
     </div>`;
   }
   if (firstLog){
@@ -462,7 +465,7 @@ function setStart(v){
 function openAdd(){
   openSheet('add');
   el('sheet-body').innerHTML = headHTML('Add medication', '') + `
-    <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+    <div style="display:flex;flex-direction:column;gap:var(--target-gap)">
       <button class="btn primary" onclick="openPhoto()"><i class="ph ph-camera"></i>Photo of the label</button>
       <button class="btn quiet" onclick="openMed(null)"><i class="ph ph-keyboard"></i>Type it in</button>
     </div>
