@@ -214,9 +214,28 @@ svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-we
 .cmp td.v{text-align:right;padding-left:var(--space-3);font-variant-numeric:tabular-nums;white-space:nowrap}
 .cmp td.v small{display:block;font-size:var(--text-label);color:var(--text-muted)}
 .cmp-note{margin:var(--space-3) 0 0;font-size:var(--text-small);color:var(--text-secondary)}
-.dismiss{align-self:flex-start;margin-left:calc(var(--space-3) * -1)}
+.dismiss-wrap .textbtn{margin-left:calc(var(--space-3) * -1)}
+.dismiss-wrap p{margin:0;font-size:var(--text-label);color:var(--text-muted)}
+/* Hidden stretch: the same tombstone as Timeline's removed entry. It stays where the
+   card was, names what went, and has NO timer (a timed target fails people with
+   bradykinesia, and WCAG 2.2.1). One at a time: hiding another commits this one. */
+.tomb{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;
+  min-height:var(--target-critical);padding:0 0 0 var(--card-pad);margin-bottom:var(--space-3);
+  border:1px dashed var(--border-interactive);border-radius:var(--radius-md)}
+.tomb-text{flex:1 1 10ch;min-width:0;font-size:var(--text-small);color:var(--text-muted)}
+.tomb-text b{font-weight:500;color:var(--text-secondary)}
+.tomb-undo{flex:0 0 auto;display:flex;align-items:center;gap:var(--space-2);
+  min-height:var(--target-min);padding:0 var(--card-pad);border-radius:var(--radius-md);
+  font-size:var(--text-small);font-weight:500;color:var(--accent)}
+.tomb-undo i{font-size:18px}
+.tomb-undo:active{background:var(--surface-raised)}
+/* "Saved": the field writes as you type, so this confirms what already happened.
+   It never offers to save. [AGENTS.md: a step needs no Set button] */
+.saved{display:flex;align-items:center;gap:var(--space-1);margin:var(--space-2) 0 0;
+  font-size:var(--text-label);color:var(--text-secondary);font-weight:500}
+.saved i{font-size:16px;color:var(--accent)}
 @media (hover:hover){
-  .textbtn:hover, .stretch:hover{background:var(--surface-raised)}
+  .textbtn:hover, .stretch:hover, .tomb-undo:hover{background:var(--surface-raised)}
   .demo-btn:hover{background:color-mix(in srgb, var(--paper-0) 20%, transparent)}
 }
 </style>
@@ -309,7 +328,7 @@ svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-we
   <div>
     <div class="sh-head">
       <h2 id="sh-title"></h2>
-      <button class="icon-btn" onclick="closeSheet()" aria-label="Close"><i class="ph ph-x"></i></button>
+      <button class="icon-btn" id="sh-close" onclick="closeSheet()" aria-label="Close"><i class="ph ph-x"></i></button>
     </div>
     <p class="sh-lede" id="sh-lede"></p>
   </div>
@@ -317,14 +336,18 @@ svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-we
     <label for="sh-name">What was going on?</label>
     <input class="tf" id="sh-name" type="text" autocomplete="off"
            placeholder="Travelling, a new routine, a hard week" oninput="nameStretch(this.value)">
-    <p class="hint">Optional. It is saved as you type, and only you see it.</p>
+    <p class="hint" id="sh-hint">Optional. Saved as you type, and only you see it.</p>
+    <p class="saved" id="sh-saved" hidden aria-live="polite"><i class="ph-fill ph-check-circle" aria-hidden="true"></i><span>Saved</span></p>
   </div>
   <div>
     <table class="cmp" id="sh-cmp"></table>
     <p class="cmp-note" id="sh-note"></p>
   </div>
-  <button class="textbtn dismiss" onclick="dismissStretch()">
-    <i class="ph ph-eye-slash" aria-hidden="true"></i>Not a real change, hide it</button>
+  <div class="dismiss-wrap">
+    <button class="textbtn" onclick="dismissStretch()">
+      <i class="ph ph-eye-slash" aria-hidden="true"></i>Hide this stretch</button>
+    <p>If it does not match what you remember. You can undo it.</p>
+  </div>
 </div>
 
 <script>
@@ -457,6 +480,7 @@ const STRETCHES = detect();
 /* The person's names and hides. In-page only (a prototype); "reset names" clears them.
    One name is pre-filled so the named state can be judged without typing. */
 const NAMES = {}, HIDDEN = new Set();
+let tombId = null;           /* the one hidden stretch that can still be undone in place */
 function presetNames(){
   const trip = STRETCHES.find(s => s.a <= dayOf(2026, 3, 5) && s.b >= dayOf(2026, 3, 5));
   if (trip) NAMES[trip.id] = 'Travelling';
@@ -639,7 +663,8 @@ const esc = t => t.replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;
 
 /* ═════════ stretch cards ═════════ */
 function renderStretches(a, b){
-  const list = shown().filter(s => s.b >= a && s.a <= b).sort((x, y) => y.a - x.a);
+  const list = STRETCHES.filter(s => (!HIDDEN.has(s.id) || s.id === tombId) && s.b >= a && s.a <= b)
+                         .sort((x, y) => y.a - x.a);
   if (!list.length){
     el('stretchList').innerHTML = `<div class="none">Nothing in this view stands out from the weeks around it.</div>`;
     return;
@@ -647,6 +672,10 @@ function renderStretches(a, b){
   el('stretchList').innerHTML = list.map(s => {
     const ongoing = s.b === N - 1;
     const when = ongoing ? `Since ${fmt(s.a)}` : range(s.a, s.b);
+    if (HIDDEN.has(s.id)) return `<div class="tomb">
+      <span class="tomb-text">Hidden: <b>${NAMES[s.id] ? esc(NAMES[s.id]) : when}</b></span>
+      <button class="tomb-undo" onclick="undoHide('${s.id}')">
+        <i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i>Undo</button></div>`;
     return `<button class="stretch" onclick="openSheet('${s.id}')">
       <span class="s-body">
         <span class="s-name">${NAMES[s.id] ? esc(NAMES[s.id]) : when}</span>
@@ -678,6 +707,7 @@ function openSheet(id){
   el('sh-title').textContent = NAMES[id] || when;
   el('sh-lede').textContent = `${NAMES[id] ? when + '. ' : ''}${s.days} days where gaps ran ${phrase(s.inside)}. In the 4 weeks either side: ${phrase(s.around)}.`;
   el('sh-name').value = NAMES[id] || '';
+  showSaved(false);
   renderCompare(s);
   el('sheet').classList.add('open'); el('scrim').classList.add('open');
 }
@@ -690,9 +720,19 @@ function nameStretch(v){
   if (!openId) return;
   const t = v.trim();
   if (t) NAMES[openId] = t; else delete NAMES[openId];
+  showSaved(true);
 }
-function dismissStretch(){ if (openId){ HIDDEN.add(openId); closeSheet(); } }
-function resetNames(){ for (const k in NAMES) delete NAMES[k]; HIDDEN.clear(); presetNames(); render(); }
+/* Once something is written, the hint turns into "Saved" and the X becomes a check
+   labelled Done. Same button, same behaviour (it only closes): the check confirms
+   a save that already happened, it does not perform one. */
+function showSaved(on){
+  el('sh-hint').hidden = on; el('sh-saved').hidden = !on;
+  el('sh-close').setAttribute('aria-label', on ? 'Done' : 'Close');
+  el('sh-close').querySelector('i').className = on ? 'ph ph-check' : 'ph ph-x';
+}
+function dismissStretch(){ if (!openId) return; tombId = openId; HIDDEN.add(openId); closeSheet(); }
+function undoHide(id){ HIDDEN.delete(id); tombId = null; render(); }
+function resetNames(){ for (const k in NAMES) delete NAMES[k]; HIDDEN.clear(); tombId = null; presetNames(); render(); }
 
 /* What was different: every row shows both rates, the stretch and the 4 weeks either
    side, so a thing that happens most days cannot pass for a finding. The rows are a
