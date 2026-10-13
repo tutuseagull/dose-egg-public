@@ -207,7 +207,9 @@ svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-we
 .tf:focus{outline:none;border-color:var(--accent);box-shadow:var(--focus-glow)}
 .field .hint{margin:var(--space-2) 0 0;font-size:var(--text-label);color:var(--text-muted)}
 .cmp{width:100%;border-collapse:collapse}
-.cmp th{font-size:var(--text-label);font-weight:600;color:var(--text-muted);text-align:right;
+/* Number headers break onto two short lines, so they are never wider than "21 of 34"
+   and the label column keeps its room. The lede above says what "around" covers. */
+.cmp th{font-size:var(--text-label);font-weight:600;color:var(--text-muted);text-align:right;vertical-align:bottom;line-height:var(--leading-tight);
   padding:0 0 var(--space-2) var(--space-3)}
 .cmp th:first-child{text-align:left;padding-left:0}
 .cmp td{padding:var(--space-3) 0;border-top:1px solid var(--border-subtle);vertical-align:baseline}
@@ -760,7 +762,7 @@ function renderCompare(s){
   for (let i = s.a; i <= s.b; i++) if (DAYS[i]) inDays.push(DAYS[i]);
   for (let i = s.a - 28; i <= s.b + 28; i++) if ((i < s.a || i > s.b) && i >= 0 && i < N && DAYS[i]) outDays.push(DAYS[i]);
   const rows = FACTORS.map(f => ({ ...f, i: inDays.filter(d => d[f.k]).length, o: outDays.filter(d => d[f.k]).length }));
-  el('sh-cmp').innerHTML = `<tr><th>On days with</th><th>During</th><th>Around it</th></tr>` +
+  el('sh-cmp').innerHTML = `<tr><th>On days with</th><th>This<br>stretch</th><th>Weeks<br>around</th></tr>` +
     rows.map(r => `<tr><td>${r.t}</td>
       <td class="v">${r.i} of ${inDays.length}</td>
       <td class="v">${r.o} of ${outDays.length}</td></tr>`).join('');
