@@ -114,6 +114,8 @@
   --text-body:     1.0625rem; /* 17, the base */
   --text-small:    1rem;      /* 16 */
   --text-label:    0.875rem;  /* 14, THE FLOOR */
+  --text-numeral:  3rem;      /* 48, the hero numeral. ONLY for the one number a statement
+                                 is about, always with its coverage beside it (2026-10-12) */
 
   --leading-tight: 1.2;
   --leading-body:  1.55;

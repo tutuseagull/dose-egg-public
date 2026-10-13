@@ -344,10 +344,11 @@ and points at the same family, so no component had to change.</p>
 guideline [C-16]. To make a label quieter, use weight, space or hue, never smaller type or lower contrast.</p>
 
 <h3>Big numerals, where a number is the point</h3>
-<p>Manrope's figures are the part of the face worth showing off. Parked for Look Back: where a
-statement turns on a number, the number can be set large, tabular, at display size.</p>
+<p>Manrope's figures are the part of the face worth showing off. <code>--text-numeral</code>
+(48px, added 2026-10-12, first used in Look Back's dose gaps) is reserved for the one number a
+statement is about: weight 700, tabular figures so digits do not shuffle while scrubbing.</p>
 <div class="card" style="max-width:380px">
-  <div class="big">85 <span style="font-size:var(--text-body);font-weight:500;letter-spacing:0">min</span></div>
+  <div class="big" style="font-size:var(--text-numeral)">85 <span style="font-size:var(--text-body);font-weight:500;letter-spacing:0">min</span></div>
   <p style="margin:var(--space-2) 0 0">from dose to "kicked in", on the 6 days you marked both.</p>
 </div>
 <p>The number always carries its coverage beside it. A big number is louder, so the honesty
