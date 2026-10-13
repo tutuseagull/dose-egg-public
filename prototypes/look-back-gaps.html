@@ -213,7 +213,11 @@ svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-we
 .cmp td{padding:var(--space-3) 0;border-top:1px solid var(--border-subtle);vertical-align:baseline}
 .cmp td.v{text-align:right;padding-left:var(--space-3);font-variant-numeric:tabular-nums;white-space:nowrap}
 .cmp td.v small{display:block;font-size:var(--text-label);color:var(--text-muted)}
-.cmp-note{margin:var(--space-3) 0 0;font-size:var(--text-small);color:var(--text-secondary)}
+.cmp-h{margin:0 0 var(--space-2);font-size:var(--text-heading);font-weight:600}
+/* The one difference worth reading comes first; the rows below are for checking it.
+   Heading + this sentence carry the "together, not because" framing, so there is no
+   standing caveat line to read every time (Tutu, 2026-10-12). */
+.cmp-note{margin:0 0 var(--space-3);font-size:var(--text-small);color:var(--text-secondary)}
 .dismiss-wrap .textbtn{margin-left:calc(var(--space-3) * -1)}
 .dismiss-wrap p{margin:0;font-size:var(--text-label);color:var(--text-muted)}
 /* Hidden stretch: the same tombstone as Timeline's removed entry. It stays where the
@@ -340,8 +344,9 @@ svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-we
     <p class="saved" id="sh-saved" hidden aria-live="polite"><i class="ph-fill ph-check-circle" aria-hidden="true"></i><span>Saved</span></p>
   </div>
   <div>
-    <table class="cmp" id="sh-cmp"></table>
+    <h3 class="cmp-h">Also in your record then</h3>
     <p class="cmp-note" id="sh-note"></p>
+    <table class="cmp" id="sh-cmp"></table>
   </div>
   <div class="dismiss-wrap">
     <button class="textbtn" onclick="dismissStretch()">
@@ -757,12 +762,12 @@ function renderCompare(s){
   const rows = FACTORS.map(f => ({ ...f, i: inDays.filter(d => d[f.k]).length, o: outDays.filter(d => d[f.k]).length }));
   el('sh-cmp').innerHTML = `<tr><th>On days with</th><th>During</th><th>Around it</th></tr>` +
     rows.map(r => `<tr><td>${r.t}</td>
-      <td class="v">${r.i} of ${inDays.length}<small>${Math.round(100 * r.i / inDays.length)}%</small></td>
-      <td class="v">${r.o} of ${outDays.length}<small>${Math.round(100 * r.o / outDays.length)}%</small></td></tr>`).join('');
+      <td class="v">${r.i} of ${inDays.length}</td>
+      <td class="v">${r.o} of ${outDays.length}</td></tr>`).join('');
   const top = rows.filter(r => !r.move).map(r => ({ ...r, d: r.i / inDays.length - r.o / outDays.length }))
                   .sort((x, y) => Math.abs(y.d) - Math.abs(x.d))[0];
   el('sh-note').textContent = Math.abs(top.d) >= .2
-    ? `${top.p} were ${top.d > 0 ? 'more' : 'less'} common during this stretch: ${top.i} of ${inDays.length} days, against ${top.o} of ${outDays.length} around it. They happened together. The record cannot say why.`
+    ? `${top.p} were ${top.d > 0 ? 'more' : 'less'} common during this stretch: ${top.i} of ${inDays.length} days, against ${top.o} of ${outDays.length} around it. They happened together. Your record can't say why.`
     : 'Nothing logged was much more or less common during this stretch than around it.';
 }
 
