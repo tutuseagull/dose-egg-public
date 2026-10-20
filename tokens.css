@@ -125,6 +125,14 @@
   --motion-base:  200ms;
   --motion-slow:  320ms;
   --ease-out:     cubic-bezier(.2, 0, 0, 1);
+  /* Motion, decided 2026-10-19 (prototypes/motion-study.html, option A for all).
+     The rules that use these live in motion.css. */
+  --motion-press: 90ms;                       /* press in; the release uses --motion-fast */
+  --ease-exit:    cubic-bezier(.3, 0, .8, .15); /* things leaving: quick to go */
+  /* a critically damped spring sampled into linear(): arrives fast, settles, never
+     overshoots. For anything that travels or grows. */
+  --ease-settle:  linear(0, 0.066, 0.203, 0.355, 0.496, 0.616, 0.713, 0.788, 0.845, 0.888, 0.92,
+                  0.943, 0.96, 0.971, 0.98, 0.986, 0.99, 0.993, 0.995, 0.997, 0.998, 0.998, 0.999, 0.999, 1);
 
   /* Data visualisation */
   --viz-ink:           var(--ink-500);

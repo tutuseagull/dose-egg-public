@@ -22,12 +22,10 @@
 :root{
   --gutter:16px;
   --shell-w:420px;
-  --motion-press:90ms;
-  --ease-settle:linear(0, 0.066, 0.203, 0.355, 0.496, 0.616, 0.713, 0.788, 0.845, 0.888, 0.92,
-    0.943, 0.96, 0.971, 0.98, 0.986, 0.99, 0.993, 0.995, 0.997, 0.998, 0.998, 0.999, 0.999, 1);
+  /* --motion-press, --ease-settle and --ease-exit moved to tokens.css on 2026-10-19,
+     when A was chosen for all three. Only the counter-example stays here. */
   --ease-bounce:linear(0, 0.14, 0.444, 0.767, 1.018, 1.162, 1.205, 1.178, 1.116, 1.05, 0.998,
     0.967, 0.958, 0.963, 0.976, 0.989, 1, 1.007, 1.009, 1.008, 1.005, 1.002, 1, 0.999, 1);
-  --ease-exit:cubic-bezier(.3,0,.8,.15);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{font-size:100%;background:var(--surface-page)}

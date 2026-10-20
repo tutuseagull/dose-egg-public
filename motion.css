@@ -1,0 +1,101 @@
+/* ═══════════════════════════════════════════════════════════════════
+   DoseEgg motion: the ONE copy of the shared motion rules.
+   Decided 2026-10-19 from prototypes/motion-study.html (Tutu chose A for all):
+     · Morph   the tab pill grows between Today and Look Back; the page lifts in
+     · Fill    a new or confirmed entry's marker fills from hollow and rings once
+     · Settle  buttons press in slightly; sheets arrive on a spring that never
+               overshoots
+   Linked after tokens.css by the current prototypes. The values (durations,
+   --ease-settle, --ease-exit, --motion-press) live in tokens.css; this file
+   only uses them. Rules every motion here keeps:
+     never move what someone is about to tap · never delay input · no overshoot
+     · 120 to 320ms · Reduce motion keeps the change and drops the movement
+     (tokens.css zeroes durations; view transitions are switched off below).
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Morph: animating between pages ────────────────────────────────
+   Today, Look Back and the Cabinet are separate pages. Cross-document view
+   transitions (Safari 18.2+, Chrome 126+) let the browser morph elements that
+   share a name across the navigation. Older browsers just switch pages. */
+@view-transition { navigation: auto; }
+
+.vt-tab-today { view-transition-name: tab-today; }
+.vt-tab-lb    { view-transition-name: tab-lb; }
+.vt-menu      { view-transition-name: menu-btn; }
+
+/* anything named travels and resizes on the settle spring */
+::view-transition-group(*) {
+  animation-duration: var(--motion-slow);
+  animation-timing-function: var(--ease-settle);
+}
+/* the pill's two snapshots keep their own proportions while the box between
+   them grows, so the label is revealed, never squashed */
+::view-transition-group(tab-today),
+::view-transition-group(tab-lb) { overflow: hidden; border-radius: var(--radius-full); }
+::view-transition-old(tab-today), ::view-transition-new(tab-today),
+::view-transition-old(tab-lb),    ::view-transition-new(tab-lb) {
+  width: 100%; height: 100%; object-fit: none; object-position: center;
+}
+/* the page itself: the old one fades out quickly, the new one lifts in */
+::view-transition-old(root) { animation: var(--motion-fast) var(--ease-out) both vt-out; }
+::view-transition-new(root) { animation: var(--motion-base) var(--ease-out) both vt-in; }
+@keyframes vt-out { to { opacity: 0; } }
+@keyframes vt-in  { from { opacity: 0; transform: translateY(var(--space-2)); } }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}
+
+/* ── Settle: pressing ──────────────────────────────────────────────
+   Buttons that commit something press in by 3%, quickly (90ms), and come back
+   a little slower (120ms) so the release is felt. Only the pressed element
+   moves. Rows use their wash instead; tabs morph instead.
+   `html :is(...)` outranks each page's own `.c-btn { transition }` rule. */
+html :is(.c-btn, .btn, .addbtn, .tile, .dock-btn, .feel-pill, .photo-add, .chip, .nudge) {
+  transition: transform var(--motion-fast) var(--ease-out),
+              background-color var(--motion-fast) var(--ease-out);
+}
+html :is(.c-btn, .btn, .addbtn, .tile, .dock-btn, .feel-pill, .photo-add, .chip, .nudge):active {
+  transform: scale(.97);
+  transition-duration: var(--motion-press);
+}
+
+/* ── Settle: sheets ────────────────────────────────────────────────
+   A sheet arrives fast and settles without passing its mark. Each page keeps
+   its own duration; only the curve is shared. */
+html .sheet { transition-timing-function: var(--ease-settle); }
+
+/* ── Fill: a new entry on the timeline ─────────────────────────────
+   The marker starts as the hollow "not yet" mark and fills to whatever it now
+   is (taken, or reported not taken), then rings once. For a confirmed dose that
+   IS the fact being recorded: an assumption becoming an answer. */
+.entry.fresh .emark {
+  animation: mark-fill var(--motion-base) var(--ease-out) var(--motion-fast) both;
+}
+.entry.fresh .emark i {
+  animation: mark-icon var(--motion-base) var(--ease-out) var(--motion-fast) both;
+}
+.entry.fresh .emark::after {
+  content: ''; position: absolute; inset: -2px; border-radius: var(--radius-full);
+  border: 2px solid var(--mark); opacity: 0; pointer-events: none;
+  animation: mark-ring var(--motion-slow) var(--ease-out) var(--motion-base) 1;
+}
+@keyframes mark-fill {
+  from { background: var(--surface-page);
+         box-shadow: 0 0 0 4px var(--surface-page), inset 0 0 0 1.5px var(--entry-assumed-border); }
+}
+@keyframes mark-icon { from { color: var(--text-muted); } }
+@keyframes mark-ring {
+  0%   { opacity: .5; transform: scale(1); }
+  100% { opacity: 0;  transform: scale(1.6); }
+}
+
+/* the dose card leaving after it was answered (a copy of it, see cardExit()) */
+.card-ghost {
+  pointer-events: none;
+  transition: opacity var(--motion-base) var(--ease-exit),
+              transform var(--motion-base) var(--ease-exit);
+}
+.card-ghost.leaving { opacity: 0; transform: translateY(calc(var(--space-2) * -1)) scale(.98); }

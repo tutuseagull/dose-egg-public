@@ -306,6 +306,24 @@ that show focus inside their own edge. Not optional: tremor makes touch unreliab
 Selection is never carried by fill alone.</td></tr>
 </table>
 
+<h2>Motion</h2>
+<p>Decided 2026-10-19 in <code>prototypes/motion-study.html</code>: <strong>Morph</strong> for switching
+Today and Look Back, <strong>Fill</strong> for a new or confirmed entry, <strong>Settle</strong> for presses
+and sheets. The values are tokens; the shared rules live in <code>motion.css</code>, linked after
+<code>tokens.css</code>.</p>
+<table>
+<tr><th>Token</th><th>Value</th><th>For</th></tr>
+<tr><td><code>--motion-press</code></td><td>90ms</td><td>Press in. The release uses <code>--motion-fast</code>, so it is felt.</td></tr>
+<tr><td><code>--motion-fast</code> · <code>-base</code> · <code>-slow</code></td><td>120 · 200 · 320ms</td><td>Fades · exits and scrims · anything that travels or grows</td></tr>
+<tr><td><code>--ease-out</code></td><td>cubic-bezier(.2,0,0,1)</td><td>Fades and colour</td></tr>
+<tr><td><code>--ease-settle</code></td><td>critically damped spring, <code>linear()</code></td><td>Travel and growth: arrives fast, never overshoots</td></tr>
+<tr><td><code>--ease-exit</code></td><td>cubic-bezier(.3,0,.8,.15)</td><td>Things leaving</td></tr>
+</table>
+<p><strong>Rules:</strong> never move what someone is about to tap; never delay input (the record changes
+first, motion shows it); no overshoot; 120 to 320ms; Reduce motion keeps the change and drops the
+movement. Pages animate between each other with cross-document view transitions where the browser
+supports them, and simply switch where it does not.</p>
+
 <h2>Entry marks and epistemic state</h2>
 <p><strong>One mark colour; the icon carries the type.</strong> The five-hue set was retired on
 2026-08-06 because it collapsed to 1.00 to 1.14:1 under every type of colour-vision deficiency.</p>
@@ -494,8 +512,7 @@ above: borders split by role, and colour demoted below icon for entry type.</p>
 <li><strong>Freezing of gait</strong> has no icon in any family. Likely a custom glyph [C-04].</li>
 <li><strong>Dyskinesia and tremor must not share an icon</strong>; they are opposite states [C-01].</li>
 <li><strong>Dark mode.</strong> The two-layer structure supports it (swap Layer 2), but the values don't exist.</li>
-<li><strong>Motion choreography.</strong> Durations exist; transitions are not designed. Parked: the
-Notion-style tab change Tutu liked.</li>
+<li class="done"><strong>Resolved 2026-10-19: motion.</strong> See Motion above.</li>
 <li><strong>Screen reader names</strong> for timeline marks, to specify when components are built.</li>
 <li class="done"><strong>Resolved 2026-10-09:</strong> the symptom icon (hand-heart) and the serif question (Manrope only).</li>
 </ul>

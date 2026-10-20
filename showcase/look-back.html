@@ -26,6 +26,7 @@
 <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
 <link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../motion.css">
 <meta name="theme-color" id="themeColor" content="">
 <script>
 /* phone edges: browser chrome takes the page colour, read from the tokens */
@@ -295,7 +296,7 @@ svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-we
   </div>
 
   <div class="top">
-    <button class="icon-btn" id="menuBtn" aria-label="Menu" aria-haspopup="true" aria-expanded="false" onclick="toggleMenu(event)"><i class="ph ph-list"></i></button>
+    <button class="icon-btn vt-menu" id="menuBtn" aria-label="Menu" aria-haspopup="true" aria-expanded="false" onclick="toggleMenu(event)"><i class="ph ph-list"></i></button>
     <!-- the same two places as Today's menu; the views are the tabs -->
     <div class="pop" id="pop" hidden>
       <a class="navrow" href="cabinet.html"><i class="ph ph-first-aid-kit"></i>
@@ -304,9 +305,9 @@ svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-we
         <span class="lab">Settings<span class="sub">Text size, AI, your data</span></span></button>
     </div>
     <nav class="tabs" aria-label="Views">
-      <a class="tab" href="index.html" aria-label="Today">
+      <a class="tab vt-tab-today" href="index.html" aria-label="Today">
         <i class="ph ph-sun"></i><span class="tab-lab">Today</span></a>
-      <a class="tab" aria-current="page" aria-label="Look Back">
+      <a class="tab vt-tab-lb" aria-current="page" aria-label="Look Back">
         <i class="ph-fill ph-chart-line"></i><span class="tab-lab">Look Back</span></a>
     </nav>
   </div>

@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../motion.css">
 <meta name="theme-color" id="themeColor" content="">
 <script>
 /* phone edges: browser chrome takes the page colour, read from the tokens */
@@ -1133,13 +1134,13 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
 
   <!-- NAV DOCK FORK: the two views are tabs, the menu holds only places -->
   <div class="top">
-    <button class="icon-btn" id="menuBtn" onclick="openDrawer()" aria-haspopup="true"
+    <button class="icon-btn vt-menu" id="menuBtn" onclick="openDrawer()" aria-haspopup="true"
             aria-label="Menu" aria-expanded="false"><i class="ph ph-list"></i></button>
     <div class="tabs" role="tablist" aria-label="Views">
-      <button class="tab" role="tab" id="tab-today" aria-selected="true" aria-label="Today"
+      <button class="tab vt-tab-today" role="tab" id="tab-today" aria-selected="true" aria-label="Today"
               aria-controls="scroll" onclick="showTab('today')">
         <i class="ph ph-sun"></i><span class="tab-lab">Today</span></button>
-      <button class="tab" role="tab" id="tab-lb" aria-selected="false" aria-label="Look Back"
+      <button class="tab vt-tab-lb" role="tab" id="tab-lb" aria-selected="false" aria-label="Look Back"
               aria-controls="lookback" onclick="showTab('lookback')">
         <i class="ph ph-chart-line"></i><span class="tab-lab">Look Back</span></button>
     </div>
@@ -1651,7 +1652,8 @@ function groupHTML(g, di){
   const note = e.basis === 'assumed'  ? '<span class="enote">Not confirmed</span>'
              : e.basis === 'declined' ? '<span class="enote">Reported not taken</span>' : '';
   const idxs = g.items.map(x => x.i).join(',');
-  return `<button class="entry" onclick="tapGroup(${di},[${idxs}])">
+  const fresh = g.items.some(x => x.e === freshEntry);    /* a just-confirmed slot fills, like any new entry */
+  return `<button class="entry${fresh ? ' fresh' : ''}" onclick="tapGroup(${di},[${idxs}])">
     ${markHTML(e)}
     <span class="etime">${fromMin(startMin(e))}</span>
     <span class="ecard">
@@ -2898,11 +2900,37 @@ function resolveSlot(basis){
                slot:sl.sched, role:roleOf(sl, m), ord }, slotDay(sl)));
   currentSlot = null; renderCard();
 }
-function cardYes(){ resolveSlot('asserted'); }
+function cardYes(){ cardExit(() => resolveSlot('asserted')); }
 function cardNo(){
   /* "No" is a REPORTED skip → basis:'declined'. Clinically valuable, and distinct
      from 'assumed' (we asked and got nothing back). */
-  resolveSlot('declined');
+  cardExit(() => resolveSlot('declined'));
+}
+/* MOTION (Fill, 2026-10-19). The answer is written FIRST, at once: motion only
+   shows what already happened, it never makes anyone wait. Then a copy of the
+   card fades up and away where the card was, the timeline glides up into the
+   space it left (measured before and after, then animated back to place), and
+   the confirmed row's marker fills (motion.css, .entry.fresh). Reduce motion:
+   the record changes at once with no movement. */
+function cardExit(write){
+  const card = document.querySelector('#card-area .confirm'), tl = el('timeline');
+  const shell = document.querySelector('.shell');
+  if (!card || REDUCED_MOTION.matches){ write(); return; }
+  const r = card.getBoundingClientRect(), sr = shell.getBoundingClientRect(), cs = getComputedStyle(card);
+  const before = tl.getBoundingClientRect().top;
+  const ghost = card.cloneNode(true);
+  ghost.classList.add('card-ghost'); ghost.setAttribute('aria-hidden', 'true'); ghost.inert = true;
+  Object.assign(ghost.style, { position: 'absolute', zIndex: 5, margin: 0, boxSizing: 'border-box',
+    top: (r.top - sr.top) + 'px', left: (r.left - sr.left) + 'px', width: r.width + 'px',
+    background: cs.background, padding: cs.padding, borderRadius: cs.borderRadius });
+  write();                                   /* the record changes now */
+  shell.appendChild(ghost);
+  const after = tl.getBoundingClientRect().top;
+  tl.style.transition = 'none'; tl.style.transform = `translateY(${before - after}px)`;
+  tl.offsetWidth;                            /* commit the start position */
+  tl.style.transition = 'transform var(--motion-slow) var(--ease-settle)'; tl.style.transform = '';
+  requestAnimationFrame(() => ghost.classList.add('leaving'));
+  setTimeout(() => { ghost.remove(); tl.style.transition = ''; tl.style.transform = ''; }, 420);
 }
 /* "Not exactly" = yes, with corrections. The entry lands as asserted at the
    SCHEDULED time (not now) — that is the fact being corrected — and the sheet
