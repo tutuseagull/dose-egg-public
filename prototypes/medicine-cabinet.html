@@ -294,7 +294,9 @@ const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '
    logged, it never reminds.
    versions: the schedule's history. Each has a start date and a frozen summary;
    the last one is live. A change made today edits today's version, or starts one. */
-const TODAY = '2026-10-12';
+/* the real today (local date), so a demo never shows a stale date */
+const TODAY = (d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)(new Date());
+const isoAgo = n => { const d = new Date(TODAY + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - n); return d.toISOString().slice(0, 10); };
 let meds = [], slots = [], versions = [];
 let seq = 100; const nid = p => p + (seq++);   /* above the sample's ids, so a new one never collides */
 
@@ -312,8 +314,8 @@ function sampleCabinet(){
     { id: 's5', time: '21:30', backup: '', remind: true,  items: [{ med: 'm1', role: 'main' }, { med: 'm3', role: 'addon' }] },
   ];
   versions = [
-    { from: '2026-01-05', summary: '4 times a day: 08:00, 12:00, 16:00, 20:00' },
-    { from: '2026-06-15', summary: null },       /* live: summarised from the slots */
+    { from: isoAgo(280), summary: '4 times a day: 08:00, 12:00, 16:00, 20:00' },
+    { from: isoAgo(119), summary: null },       /* live: summarised from the slots; same day Look Back marks the plan change */
   ];
 }
 sampleCabinet();

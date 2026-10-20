@@ -74,6 +74,17 @@ button{border:0;background:none;cursor:pointer;padding:0}
      border-radius:var(--radius-full);color:var(--text-primary);text-decoration:none;
      display:flex;align-items:center;justify-content:center;gap:var(--space-2);padding:0}
 .tab .tab-lab{display:none}
+/* menu popover, as on Today: an overlay, so it carries the overlay depth */
+.pop{position:absolute;top:calc(100% - var(--space-1));left:var(--space-4);width:min(80%,320px);
+  background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-overlay);padding:var(--space-2) 0;z-index:40}
+.navrow{display:flex;align-items:center;gap:var(--space-3);width:100%;text-align:left;
+  min-height:var(--target-routine);padding:var(--space-2) var(--gutter);color:var(--text-primary);
+  text-decoration:none}
+.navrow i{font-size:22px;color:var(--mark)}
+.navrow .lab{flex:1;line-height:var(--leading-tight)}
+.navrow .sub{display:block;font-size:var(--text-label);color:var(--text-muted);margin-top:var(--space-1)}
+.navrow:active{background:var(--surface-raised)}
 .tab[aria-current="page"]{flex:1 1 auto;padding:0 var(--space-4);font-weight:600;
      font-size:var(--text-small)}
 .tab[aria-current="page"] .tab-lab{display:inline}
@@ -257,7 +268,14 @@ svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-we
   </div>
 
   <div class="top">
-    <button class="icon-btn" aria-label="Menu"><i class="ph ph-list"></i></button>
+    <button class="icon-btn" id="menuBtn" aria-label="Menu" aria-haspopup="true" aria-expanded="false" onclick="toggleMenu(event)"><i class="ph ph-list"></i></button>
+    <!-- the same two places as Today's menu; the views are the tabs -->
+    <div class="pop" id="pop" hidden>
+      <a class="navrow" href="medicine-cabinet.html"><i class="ph ph-first-aid-kit"></i>
+        <span class="lab">Medicine Cabinet<span class="sub">What you take, and when</span></span></a>
+      <button class="navrow"><i class="ph ph-gear"></i>
+        <span class="lab">Settings<span class="sub">Text size, AI, your data</span></span></button>
+    </div>
     <nav class="tabs" aria-label="Views">
       <a class="tab" href="hifi-daily-loop-v4.html" aria-label="Today">
         <i class="ph ph-sun"></i><span class="tab-lab">Today</span></a>
@@ -374,19 +392,23 @@ const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 const gauss = () => { let u = 0, v = 0; while (!u) u = rnd(); while (!v) v = rnd();
                       return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
 const DAY = 86400000;
-const TODAY = Date.UTC(2026, 9, 12);
+/* The record ends on the real today, so dates never look stale in a demo. Every
+   planted event is placed by how many days before today it happened. */
+const NOW = new Date();
+const TODAY = Date.UTC(NOW.getFullYear(), NOW.getMonth(), NOW.getDate());
 const N = 365;
 const START = TODAY - (N - 1) * DAY;
 const dayOf = (y, m, d) => Math.round((Date.UTC(y, m - 1, d) - START) / DAY);
-const PLAN_CHANGE = dayOf(2026, 6, 15);
+const daysAgo = n => N - 1 - n;
+const PLAN_CHANGE = daysAgo(119);
 const PLANS = [
   { from: 0, label: '4 doses, 4h apart', gap: 240, n: 4 },
   { from: PLAN_CHANGE, label: '5 doses, 3h 30m apart', gap: 210, n: 5 },
 ];
 const planAt = i => (i >= PLAN_CHANGE ? PLANS[1] : PLANS[0]);
 const PLANTED = [
-  { a: dayOf(2026, 9, 14), b: dayOf(2026, 10, 2), shift: -28, sleep: .5 },
-  { a: dayOf(2026, 3, 2),  b: dayOf(2026, 3, 13), shift: 35,  walk: .85 },
+  { a: daysAgo(28), b: daysAgo(10), shift: -28, sleep: .5 },
+  { a: daysAgo(224), b: daysAgo(213), shift: 35, walk: .85 },
 ];
 
 const DAYS = [];
@@ -489,7 +511,7 @@ const STRETCHES = detect();
 const NAMES = {}, HIDDEN = new Set();
 let tombId = null;           /* the one hidden stretch that can still be undone in place */
 function presetNames(){
-  const trip = STRETCHES.find(s => s.a <= dayOf(2026, 3, 5) && s.b >= dayOf(2026, 3, 5));
+  const trip = STRETCHES.find(s => s.a <= daysAgo(221) && s.b >= daysAgo(221));
   if (trip) NAMES[trip.id] = 'Travelling';
 }
 presetNames();
@@ -777,6 +799,10 @@ function renderCompare(s){
 function setScale(s){ scale = s; scrubbing = null; render(); }
 function stepQ(d){ qEnd = Math.max(Q_LEN - 1, Math.min(N - 1, qEnd + d * Q_LEN)); render(); }
 function jumpNow(){ qEnd = N - 1; render(); }
+function toggleMenu(e){ e.stopPropagation(); const p = el('pop'); p.hidden = !p.hidden;
+  el('menuBtn').setAttribute('aria-expanded', String(!p.hidden)); }
+document.addEventListener('click', e => { const p = el('pop');
+  if (!p.hidden && !p.contains(e.target)){ p.hidden = true; el('menuBtn').setAttribute('aria-expanded', 'false'); } });
 function toggleHow(){ const h = el('how'); h.hidden = !h.hidden;
   el('howBtn').setAttribute('aria-expanded', String(!h.hidden)); }
 window.addEventListener('scroll', () =>

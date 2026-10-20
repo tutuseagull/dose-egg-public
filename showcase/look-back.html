@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- showcase: review controls hidden; add ?demo to the address to show them -->
+<script>if (!/[?&]demo\b/.test(location.search)) document.documentElement.classList.add('showcase');</script>
+<style>html.showcase .demo-bar{display:none!important}</style>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DoseEgg · Look Back</title>
+<!-- LOOK BACK · DOSE GAPS, 2026-10-12. A focused test of P01's first Look Back
+     question, "has the gap between my doses got shorter?", and Tutu's two answers
+     to it: a default 3-month view (P01's own unit), and stretches the app finds in
+     the person's own data, which do not follow the calendar.
+     Four decisions this page tests (agreed 2026-10-12):
+       1. A gap is measured AGAINST THE PLAN, not the clock. A 4h schedule makes
+          every on-time gap 4h; what moves is how far each one lands from plan.
+       2. Stretches find themselves: at least 7 days where gaps sat 20+ minutes
+          away from the weeks around them. Drawn as a band.
+       3. "What was different" always shows the normal rate beside it.
+       4. The app proposes the stretch; the person names it, or says it is not
+          a real change. [C-15: AI drafts, the person confirms]
+     Sample data is generated (seeded, so it is the same on every load). Weather
+     is parked. Separate file on purpose: fold into look-back.html once judged. -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<style>
+/* Shared tokens come from ../tokens.css. Only this screen's layout tokens here. */
+:root{
+  --gutter:16px;
+  --card-pad:16px;
+  --shell-w:420px;
+}
+
+/* ═══════════════════ base ═══════════════════ */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:100%}
+body{margin:0;background:var(--backdrop);font-family:var(--font-sans);
+     font-size:var(--text-body);line-height:var(--leading-body);color:var(--text-primary);
+     -webkit-font-smoothing:antialiased;display:flex;justify-content:center}
+button,input{font-family:inherit;font-size:inherit;color:inherit}
+button{border:0;background:none;cursor:pointer;padding:0}
+:focus-visible{outline:var(--focus-ring-width) solid var(--focus-ring);
+               outline-offset:var(--focus-ring-offset);border-radius:var(--radius-sm)}
+[hidden]{display:none!important}
+
+.shell{width:100%;max-width:var(--shell-w);background:var(--surface-page);min-height:100vh;
+       position:relative;display:flex;flex-direction:column}
+
+/* ── demo bar (dev only) ── */
+.demo-bar{display:flex;gap:var(--space-2);padding:var(--space-2) var(--space-3);
+          background:var(--paper-800);align-items:center;flex-wrap:wrap}
+.demo-bar .db{font-size:var(--text-label);letter-spacing:.04em;text-transform:uppercase;
+              color:var(--paper-400);font-weight:500;padding-right:var(--space-1)}
+.demo-btn{font-size:var(--text-label);font-weight:500;color:var(--paper-100);
+          background:color-mix(in srgb, var(--paper-0) 12%, transparent);
+          padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);
+          display:flex;align-items:center;min-height:var(--space-8);text-decoration:none}
+.demo-btn.home{font-weight:600}
+
+/* ── top bar: same as Today and Look Back ── */
+.top{display:flex;align-items:center;gap:var(--space-2);
+     padding:var(--space-4) var(--space-4) var(--space-2);
+     position:sticky;top:0;z-index:30;background:transparent}
+.top::before{content:'';position:absolute;inset:0 0 calc(var(--space-4) * -1) 0;z-index:-1;
+             background:linear-gradient(to bottom,
+               color-mix(in srgb, var(--surface-page) 88%, transparent) 0%,
+               color-mix(in srgb, var(--surface-page) 60%, transparent) 60%, transparent 100%);
+             opacity:0;transition:opacity var(--motion-base) var(--ease-out);pointer-events:none}
+.shell.scrolled .top::before{opacity:1}
+.icon-btn{width:var(--target-min);height:var(--target-min);display:flex;align-items:center;
+          justify-content:center;border-radius:var(--radius-full);flex:0 0 auto}
+.icon-btn i, .tab i{font-size:22px}
+.tabs{flex:1;display:flex;gap:var(--space-2);min-width:0}
+.tab{flex:0 0 var(--target-routine);min-height:var(--target-routine);
+     border-radius:var(--radius-full);color:var(--text-primary);text-decoration:none;
+     display:flex;align-items:center;justify-content:center;gap:var(--space-2);padding:0}
+.tab .tab-lab{display:none}
+/* menu popover, as on Today: an overlay, so it carries the overlay depth */
+.pop{position:absolute;top:calc(100% - var(--space-1));left:var(--space-4);width:min(80%,320px);
+  background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-overlay);padding:var(--space-2) 0;z-index:40}
+.navrow{display:flex;align-items:center;gap:var(--space-3);width:100%;text-align:left;
+  min-height:var(--target-routine);padding:var(--space-2) var(--gutter);color:var(--text-primary);
+  text-decoration:none}
+.navrow i{font-size:22px;color:var(--mark)}
+.navrow .lab{flex:1;line-height:var(--leading-tight)}
+.navrow .sub{display:block;font-size:var(--text-label);color:var(--text-muted);margin-top:var(--space-1)}
+.navrow:active{background:var(--surface-raised)}
+.tab[aria-current="page"]{flex:1 1 auto;padding:0 var(--space-4);font-weight:600;
+     font-size:var(--text-small)}
+.tab[aria-current="page"] .tab-lab{display:inline}
+.tab, .top .icon-btn{
+  background:var(--glass-fill);box-shadow:var(--glass-rim), var(--glass-shadow);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)}
+.tab[aria-current="page"]{background:var(--glass-fill-strong)}
+
+.scroll{flex:1;padding:var(--space-2) var(--gutter) var(--space-12);
+        display:flex;flex-direction:column}
+
+/* ── page heading ── (not .ph: that is Phosphor's icon class) */
+.pagehead{margin:0 0 var(--space-4)}
+.pagehead h1{font-size:var(--text-title);font-weight:600;line-height:var(--leading-tight);margin:0}
+.pagehead p{margin:var(--space-1) 0 0;color:var(--text-muted);font-size:var(--text-small)}
+
+/* ── scale tabs (segmented) ── */
+.scales{display:flex;gap:var(--space-1);background:var(--surface-sunken);
+  border-radius:var(--radius-md);padding:var(--space-1);margin-bottom:var(--space-4)}
+.scales button{flex:1;min-height:var(--target-routine);border-radius:var(--radius-sm);
+  font-size:var(--text-small);font-weight:500;color:var(--text-secondary)}
+.scales button[aria-selected="true"]{background:var(--surface-card);color:var(--text-primary);
+  font-weight:600;box-shadow:var(--content-edge)}
+
+/* ── period stepper ── */
+.period{display:flex;align-items:stretch;gap:var(--space-2)}
+.period .arrow{width:var(--target-routine);min-height:var(--target-routine);
+  border-radius:var(--radius-md);border:1px solid var(--border-control);
+  background:var(--surface-card);color:var(--text-secondary);flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center}
+.period .arrow[disabled]{color:var(--paper-400);cursor:default}
+.period .arrow i{font-size:20px}
+.rangebox{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;line-height:var(--leading-tight)}
+.rangebox .r1{font-weight:600}
+.rangebox .r2{font-size:var(--text-label);color:var(--text-muted)}
+.periodfoot{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;
+  min-height:var(--target-routine);margin-bottom:var(--space-2)}
+.periodfoot .cov{flex:1;font-size:var(--text-label);color:var(--text-muted)}
+.textbtn{min-height:var(--target-min);padding:0 var(--space-3);margin-right:calc(var(--space-3) * -1);
+  border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-small);
+  display:flex;align-items:center;gap:var(--space-2);flex:0 0 auto}
+.textbtn i{font-size:18px}
+.textbtn:active{background:var(--surface-raised)}
+
+/* ── readout: the period's one number, or the day under your finger ──
+   Never empty, and its height is set so scrubbing never moves the chart. */
+.readout{min-height:calc(var(--space-12) * 3);background:var(--surface-raised);
+  border-radius:var(--radius-md);padding:var(--space-4);margin-bottom:var(--space-3);
+  display:flex;flex-direction:column;justify-content:center;gap:var(--space-1)}
+.ro-big{display:flex;align-items:baseline;gap:var(--space-2);flex-wrap:wrap}
+/* The hero numeral: only for the one number a statement is about. Tabular figures so
+   the digits do not shuffle while scrubbing. */
+.num{font-size:var(--text-numeral);font-weight:700;line-height:1;letter-spacing:-.02em;
+     font-variant-numeric:tabular-nums}
+.unit{font-size:var(--text-heading);font-weight:600}
+.ro-line{font-size:var(--text-small);color:var(--text-secondary);line-height:var(--leading-tight)}
+.ro-cov{font-size:var(--text-label);color:var(--text-muted)}
+.ro-day{font-weight:600}
+
+/* ── chart ── */
+svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.grid{stroke:var(--viz-grid);stroke-width:1}
+.planline{stroke:var(--viz-axis);stroke-width:1.5}
+.axistext{font-family:var(--font-sans);font-size:14px;fill:var(--viz-axis-label)}
+.axistext.strong{fill:var(--text-secondary);font-weight:600}
+.dot{fill:var(--viz-ink)}
+.dot.dim{opacity:.35}
+.dot.on{stroke:var(--surface-page);stroke-width:2}
+.band{fill:var(--viz-band)}
+.band.on{fill:color-mix(in srgb, var(--ink-500) 16%, transparent)}
+.bandedge{stroke:color-mix(in srgb, var(--ink-500) 40%, transparent);stroke-width:1}
+.bandlab{font-family:var(--font-sans);font-size:14px;font-weight:600;fill:var(--accent)}
+.planmark{stroke:var(--viz-annotation);stroke-width:1.5}
+.scrub{stroke:var(--text-primary);stroke-width:1}
+.chartwrap{margin-bottom:var(--space-2)}
+.caption{margin:0 0 var(--space-2);font-size:var(--text-label);color:var(--text-muted)}
+.legend{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-4);margin:0 0 var(--space-6);
+  font-size:var(--text-label);color:var(--text-secondary)}
+.legend span{display:flex;align-items:center;gap:var(--space-2)}
+.k-dot{width:var(--space-2);height:var(--space-2);border-radius:var(--radius-full);background:var(--viz-ink)}
+.k-band{width:var(--space-4);height:var(--space-3);border-radius:var(--radius-sm);background:var(--viz-band);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--ink-500) 40%, transparent)}
+
+/* ── sections below the chart ── */
+.sec-h{font-size:var(--text-heading);font-weight:600;margin:0 0 var(--space-1)}
+.sec-sub{margin:0 0 var(--space-3);color:var(--text-muted);font-size:var(--text-label)}
+.stretch{width:100%;text-align:left;background:var(--surface-card);border:1px solid var(--border-control);
+  border-radius:var(--radius-md);padding:var(--space-3) var(--card-pad);margin-bottom:var(--space-3);
+  display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-critical)}
+.stretch:active{background:var(--surface-raised)}
+.stretch .s-body{flex:1;min-width:0}
+.stretch .s-name{font-weight:600;display:block}
+.stretch .s-meta{display:block;font-size:var(--text-small);color:var(--text-secondary)}
+.stretch .s-ask{display:block;font-size:var(--text-label);color:var(--accent);margin-top:var(--space-1)}
+.stretch > i{font-size:18px;color:var(--text-muted)}
+.none{background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--radius-md);
+  padding:var(--space-3) var(--card-pad);color:var(--text-secondary);font-size:var(--text-small);
+  margin-bottom:var(--space-3)}
+.periods{margin:0 0 var(--space-6);border-top:1px solid var(--border-subtle)}
+.prow{display:flex;align-items:baseline;gap:var(--space-3);padding:var(--space-3) 0;
+  border-bottom:1px solid var(--border-subtle)}
+.prow .p-when{flex:1;font-weight:500}
+.prow .p-val{font-variant-numeric:tabular-nums;text-align:right}
+.prow .p-cov{display:block;font-size:var(--text-label);color:var(--text-muted)}
+.how{margin:var(--space-2) 0 0;font-size:var(--text-small);color:var(--text-secondary);
+  border-top:1px solid var(--border-subtle);padding-top:var(--space-3)}
+.how p{margin:0 0 var(--space-2)}
+.plan{font-size:var(--text-label);color:var(--text-muted);margin:0 0 var(--space-4)}
+
+/* ── stretch sheet: the overlay carries the depth, its contents stay flat ── */
+.scrim{position:fixed;inset:0;background:color-mix(in srgb, var(--paper-900) 34%, transparent);
+  opacity:0;pointer-events:none;transition:opacity var(--motion-base) var(--ease-out);z-index:50}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;bottom:0;width:100%;max-width:var(--shell-w);z-index:60;
+  transform:translate(-50%,102%);transition:transform var(--motion-slow) var(--ease-out);
+  background:var(--surface-card);border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow:var(--shadow-overlay);max-height:88vh;overflow-y:auto;
+  padding:var(--space-2) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;gap:var(--space-6)}
+.sheet.open{transform:translate(-50%,0)}
+.pull{width:40px;height:var(--space-1);border-radius:var(--radius-full);background:var(--paper-300);
+  margin:0 auto}
+.sh-head{display:flex;align-items:flex-start;gap:var(--space-2)}
+.sh-head h2{flex:1;margin:0;font-size:var(--text-title);font-weight:600;line-height:var(--leading-tight)}
+.sh-head .icon-btn{color:var(--text-secondary);margin:calc(var(--space-2) * -1) calc(var(--space-3) * -1) 0 0}
+.sh-lede{margin:var(--space-1) 0 0;color:var(--text-secondary)}
+.field label{display:block;font-weight:600;margin-bottom:var(--space-2)}
+.tf{width:100%;min-height:var(--target-routine);border:1px solid var(--border-interactive);
+  border-radius:var(--radius-md);padding:0 var(--space-3);background:var(--surface-card)}
+.tf:focus{outline:none;border-color:var(--accent);box-shadow:var(--focus-glow)}
+.field .hint{margin:var(--space-2) 0 0;font-size:var(--text-label);color:var(--text-muted)}
+.cmp{width:100%;border-collapse:collapse}
+/* Number headers break onto two short lines, so they are never wider than "21 of 34"
+   and the label column keeps its room. The lede above says what "around" covers. */
+.cmp th{font-size:var(--text-label);font-weight:600;color:var(--text-muted);text-align:right;vertical-align:bottom;line-height:var(--leading-tight);
+  padding:0 0 var(--space-2) var(--space-3)}
+.cmp th:first-child{text-align:left;padding-left:0}
+.cmp td{padding:var(--space-3) 0;border-top:1px solid var(--border-subtle);vertical-align:baseline}
+.cmp td.v{text-align:right;padding-left:var(--space-3);font-variant-numeric:tabular-nums;white-space:nowrap}
+.cmp td.v small{display:block;font-size:var(--text-label);color:var(--text-muted)}
+.cmp-h{margin:0 0 var(--space-2);font-size:var(--text-heading);font-weight:600}
+/* The one difference worth reading comes first; the rows below are for checking it.
+   Heading + this sentence carry the "together, not because" framing, so there is no
+   standing caveat line to read every time (Tutu, 2026-10-12). */
+.cmp-note{margin:0 0 var(--space-3);font-size:var(--text-small);color:var(--text-secondary)}
+.dismiss-wrap .textbtn{margin-left:calc(var(--space-3) * -1)}
+.dismiss-wrap p{margin:0;font-size:var(--text-label);color:var(--text-muted)}
+/* Hidden stretch: the same tombstone as Timeline's removed entry. It stays where the
+   card was, names what went, and has NO timer (a timed target fails people with
+   bradykinesia, and WCAG 2.2.1). One at a time: hiding another commits this one. */
+.tomb{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;
+  min-height:var(--target-critical);padding:0 0 0 var(--card-pad);margin-bottom:var(--space-3);
+  border:1px dashed var(--border-interactive);border-radius:var(--radius-md)}
+.tomb-text{flex:1 1 10ch;min-width:0;font-size:var(--text-small);color:var(--text-muted)}
+.tomb-text b{font-weight:500;color:var(--text-secondary)}
+.tomb-undo{flex:0 0 auto;display:flex;align-items:center;gap:var(--space-2);
+  min-height:var(--target-min);padding:0 var(--card-pad);border-radius:var(--radius-md);
+  font-size:var(--text-small);font-weight:500;color:var(--accent)}
+.tomb-undo i{font-size:18px}
+.tomb-undo:active{background:var(--surface-raised)}
+/* "Saved": the field writes as you type, so this confirms what already happened.
+   It never offers to save. [AGENTS.md: a step needs no Set button] */
+.saved{display:flex;align-items:center;gap:var(--space-1);margin:var(--space-2) 0 0;
+  font-size:var(--text-label);color:var(--text-secondary);font-weight:500}
+.saved i{font-size:16px;color:var(--accent)}
+@media (hover:hover){
+  .textbtn:hover, .stretch:hover, .tomb-undo:hover{background:var(--surface-raised)}
+  .demo-btn:hover{background:color-mix(in srgb, var(--paper-0) 20%, transparent)}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="demo-bar">
+    <a class="demo-btn home" href="../index.html">← Home</a>
+    <span class="db">Look Back · dose gaps · test</span>
+    <a class="demo-btn" href="look-back.html">week view</a>
+    <button class="demo-btn" onclick="resetNames()">reset names</button>
+  </div>
+
+  <div class="top">
+    <button class="icon-btn" id="menuBtn" aria-label="Menu" aria-haspopup="true" aria-expanded="false" onclick="toggleMenu(event)"><i class="ph ph-list"></i></button>
+    <!-- the same two places as Today's menu; the views are the tabs -->
+    <div class="pop" id="pop" hidden>
+      <a class="navrow" href="cabinet.html"><i class="ph ph-first-aid-kit"></i>
+        <span class="lab">Medicine Cabinet<span class="sub">What you take, and when</span></span></a>
+      <button class="navrow"><i class="ph ph-gear"></i>
+        <span class="lab">Settings<span class="sub">Text size, AI, your data</span></span></button>
+    </div>
+    <nav class="tabs" aria-label="Views">
+      <a class="tab" href="index.html" aria-label="Today">
+        <i class="ph ph-sun"></i><span class="tab-lab">Today</span></a>
+      <a class="tab" aria-current="page" aria-label="Look Back">
+        <i class="ph-fill ph-chart-line"></i><span class="tab-lab">Look Back</span></a>
+    </nav>
+  </div>
+
+  <main class="scroll">
+    <div class="pagehead">
+      <h1>Gaps between doses</h1>
+      <p>Measured against your plan, from the doses you confirmed.</p>
+    </div>
+
+    <div class="scales" role="tablist" aria-label="Time scale">
+      <button role="tab" id="sc-q" aria-selected="true" onclick="setScale('q')">3 months</button>
+      <button role="tab" id="sc-y" aria-selected="false" onclick="setScale('y')">Year</button>
+    </div>
+
+    <div id="stepper">
+      <div class="period">
+        <button class="arrow" id="prevQ" onclick="stepQ(-1)" aria-label="Earlier 3 months"><i class="ph ph-caret-left"></i></button>
+        <div class="rangebox"><span class="r1" id="qRange"></span><span class="r2" id="qWhen"></span></div>
+        <button class="arrow" id="nextQ" onclick="stepQ(1)" aria-label="Later 3 months"><i class="ph ph-caret-right"></i></button>
+      </div>
+    </div>
+    <div class="periodfoot">
+      <span class="cov" id="cov"></span>
+      <button class="textbtn" id="jump" onclick="jumpNow()" hidden>Back to now<i class="ph ph-arrow-line-right" aria-hidden="true"></i></button>
+    </div>
+
+    <div class="readout" id="readout" aria-live="polite"></div>
+
+    <div class="chartwrap">
+      <svg id="chart" viewBox="0 0 352 236" role="img"></svg>
+    </div>
+    <p class="caption">Above the plan line: gaps longer than planned. Below: shorter. Minutes.</p>
+    <div class="legend">
+      <span><i class="k-dot"></i><span id="lg-dot">a day's gaps, against plan</span></span>
+      <span><i class="k-band"></i>a stretch the app found</span>
+    </div>
+
+    <section id="sec-stretches">
+      <h2 class="sec-h">Stretches</h2>
+      <p class="sec-sub">Runs of days where the gaps moved away from the weeks around them.</p>
+      <div id="stretchList"></div>
+    </section>
+
+    <section id="sec-periods" hidden>
+      <h2 class="sec-h">By 3 months</h2>
+      <p class="sec-sub">How far from plan the gaps landed, typically.</p>
+      <div class="periods" id="periodRows"></div>
+    </section>
+
+    <p class="plan" id="planNote"></p>
+
+    <button class="textbtn" id="howBtn" onclick="toggleHow()" aria-expanded="false" style="align-self:flex-start;margin-left:calc(var(--space-3) * -1)">
+      <i class="ph ph-info" aria-hidden="true"></i>How a stretch is found</button>
+    <div class="how" id="how" hidden>
+      <p>A stretch is at least 7 days in a row where the gaps sat 20 minutes or more away
+      from the four weeks either side. Shorter or smaller changes are left alone, because
+      on any record some weeks are a little different by chance.</p>
+      <p>Only doses you confirmed count. A dose filled in from your schedule is a plan,
+      not an observation, so it is left out. Days with no entries are gaps in the chart,
+      never zero.</p>
+      <p>The app finds when. Only you know why, so naming a stretch is yours.</p>
+    </div>
+  </main>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-title">
+  <div class="pull"></div>
+  <div>
+    <div class="sh-head">
+      <h2 id="sh-title"></h2>
+      <button class="icon-btn" id="sh-close" onclick="closeSheet()" aria-label="Close"><i class="ph ph-x"></i></button>
+    </div>
+    <p class="sh-lede" id="sh-lede"></p>
+  </div>
+  <div class="field">
+    <label for="sh-name">What was going on?</label>
+    <input class="tf" id="sh-name" type="text" autocomplete="off"
+           placeholder="Travelling, a new routine, a hard week" oninput="nameStretch(this.value)">
+    <p class="hint" id="sh-hint">Optional. Saved as you type, and only you see it.</p>
+    <p class="saved" id="sh-saved" hidden aria-live="polite"><i class="ph-fill ph-check-circle" aria-hidden="true"></i><span>Saved</span></p>
+  </div>
+  <div>
+    <h3 class="cmp-h">Also in your record then</h3>
+    <p class="cmp-note" id="sh-note"></p>
+    <table class="cmp" id="sh-cmp"></table>
+  </div>
+  <div class="dismiss-wrap">
+    <button class="textbtn" onclick="dismissStretch()">
+      <i class="ph ph-eye-slash" aria-hidden="true"></i>Hide this stretch</button>
+    <p>If it does not match what you remember. You can undo it.</p>
+  </div>
+</div>
+
+<script>
+const el = id => document.getElementById(id);
+
+/* ═════════ sample data ═════════
+   One year to "today" (Mon Oct 12, 2026). Seeded random, so every load is the same.
+   Each day: confirmed gaps measured against the plan in effect, plus the few other
+   logs the comparison uses. What is planted, so the detector has something real:
+     - a slow drift: gaps from about 2 to 14 min shorter than plan across the year
+     - Sep 14 to Oct 2: about 28 min shorter, with more short nights
+     - Mar 2 to Mar 13: about 35 min longer (named "Travelling" by the person)
+     - Jun 15: the plan changed from 4 doses 4h apart to 5 doses 3h 30m apart
+   About 7% of days have no entries; about 5% of doses were filled in, not confirmed. */
+let seed = 7;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const gauss = () => { let u = 0, v = 0; while (!u) u = rnd(); while (!v) v = rnd();
+                      return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+const DAY = 86400000;
+/* The record ends on the real today, so dates never look stale in a demo. Every
+   planted event is placed by how many days before today it happened. */
+const NOW = new Date();
+const TODAY = Date.UTC(NOW.getFullYear(), NOW.getMonth(), NOW.getDate());
+const N = 365;
+const START = TODAY - (N - 1) * DAY;
+const dayOf = (y, m, d) => Math.round((Date.UTC(y, m - 1, d) - START) / DAY);
+const daysAgo = n => N - 1 - n;
+const PLAN_CHANGE = daysAgo(119);
+const PLANS = [
+  { from: 0, label: '4 doses, 4h apart', gap: 240, n: 4 },
+  { from: PLAN_CHANGE, label: '5 doses, 3h 30m apart', gap: 210, n: 5 },
+];
+const planAt = i => (i >= PLAN_CHANGE ? PLANS[1] : PLANS[0]);
+const PLANTED = [
+  { a: daysAgo(28), b: daysAgo(10), shift: -28, sleep: .5 },
+  { a: daysAgo(224), b: daysAgo(213), shift: 35, walk: .85 },
+];
+
+const DAYS = [];
+for (let i = 0; i < N; i++){
+  const t = i / (N - 1), drift = -2 - 12 * t;
+  const p = PLANTED.find(s => i >= s.a && i <= s.b);
+  const blank = rnd() < .07;
+  const plan = planAt(i);
+  const gaps = [];
+  let prevConfirmed = rnd() > .05;
+  for (let g = 0; g < plan.n - 1; g++){
+    const confirmed = rnd() > .05;
+    const dev = Math.max(-70, Math.min(70, drift + (p ? p.shift : 0) + gauss() * 12));
+    if (prevConfirmed && confirmed) gaps.push(Math.round(dev));   /* both ends confirmed */
+    prevConfirmed = confirmed;
+  }
+  const sleepH = rnd() < (p && p.sleep ? p.sleep : .12) ? 5 + rnd() : 6.5 + rnd() * 1.5;
+  DAYS.push(blank ? null : {
+    gaps,
+    v: gaps.length ? gaps.reduce((x, y) => x + y, 0) / gaps.length : null,
+    shortNight: sleepH < 6,
+    walk: rnd() < (p && p.walk ? p.walk : .55),
+    pt: new Date(START + i * DAY).getUTCDay() === 2 && rnd() < .8,
+    rough: rnd() < (p && p.sleep ? .34 : .2),
+    protein: rnd() < .3,
+  });
+}
+const val = i => (DAYS[i] && DAYS[i].v != null ? DAYS[i].v : null);
+
+/* ═════════ helpers ═════════ */
+const median = a => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y), m = s.length >> 1;
+                      return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+const vals = (a, b) => { const out = []; for (let i = Math.max(0, a); i <= Math.min(N - 1, b); i++){
+                           const v = val(i); if (v != null) out.push(v); } return out; };
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const dt = i => new Date(START + i * DAY);
+const fmt = i => `${MON[dt(i).getUTCMonth()]} ${dt(i).getUTCDate()}`;
+const fmtDay = i => `${WD[dt(i).getUTCDay()]} ${fmt(i)}`;
+const range = (a, b) => dt(a).getUTCMonth() === dt(b).getUTCMonth()
+  ? `${fmt(a)} – ${dt(b).getUTCDate()}` : `${fmt(a)} – ${fmt(b)}`;
+/* "14 min shorter than planned" / "close to plan". Never good or bad, never "late". */
+const words = m => { const r = Math.round(Math.abs(m));
+  return r < 5 ? { n: null, t: 'close to plan' } : { n: r, t: m < 0 ? 'shorter than planned' : 'longer than planned' }; };
+const phrase = m => { const w = words(m); return w.n == null ? w.t : `${w.n} min ${w.t}`; };
+
+/* ═════════ stretch detection ═════════
+   Plain on purpose, so a developer and a reviewer can both follow it:
+     1. each day: the median of the 7 days around it (needs 4 with a value)
+     2. each day: the median of the 4 weeks either side, leaving out the week
+        around the day itself, so a stretch does not dilute its own context
+     3. a stretch: 7+ days in a row where 1 sits 20+ min from 2, same direction
+     4. kept only if the stretch's own median is still 20+ min from the 4 weeks
+        either side of the whole stretch
+   Ongoing stretches (still running today) are reported with "since". */
+const MIN_DAYS = 7, MIN_SHIFT = 20;
+function detect(){
+  const flag = [];
+  for (let i = 0; i < N; i++){
+    const near = vals(i - 3, i + 3);
+    const ctx = [...vals(i - 35, i - 8), ...vals(i + 8, i + 35)];
+    if (near.length < 4 || ctx.length < 10){ flag.push(0); continue; }
+    const d = median(near) - median(ctx);
+    flag.push(Math.abs(d) >= MIN_SHIFT ? Math.sign(d) : 0);
+  }
+  const runs = [];
+  for (let i = 0; i < N; ){
+    if (!flag[i]){ i++; continue; }
+    let j = i; while (j + 1 < N && flag[j + 1] === flag[i]) j++;
+    if (j - i + 1 >= MIN_DAYS) runs.push({ a: i, b: j });
+    i = j + 1;
+  }
+  /* Step 4, strongest first. A real stretch distorts the context of the days next to
+     it, which can flag a false "stretch" just after it (the record returning to normal
+     looks like a change against the stretch). So each candidate is judged against the
+     weeks either side with the days of stronger, already-accepted stretches left out. */
+  const taken = new Set();
+  const aroundOf = (a, b) => { const v = [];
+    for (let i = a - 28; i <= b + 28; i++) if ((i < a || i > b) && !taken.has(i)){ const x = val(i); if (x != null) v.push(x); }
+    return median(v); };
+  /* strength = size of the shift x how long it held, so a long clear stretch is
+     judged before the short echo beside it */
+  runs.forEach(r => { r.inside = median(vals(r.a, r.b));
+                      r.raw = Math.abs(r.inside - aroundOf(r.a, r.b)) * Math.sqrt(r.b - r.a + 1); });
+  runs.sort((x, y) => y.raw - x.raw);
+  const out = [];
+  runs.forEach(r => {
+    const around = aroundOf(r.a, r.b);
+    if (around == null || Math.abs(r.inside - around) < MIN_SHIFT) return;
+    out.push({ id: `s${r.a}`, a: r.a, b: r.b, inside: r.inside, around,
+               days: r.b - r.a + 1, covered: vals(r.a, r.b).length });
+    for (let i = r.a; i <= r.b; i++) taken.add(i);
+  });
+  return out.sort((x, y) => x.a - y.a);
+}
+const STRETCHES = detect();
+
+/* The person's names and hides. In-page only (a prototype); "reset names" clears them.
+   One name is pre-filled so the named state can be judged without typing. */
+const NAMES = {}, HIDDEN = new Set();
+let tombId = null;           /* the one hidden stretch that can still be undone in place */
+function presetNames(){
+  const trip = STRETCHES.find(s => s.a <= daysAgo(221) && s.b >= daysAgo(221));
+  if (trip) NAMES[trip.id] = 'Travelling';
+}
+presetNames();
+const shown = () => STRETCHES.filter(s => !HIDDEN.has(s.id));
+
+/* ═════════ view state ═════════ */
+const Q_LEN = 91;                     /* about 3 months */
+let scale = 'q';
+let qEnd = N - 1;                     /* last day of the 3 months in view */
+const qStart = () => Math.max(0, qEnd - Q_LEN + 1);
+let scrubbing = null;                 /* day (or week) index under the finger */
+
+/* ═════════ render ═════════ */
+function render(){
+  el('sc-q').setAttribute('aria-selected', String(scale === 'q'));
+  el('sc-y').setAttribute('aria-selected', String(scale === 'y'));
+  el('stepper').hidden = scale !== 'q';
+  el('sec-periods').hidden = scale !== 'y';
+  el('lg-dot').textContent = scale === 'q' ? "a day's gaps, against plan" : "a week's gaps, against plan";
+  const a = scale === 'q' ? qStart() : 0, b = scale === 'q' ? qEnd : N - 1;
+  if (scale === 'q'){
+    el('qRange').textContent = range(a, b);
+    el('qWhen').textContent = qEnd === N - 1 ? 'Last 3 months' : `${Math.round((N - 1 - qEnd) / 30)} months earlier`;
+    el('prevQ').disabled = a === 0;
+    el('nextQ').disabled = qEnd === N - 1;
+    el('jump').hidden = qEnd === N - 1;
+  } else el('jump').hidden = true;
+  const covered = vals(a, b).length, days = b - a + 1;
+  el('cov').textContent = `${covered} of ${days} days have confirmed gaps`;
+  renderReadout();
+  drawChart(a, b);
+  renderStretches(a, b);
+  if (scale === 'y') renderPeriods();
+  const plans = PLANS.filter((p, k) => p.from <= b && (k === PLANS.length - 1 || PLANS[k + 1].from > a));
+  el('planNote').textContent = 'Plan in this view: ' + plans.map((p, k) =>
+    k ? `from ${fmt(p.from)}, ${p.label}` : p.label).join('; ') + '.';
+}
+
+function renderReadout(){
+  const r = el('readout');
+  if (scrubbing != null){
+    if (scale === 'q'){
+      const d = DAYS[scrubbing];
+      if (!d){ r.innerHTML = `<div class="ro-day">${fmtDay(scrubbing)}</div><div class="ro-line">No entries this day, so it is not in the picture.</div>`; return; }
+      if (d.v == null){ r.innerHTML = `<div class="ro-day">${fmtDay(scrubbing)}</div><div class="ro-line">No confirmed gaps. Doses filled in from the plan are left out.</div>`; return; }
+      const w = words(d.v);
+      r.innerHTML = `<div class="ro-day">${fmtDay(scrubbing)}</div>
+        <div class="ro-big">${w.n == null ? '' : `<span class="num">${w.n}</span><span class="unit">min</span>`}</div>
+        <div class="ro-line">${w.n == null ? 'Close to plan' : w.t[0].toUpperCase() + w.t.slice(1)}, across ${d.gaps.length} gap${d.gaps.length > 1 ? 's' : ''}</div>`;
+    } else {
+      const wk = weeks()[scrubbing];
+      const w = wk.v == null ? null : words(wk.v);
+      r.innerHTML = `<div class="ro-day">Week of ${fmt(wk.a)}</div>` + (w == null
+        ? `<div class="ro-line">No confirmed gaps this week.</div>`
+        : `<div class="ro-big">${w.n == null ? '' : `<span class="num">${w.n}</span><span class="unit">min</span>`}</div>
+           <div class="ro-line">${w.n == null ? 'Close to plan' : w.t[0].toUpperCase() + w.t.slice(1)}, typically</div>
+           <div class="ro-cov">From ${wk.n} of ${wk.days} days</div>`);
+    }
+    return;
+  }
+  /* period summary: the number this view is about, with what it rests on */
+  if (scale === 'q'){
+    const a = qStart(), b = qEnd, m = median(vals(a, b));
+    const pa = Math.max(0, a - Q_LEN), pb = a - 1, pm = pb >= 0 ? median(vals(pa, pb)) : null;
+    const w = words(m);
+    r.innerHTML = `<div class="ro-big">${w.n == null ? '' : `<span class="num">${w.n}</span><span class="unit">min</span>`}</div>
+      <div class="ro-line">${w.n == null ? 'Gaps landed close to plan' : `Gaps ran ${w.t}, typically`}</div>
+      <div class="ro-cov">${pm == null ? 'No earlier 3 months to compare with.' : `The 3 months before: ${phrase(pm)}.`}</div>`;
+  } else {
+    const first = median(vals(0, Q_LEN - 1)), last = median(vals(N - Q_LEN, N - 1));
+    const w = words(last);
+    r.innerHTML = `<div class="ro-big">${w.n == null ? '' : `<span class="num">${w.n}</span><span class="unit">min</span>`}</div>
+      <div class="ro-line">${w.n == null ? 'Last 3 months: close to plan' : `Last 3 months: ${w.t}, typically`}</div>
+      <div class="ro-cov">A year ago, the first 3 months of this record: ${phrase(first)}.</div>`;
+  }
+}
+
+/* weeks for the year view: zooming out changes the mark (a week's median), it does
+   not just shrink 365 dots. Weeks start on the record's first day. */
+let _weeks;
+function weeks(){
+  if (_weeks) return _weeks;
+  _weeks = [];
+  for (let a = 0; a < N; a += 7){
+    const b = Math.min(N - 1, a + 6), v = vals(a, b);
+    _weeks.push({ a, b, v: v.length >= 3 ? median(v) : null, n: v.length, days: b - a + 1 });
+  }
+  return _weeks;
+}
+
+/* ═════════ chart ═════════
+   y: minutes against plan, the plan line at the middle. Longer above, shorter below,
+   one colour for both: position carries the direction, colour carries nothing.
+   No line joins the dots: a day is a separate observation, and a connecting line
+   would claim a continuity the record does not have. */
+const W = 352, PL = 44, PR = 4, TOP = 26, H = 168, BOT = TOP + H, YMAX = 60;
+const yOf = m => TOP + H / 2 - (Math.max(-YMAX, Math.min(YMAX, m)) / YMAX) * (H / 2);
+let X = { a: 0, b: 0, x: () => 0, step: 1 };
+function drawChart(a, b){
+  const span = b - a + 1, step = (W - PL - PR) / span;
+  X = { a, b, step, x: i => PL + (i - a + .5) * step };
+  const svg = el('chart');
+  let s = '';
+  /* grid: plan, and 30 min either side. Labels sit just above their line. */
+  /* Labels live in a left gutter, clear of the dots: "+30" means 30 min longer than
+     planned. The caption under the chart says so in words. */
+  [[30, '+30'], [0, 'Plan'], [-30, '−30']].forEach(([m, t]) => {
+    s += `<line class="${m ? 'grid' : 'planline'}" x1="${PL}" x2="${W - PR}" y1="${yOf(m)}" y2="${yOf(m)}"/>`;
+    s += `<text class="axistext${m ? '' : ' strong'}" x="0" y="${yOf(m) + 5}">${t}</text>`;
+  });
+  /* stretches first, so the dots sit on top */
+  shown().filter(st => st.b >= a && st.a <= b).forEach(st => {
+    const x1 = PL + (Math.max(st.a, a) - a) * step, x2 = PL + (Math.min(st.b, b) - a + 1) * step;
+    s += `<rect class="band" data-s="${st.id}" x="${x1}" y="${TOP}" width="${x2 - x1}" height="${H}"/>`;
+    s += `<line class="bandedge" x1="${x1}" x2="${x1}" y1="${TOP}" y2="${BOT}"/><line class="bandedge" x1="${x2}" x2="${x2}" y1="${TOP}" y2="${BOT}"/>`;
+    if (NAMES[st.id] && x2 - x1 > 30)
+      s += `<text class="bandlab" x="${Math.min(x1 + 4, W - 90)}" y="${TOP - 8}">${esc(NAMES[st.id])}</text>`;
+  });
+  /* the plan change: the one vertical rule the person did not choose, because the
+     plan itself is theirs and every gap after it is measured against the new one */
+  if (PLAN_CHANGE >= a && PLAN_CHANGE <= b){
+    const x = PL + (PLAN_CHANGE - a) * step;
+    s += `<line class="planmark" x1="${x}" x2="${x}" y1="${TOP}" y2="${BOT}"/>`;
+    s += `<text class="axistext" x="${x + 4}" y="${TOP + 14}">Plan changed</text>`;
+  }
+  /* marks */
+  if (scale === 'q'){
+    for (let i = a; i <= b; i++){ const v = val(i); if (v == null) continue;
+      s += `<circle class="dot${scrubbing === i ? ' on' : ''}" cx="${X.x(i)}" cy="${yOf(v)}" r="${scrubbing === i ? 5 : 3.5}"/>`; }
+  } else {
+    weeks().forEach((wk, k) => { if (wk.v == null) return;
+      const cx = PL + ((wk.a + wk.b) / 2 - a + .5) * step;
+      s += `<circle class="dot${scrubbing === k ? ' on' : ''}" cx="${cx}" cy="${yOf(wk.v)}" r="${scrubbing === k ? 6 : 4}"/>`; });
+  }
+  /* month ticks along the bottom */
+  for (let i = a; i <= b; i++){
+    if (dt(i).getUTCDate() !== 1) continue;
+    const m = dt(i).getUTCMonth();
+    if (scale === 'y' && m % 2) continue;
+    s += `<text class="axistext" x="${PL + (i - a) * step}" y="${BOT + 22}">${MON[m]}</text>`;
+  }
+  /* scrub line */
+  if (scrubbing != null){
+    const cx = scale === 'q' ? X.x(scrubbing) : PL + ((weeks()[scrubbing].a + weeks()[scrubbing].b) / 2 - a + .5) * step;
+    s += `<line class="scrub" x1="${cx}" x2="${cx}" y1="${TOP}" y2="${BOT}"/>`;
+  }
+  svg.innerHTML = s;
+  svg.setAttribute('aria-label', scale === 'q'
+    ? `Dots for each day from ${range(a, b)}, placed above the plan line when gaps ran longer than planned and below when shorter. Bands mark stretches the app found. Drag across to read a day.`
+    : 'Dots for each week of the past year, against the plan line. Bands mark stretches. Drag across to read a week.');
+}
+const esc = t => t.replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+
+/* ═════════ reading and tapping the chart ═════════
+   Drag reads (the readout swaps to the day). A tap that did not move, on a band,
+   opens that stretch. The cards below are the same doors at full target size, so
+   nobody has to hit a band with a tremor. */
+(function wireChart(){
+  const svg = el('chart'); let downX = null, moved = false;
+  const idxAt = ev => {
+    const r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) * (W / r.width);
+    const i = Math.max(X.a, Math.min(X.b, Math.floor((x - PL) / X.step) + X.a));
+    return scale === 'q' ? i : Math.min(weeks().length - 1, Math.floor(i / 7));
+  };
+  svg.addEventListener('pointerdown', ev => { downX = ev.clientX; moved = false;
+    scrubbing = idxAt(ev); renderReadout(); drawChart(X.a, X.b); });
+  svg.addEventListener('pointermove', ev => { if (downX == null) return;
+    if (Math.abs(ev.clientX - downX) > 6) moved = true;
+    const i = idxAt(ev); if (i !== scrubbing){ scrubbing = i; renderReadout(); drawChart(X.a, X.b); } });
+  const end = ev => { if (downX == null) return;
+    const tapped = !moved, day = scale === 'q' ? scrubbing : weeks()[scrubbing].a;
+    downX = null; scrubbing = null; renderReadout(); drawChart(X.a, X.b);
+    if (tapped){ const st = shown().find(s => day >= s.a && day <= s.b); if (st) openSheet(st.id); } };
+  svg.addEventListener('pointerup', end);
+  svg.addEventListener('pointercancel', () => { downX = null; scrubbing = null; renderReadout(); drawChart(X.a, X.b); });
+  svg.addEventListener('pointerleave', ev => { if (ev.pointerType === 'mouse' && downX == null){ scrubbing = null; } });
+})();
+
+/* ═════════ stretch cards ═════════ */
+function renderStretches(a, b){
+  const list = STRETCHES.filter(s => (!HIDDEN.has(s.id) || s.id === tombId) && s.b >= a && s.a <= b)
+                         .sort((x, y) => y.a - x.a);
+  if (!list.length){
+    el('stretchList').innerHTML = `<div class="none">Nothing in this view stands out from the weeks around it.</div>`;
+    return;
+  }
+  el('stretchList').innerHTML = list.map(s => {
+    const ongoing = s.b === N - 1;
+    const when = ongoing ? `Since ${fmt(s.a)}` : range(s.a, s.b);
+    if (HIDDEN.has(s.id)) return `<div class="tomb">
+      <span class="tomb-text">Hidden: <b>${NAMES[s.id] ? esc(NAMES[s.id]) : when}</b></span>
+      <button class="tomb-undo" onclick="undoHide('${s.id}')">
+        <i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i>Undo</button></div>`;
+    return `<button class="stretch" onclick="openSheet('${s.id}')">
+      <span class="s-body">
+        <span class="s-name">${NAMES[s.id] ? esc(NAMES[s.id]) : when}</span>
+        <span class="s-meta">${NAMES[s.id] ? when + ' · ' : ''}${s.days} days · ${phrase(s.inside)}</span>
+        <span class="s-meta">Weeks around it: ${phrase(s.around)}</span>
+        ${NAMES[s.id] ? '' : '<span class="s-ask">What was going on?</span>'}
+      </span><i class="ph ph-caret-right" aria-hidden="true"></i></button>`;
+  }).join('');
+}
+
+/* ═════════ year: by 3 months ═════════ */
+function renderPeriods(){
+  const rows = [];
+  for (let b = N - 1; b >= 0; b -= Q_LEN){
+    const a = Math.max(0, b - Q_LEN + 1), v = vals(a, b);
+    rows.push(`<div class="prow"><span class="p-when">${range(a, b)}</span>
+      <span class="p-val">${phrase(median(v))}<span class="p-cov">${v.length} of ${b - a + 1} days</span></span></div>`);
+    if (a === 0) break;
+  }
+  el('periodRows').innerHTML = rows.join('');
+}
+
+/* ═════════ the stretch sheet ═════════ */
+let openId = null;
+function openSheet(id){
+  const s = STRETCHES.find(x => x.id === id); if (!s) return;
+  openId = id;
+  const when = s.b === N - 1 ? `Since ${fmt(s.a)}` : range(s.a, s.b);
+  el('sh-title').textContent = NAMES[id] || when;
+  el('sh-lede').textContent = `${NAMES[id] ? when + '. ' : ''}${s.days} days where gaps ran ${phrase(s.inside)}. In the 4 weeks either side: ${phrase(s.around)}.`;
+  el('sh-name').value = NAMES[id] || '';
+  showSaved(false);
+  renderCompare(s);
+  el('sheet').classList.add('open'); el('scrim').classList.add('open');
+}
+function closeSheet(){
+  el('sheet').classList.remove('open'); el('scrim').classList.remove('open');
+  openId = null; render();
+}
+/* Saved as typed. No Set button: Back cannot lose anything [AGENTS.md, steps]. */
+function nameStretch(v){
+  if (!openId) return;
+  const t = v.trim();
+  if (t) NAMES[openId] = t; else delete NAMES[openId];
+  showSaved(true);
+}
+/* Once something is written, the hint turns into "Saved" and the X becomes a check
+   labelled Done. Same button, same behaviour (it only closes): the check confirms
+   a save that already happened, it does not perform one. */
+function showSaved(on){
+  el('sh-hint').hidden = on; el('sh-saved').hidden = !on;
+  el('sh-close').setAttribute('aria-label', on ? 'Done' : 'Close');
+  el('sh-close').querySelector('i').className = on ? 'ph ph-check' : 'ph ph-x';
+}
+function dismissStretch(){ if (!openId) return; tombId = openId; HIDDEN.add(openId); closeSheet(); }
+function undoHide(id){ HIDDEN.delete(id); tombId = null; render(); }
+function resetNames(){ for (const k in NAMES) delete NAMES[k]; HIDDEN.clear(); tombId = null; presetNames(); render(); }
+
+/* What was different: every row shows both rates, the stretch and the 4 weeks either
+   side, so a thing that happens most days cannot pass for a finding. The rows are a
+   fixed list in a fixed order, the same for every stretch: sorting by difference
+   would turn the table into a ranking of suspects. One sentence names the largest
+   difference, only if it is large, as a co-occurrence. It never suggests doing less
+   of anything (Look Back rule 5) and never mentions the medication. */
+/* `move` marks the movement rows: they stay in the table, but are never the subject
+   of the sentence. Exercise is the strongest non-drug help in PD, and a sentence
+   pairing it with any change in the gaps is one step from "do less of it". */
+const FACTORS = [
+  { k: 'walk', t: 'Walk or other movement', p: 'Walks and other movement', move: true },
+  { k: 'pt', t: 'PT session', p: 'PT sessions', move: true },
+  { k: 'shortNight', t: 'Night under 6 hours', p: 'Nights under 6 hours' },
+  { k: 'rough', t: 'Note about a rough afternoon', p: 'Notes about a rough afternoon' },
+  { k: 'protein', t: 'Protein meal near a dose', p: 'Protein meals near a dose' },
+];
+function renderCompare(s){
+  const inDays = [], outDays = [];
+  for (let i = s.a; i <= s.b; i++) if (DAYS[i]) inDays.push(DAYS[i]);
+  for (let i = s.a - 28; i <= s.b + 28; i++) if ((i < s.a || i > s.b) && i >= 0 && i < N && DAYS[i]) outDays.push(DAYS[i]);
+  const rows = FACTORS.map(f => ({ ...f, i: inDays.filter(d => d[f.k]).length, o: outDays.filter(d => d[f.k]).length }));
+  el('sh-cmp').innerHTML = `<tr><th>On days with</th><th>This<br>stretch</th><th>Weeks<br>around</th></tr>` +
+    rows.map(r => `<tr><td>${r.t}</td>
+      <td class="v">${r.i} of ${inDays.length}</td>
+      <td class="v">${r.o} of ${outDays.length}</td></tr>`).join('');
+  const top = rows.filter(r => !r.move).map(r => ({ ...r, d: r.i / inDays.length - r.o / outDays.length }))
+                  .sort((x, y) => Math.abs(y.d) - Math.abs(x.d))[0];
+  el('sh-note').textContent = Math.abs(top.d) >= .2
+    ? `${top.p} were ${top.d > 0 ? 'more' : 'less'} common during this stretch: ${top.i} of ${inDays.length} days, against ${top.o} of ${outDays.length} around it. They happened together. Your record can't say why.`
+    : 'Nothing logged was much more or less common during this stretch than around it.';
+}
+
+/* ═════════ controls ═════════ */
+function setScale(s){ scale = s; scrubbing = null; render(); }
+function stepQ(d){ qEnd = Math.max(Q_LEN - 1, Math.min(N - 1, qEnd + d * Q_LEN)); render(); }
+function jumpNow(){ qEnd = N - 1; render(); }
+function toggleMenu(e){ e.stopPropagation(); const p = el('pop'); p.hidden = !p.hidden;
+  el('menuBtn').setAttribute('aria-expanded', String(!p.hidden)); }
+document.addEventListener('click', e => { const p = el('pop');
+  if (!p.hidden && !p.contains(e.target)){ p.hidden = true; el('menuBtn').setAttribute('aria-expanded', 'false'); } });
+function toggleHow(){ const h = el('how'); h.hidden = !h.hidden;
+  el('howBtn').setAttribute('aria-expanded', String(!h.hidden)); }
+window.addEventListener('scroll', () =>
+  document.querySelector('.shell').classList.toggle('scrolled', window.scrollY > 4), { passive: true });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && openId) closeSheet(); });
+
+render();
+</script>
+</body>
+</html>
