@@ -32,6 +32,18 @@
 <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
 <link rel="stylesheet" href="../tokens.css">
+<meta name="theme-color" id="themeColor" content="">
+<script>
+/* phone edges: browser chrome takes the page colour, read from the tokens */
+function paintEdges(tinted){
+  const css = getComputedStyle(document.documentElement);
+  const c = (tinted ? css.getPropertyValue('--surface-accent') : css.getPropertyValue('--surface-page')).trim();
+  document.documentElement.style.setProperty('--edge', c);
+  const m = document.getElementById('themeColor'); if (m && c) m.setAttribute('content', c);
+}
+addEventListener('DOMContentLoaded', () => paintEdges(document.querySelector('.shell.tinted') != null));
+</script>
+
 <style>
 /* Shared tokens come from ../tokens.css. Only this screen's layout tokens here. */
 :root{
@@ -46,6 +58,17 @@ html{font-size:100%}
 body{margin:0;background:var(--backdrop);font-family:var(--font-sans);
      font-size:var(--text-body);line-height:var(--leading-body);color:var(--text-primary);
      -webkit-font-smoothing:antialiased;display:flex;justify-content:center}
+/* PHONE EDGES (2026-10-19). The grey backdrop frames the phone column on a desktop.
+   On a phone there is nothing to frame, but the browser still paints it above the
+   page (status bar), below it (toolbar, overscroll). Below phone width the page
+   colour fills the screen, and --edge lets a page paint the top in its own colour
+   (Today: the card's blue while the card is showing). theme-color, set by script,
+   tells browsers that support it the same thing. */
+@media (max-width: 480px){
+  html{background:var(--edge, var(--surface-page))}
+  body{background:var(--surface-page)}
+}
+
 button,input,select{font-family:inherit;font-size:inherit;color:inherit}
 button{border:0;background:none;cursor:pointer;padding:0}
 :focus-visible{outline:var(--focus-ring-width) solid var(--focus-ring);

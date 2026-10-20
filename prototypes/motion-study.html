@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DoseEgg · Motion study</title>
+<!-- MOTION STUDY, 2026-10-19. Options for three moments, to be felt on a phone
+     before anything goes into the app: switching Today / Look Back, confirming a
+     dose, and the small press-and-open motions. Each has a quiet option, a
+     middle option and a showier one, plus a "Reduce motion" switch that shows
+     what everyone with that setting gets. Nothing here is decided. -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<style>
+/* Proposed motion tokens, local to this study until one is chosen. Durations are
+   the ones tokens.css already has; what is new is the press duration and two
+   easings. --ease-settle is a critically damped spring sampled into linear():
+   it arrives fast and settles with no overshoot. --ease-bounce overshoots by
+   20%, shown only as the option we would NOT ship. */
+:root{
+  --gutter:16px;
+  --shell-w:420px;
+  --motion-press:90ms;
+  --ease-settle:linear(0, 0.066, 0.203, 0.355, 0.496, 0.616, 0.713, 0.788, 0.845, 0.888, 0.92,
+    0.943, 0.96, 0.971, 0.98, 0.986, 0.99, 0.993, 0.995, 0.997, 0.998, 0.998, 0.999, 0.999, 1);
+  --ease-bounce:linear(0, 0.14, 0.444, 0.767, 1.018, 1.162, 1.205, 1.178, 1.116, 1.05, 0.998,
+    0.967, 0.958, 0.963, 0.976, 0.989, 1, 1.007, 1.009, 1.008, 1.005, 1.002, 1, 0.999, 1);
+  --ease-exit:cubic-bezier(.3,0,.8,.15);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:100%;background:var(--surface-page)}
+body{margin:0;background:var(--surface-page);font-family:var(--font-sans);font-size:var(--text-body);
+  line-height:var(--leading-body);color:var(--text-primary);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;font-size:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+:focus-visible{outline:var(--focus-ring-width) solid var(--focus-ring);outline-offset:var(--focus-ring-offset);
+  border-radius:var(--radius-sm)}
+.wrap{max-width:var(--shell-w);margin:0 auto;padding:var(--space-6) var(--gutter) var(--space-12)}
+.home{display:inline-flex;align-items:center;gap:var(--space-2);min-height:var(--target-min);
+  color:var(--text-secondary);text-decoration:none;font-size:var(--text-small)}
+h1{font-size:var(--text-title);font-weight:700;margin:var(--space-2) 0 var(--space-2);line-height:var(--leading-tight)}
+h2{font-size:var(--text-heading);font-weight:600;margin:var(--space-12) 0 var(--space-1)}
+p{margin:0 0 var(--space-3);color:var(--text-secondary)}
+.lede{color:var(--text-secondary)}
+.sub{font-size:var(--text-small);color:var(--text-muted);margin:0 0 var(--space-4)}
+.rm{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-routine);
+  background:var(--surface-raised);border-radius:var(--radius-md);padding:var(--space-2) var(--space-4);margin:var(--space-4) 0}
+.rm .lab{flex:1}
+.rm small{display:block;font-size:var(--text-label);color:var(--text-muted)}
+.switch{width:52px;height:var(--target-routine);position:relative;flex:0 0 auto;border-radius:var(--radius-full)}
+.switch::before{content:"";position:absolute;left:0;right:0;top:var(--space-2);height:var(--space-8);
+  border-radius:var(--radius-full);background:var(--paper-300)}
+.switch::after{content:"";position:absolute;top:var(--space-3);left:var(--space-1);width:var(--space-6);height:var(--space-6);
+  border-radius:var(--radius-full);background:var(--paper-0);box-shadow:var(--content-edge);
+  transition:transform var(--motion-fast) var(--ease-out)}
+.switch[aria-checked="true"]::before{background:var(--accent)}
+.switch[aria-checked="true"]::after{transform:translateX(calc(var(--space-6) - var(--space-1)))}
+
+/* option picker: one question, so the segmented control, not three buttons */
+.seg{display:flex;gap:var(--space-1);background:var(--surface-sunken);border-radius:var(--radius-md);
+  padding:var(--space-1);margin-bottom:var(--space-3)}
+.seg button{flex:1;min-height:var(--target-min);border-radius:var(--radius-sm);font-size:var(--text-small);
+  color:var(--text-secondary)}
+.seg button[aria-pressed="true"]{background:var(--surface-card);color:var(--text-primary);font-weight:600;
+  box-shadow:var(--content-edge)}
+.note{font-size:var(--text-small);color:var(--text-secondary);margin:var(--space-3) 0 0}
+.note b{color:var(--text-primary)}
+.spec{font-size:var(--text-label);color:var(--text-muted);margin:var(--space-1) 0 0;font-variant-numeric:tabular-nums}
+.replay{display:inline-flex;align-items:center;gap:var(--space-2);min-height:var(--target-min);padding:0 var(--space-3);
+  margin-left:calc(var(--space-3) * -1);border-radius:var(--radius-md);color:var(--accent);font-weight:600;font-size:var(--text-small)}
+.replay i{font-size:18px}
+
+/* ── the mini phone every demo runs in ── */
+.phone{position:relative;border-radius:var(--radius-xl);overflow:hidden;background:var(--surface-page);
+  border:1px solid var(--border-subtle);aspect-ratio:9 / 10}
+.phone.short{aspect-ratio:4 / 3}
+
+/* ═════════ 1 · Today / Look Back ═════════ */
+.ttop{position:absolute;top:0;left:0;right:0;z-index:3;display:flex;gap:var(--space-2);padding:var(--space-3)}
+.gl{min-height:var(--target-routine);min-width:var(--target-routine);border-radius:var(--radius-full);
+  display:flex;align-items:center;justify-content:center;gap:var(--space-2);color:var(--text-primary);
+  background:var(--glass-fill);box-shadow:var(--glass-rim), var(--glass-shadow);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)}
+.gl i{font-size:22px}
+.tabs{flex:1;display:flex;gap:var(--space-2);min-width:0}
+/* the tab that is not current is a 48px bubble; the current one grows to fill.
+   flex-grow animates, so the bubble can become the pill without a wheel of JS */
+.tab{flex:0 0 var(--target-routine);padding:0 var(--space-3);overflow:hidden;white-space:nowrap}
+.tab .lab{max-width:0;opacity:0;font-weight:600;font-size:var(--text-small)}
+.tab.on{flex:1 0 var(--target-routine);background:var(--glass-fill-strong)}
+.tab.on .lab{max-width:8em;opacity:1}
+.view{position:absolute;inset:0;padding:calc(var(--target-routine) + var(--space-6)) var(--space-4) var(--space-4)}
+.view.today{background:linear-gradient(var(--surface-accent) 0 52%, var(--surface-page) 52%)}
+.v-q{font-size:var(--text-heading);font-weight:600;margin:0 0 var(--space-2)}
+.v-btns{display:flex;gap:var(--target-gap);margin:var(--space-4) 0 var(--space-8)}
+.v-btns span{flex:1;min-height:var(--target-routine);border-radius:var(--radius-md);display:flex;align-items:center;
+  justify-content:center;font-weight:600;background:var(--surface-card);box-shadow:var(--content-edge)}
+.v-btns span:first-child{background:var(--accent);color:var(--on-accent);box-shadow:none}
+.v-row{display:flex;gap:var(--space-3);align-items:center;padding:var(--space-2) 0}
+.v-row i{width:36px;height:36px;border-radius:var(--radius-full);background:var(--mark);color:var(--on-accent);
+  display:flex;align-items:center;justify-content:center;font-size:18px}
+.v-big{display:flex;align-items:baseline;gap:var(--space-2);margin:var(--space-2) 0}
+.v-big b{font-size:var(--text-numeral);line-height:1;letter-spacing:-.02em}
+.v-dots{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-6)}
+.v-dots i{width:var(--space-2);height:var(--space-2);border-radius:var(--radius-full);background:var(--viz-ink)}
+
+/* A · Morph: the pill grows on the settle spring, the label arrives a beat later,
+   the page underneath cross-fades with a small lift. Notion's tab, Liquid Glass. */
+.m-morph .tab{transition:flex-grow var(--motion-slow) var(--ease-settle), background-color var(--motion-base) var(--ease-out)}
+.m-morph .tab .lab{transition:max-width var(--motion-slow) var(--ease-settle), opacity var(--motion-fast) var(--ease-out) 80ms}
+.m-morph .view{transition:opacity var(--motion-base) var(--ease-out), transform var(--motion-slow) var(--ease-settle)}
+.m-morph .view.out{opacity:0;transform:translateY(var(--space-2))}
+/* B · Slide: the same pill, and the pages move sideways, in the tabs' order */
+.m-slide .tab{transition:flex-grow var(--motion-slow) var(--ease-settle), background-color var(--motion-base) var(--ease-out)}
+.m-slide .tab .lab{transition:max-width var(--motion-slow) var(--ease-settle), opacity var(--motion-fast) var(--ease-out) 80ms}
+.m-slide .view{transition:transform var(--motion-slow) var(--ease-settle), opacity var(--motion-slow) var(--ease-out)}
+.m-slide .view.out.left{transform:translateX(-30%);opacity:0}
+.m-slide .view.out.right{transform:translateX(30%);opacity:0}
+/* C · Quiet: nothing moves. The pill and the page swap with a short fade. */
+.m-quiet .tab .lab{transition:opacity var(--motion-fast) var(--ease-out)}
+.m-quiet .view{transition:opacity var(--motion-fast) var(--ease-out)}
+.m-quiet .view.out{opacity:0}
+.view.out{pointer-events:none}
+
+/* ═════════ 2 · Confirming a dose ═════════ */
+.card{position:absolute;left:0;right:0;top:0;background:var(--surface-accent);padding:var(--space-6) var(--space-4) var(--space-4);
+  border-radius:0 0 var(--radius-xl) var(--radius-xl);transform-origin:top center}
+.card .v-btns{margin:var(--space-3) 0 0}
+.card .v-btns button{flex:1;min-height:var(--target-routine);border-radius:var(--radius-md);font-weight:600;
+  background:var(--surface-card);box-shadow:var(--content-edge)}
+.card .v-btns button.primary{background:var(--accent);color:var(--on-accent);box-shadow:none}
+.rail{position:absolute;left:var(--space-4);right:var(--space-4)}   /* top set from the card's height */
+.row{display:flex;gap:var(--space-3);align-items:flex-start}
+.mk{position:relative;width:36px;height:36px;border-radius:var(--radius-full);flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;border:1.5px solid var(--entry-assumed-border);
+  color:var(--text-muted);background:var(--surface-page)}
+.mk i{font-size:18px}
+.mk.done{background:var(--mark);border-color:var(--mark);color:var(--on-accent)}
+.ring{position:absolute;inset:-2px;border-radius:var(--radius-full);border:2px solid var(--mark);opacity:0;pointer-events:none}
+.r-body b{display:block}
+.r-time{font-size:var(--text-label);color:var(--text-muted)}
+.chip{display:inline-block;margin-top:var(--space-1);font-size:var(--text-label);color:var(--text-secondary);
+  background:var(--surface-raised);border-radius:var(--radius-sm);padding:0 var(--space-2)}
+.fly{position:absolute;width:36px;height:36px;border-radius:var(--radius-full);background:var(--mark);color:var(--on-accent);
+  display:flex;align-items:center;justify-content:center;z-index:5;pointer-events:none}
+.fly i{font-size:18px}
+.gone{opacity:0;transform:scaleY(.6);pointer-events:none}
+/* A · Fill */
+.d-fill .card{transition:opacity var(--motion-base) var(--ease-exit), transform var(--motion-base) var(--ease-exit)}
+.d-fill .rail{transition:transform var(--motion-slow) var(--ease-settle)}
+.d-fill .mk{transition:background-color var(--motion-base) var(--ease-out), border-color var(--motion-base) var(--ease-out), color var(--motion-base) var(--ease-out)}
+.d-fill .chip{transition:opacity var(--motion-fast) var(--ease-out)}
+.d-fill .mk.done .ring{animation:ring var(--motion-slow) var(--ease-out) var(--motion-fast) 1}
+@keyframes ring{0%{opacity:.5;transform:scale(1)}100%{opacity:0;transform:scale(1.6)}}
+/* B · Travel uses JS for the flight; the same exits as A */
+.d-travel .card{transition:opacity var(--motion-base) var(--ease-exit), transform var(--motion-base) var(--ease-exit)}
+.d-travel .rail{transition:transform var(--motion-slow) var(--ease-settle)}
+.d-travel .mk{transition:background-color var(--motion-base) var(--ease-out), border-color var(--motion-base) var(--ease-out), color var(--motion-base) var(--ease-out)}
+.d-travel .chip{transition:opacity var(--motion-fast) var(--ease-out)}
+/* C · Quiet */
+.d-quiet .card{transition:opacity var(--motion-fast) var(--ease-out)}
+.d-quiet .card.gone{transform:none}
+.d-quiet .mk, .d-quiet .chip{transition:opacity var(--motion-fast) var(--ease-out), background-color var(--motion-fast), color var(--motion-fast)}
+.chip.hide{opacity:0}
+
+/* ═════════ 3 · Press and open ═════════ */
+.pbtns{display:flex;flex-direction:column;gap:var(--target-gap);padding:var(--space-4)}
+.pbtn{min-height:var(--target-routine);border-radius:var(--radius-md);font-weight:600;background:var(--accent);color:var(--on-accent)}
+.pbtn.quiet{background:var(--surface-card);color:var(--text-primary);box-shadow:var(--content-edge)}
+/* press: in fast, out slower, so the release is felt, never a wobble */
+.p-scale .pbtn{transition:transform var(--motion-fast) var(--ease-out), background-color var(--motion-fast)}
+.p-scale .pbtn:active{transform:scale(.97);transition-duration:var(--motion-press)}
+.p-tone .pbtn{transition:background-color var(--motion-press) var(--ease-out)}
+.p-tone .pbtn:active{background:var(--accent-hover)}
+.p-tone .pbtn.quiet:active{background:var(--surface-raised)}
+.sheet{position:absolute;left:0;right:0;bottom:0;height:62%;background:var(--surface-card);
+  border-radius:var(--radius-lg) var(--radius-lg) 0 0;box-shadow:var(--shadow-overlay);transform:translateY(105%);
+  padding:var(--space-3) var(--space-4)}
+.sheet .pull{width:40px;height:var(--space-1);border-radius:var(--radius-full);background:var(--paper-300);margin:0 auto var(--space-4)}
+.sheet .t{font-weight:600;font-size:var(--text-heading);margin-bottom:var(--space-3)}
+.sheet .tiles{display:grid;grid-template-columns:1fr 1fr;gap:var(--target-gap)}
+.sheet .tiles span{min-height:var(--target-critical);border:1px solid var(--border-control);border-radius:var(--radius-md);
+  display:flex;align-items:center;padding:0 var(--space-3);font-weight:500}
+.scrim{position:absolute;inset:0;background:color-mix(in srgb, var(--paper-900) 34%, transparent);opacity:0;pointer-events:none}
+.open .sheet{transform:translateY(0)}
+.open .scrim{opacity:1;pointer-events:auto}
+.s-settle .sheet{transition:transform var(--motion-slow) var(--ease-settle)}
+.s-settle .scrim{transition:opacity var(--motion-base) var(--ease-out)}
+.s-ease .sheet{transition:transform var(--motion-base) var(--ease-out)}
+.s-ease .scrim{transition:opacity var(--motion-base) var(--ease-out)}
+.s-bounce .sheet{transition:transform 600ms var(--ease-bounce)}
+.s-bounce .scrim{transition:opacity var(--motion-base) var(--ease-out)}
+
+/* ═════════ Reduce motion: what everyone with that setting gets ═════════
+   Nothing travels, grows or springs. State still changes visibly, by a short
+   fade, so the feedback is kept and only the movement goes. [WCAG 2.3.3] */
+.reduce *, .reduce *::before, .reduce *::after{transition-property:opacity, background-color, color, border-color!important;
+  transition-duration:var(--motion-fast)!important;transition-delay:0s!important;animation:none!important}
+.reduce .view.out.left, .reduce .view.out.right, .reduce .view.out{transform:none}
+.reduce .gone{transform:none}
+@media (prefers-reduced-motion: reduce){
+  .tab, .tab .lab, .view, .card, .rail, .sheet{transition-property:opacity, background-color!important}
+}
+
+table{width:100%;border-collapse:collapse;margin:var(--space-3) 0;font-size:var(--text-small)}
+th,td{text-align:left;padding:var(--space-2) var(--space-2) var(--space-2) 0;border-bottom:1px solid var(--border-subtle);vertical-align:top}
+th{font-size:var(--text-label);color:var(--text-muted);font-weight:600}
+td code{font-size:var(--text-label);overflow-wrap:anywhere}
+ul.rules{padding-left:var(--space-4);color:var(--text-secondary);font-size:var(--text-small)}
+ul.rules li{margin-bottom:var(--space-2)}
+.src{font-size:var(--text-small)}
+.src a{color:var(--accent)}
+@media (hover:hover){ .replay:hover{background:var(--surface-raised)} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="home" href="../index.html"><i class="ph ph-arrow-left"></i>Home</a>
+  <h1>Motion study</h1>
+  <p class="lede">Three moments, three options each, to feel on a phone. A is the quietest that still
+  moves, B carries more, C is the comparison point.</p>
+
+  <div class="rm">
+    <span class="lab">Reduce motion<small>What people with this setting on their phone get</small></span>
+    <button class="switch" role="switch" aria-checked="false" id="rmSwitch" onclick="toggleReduce()" aria-label="Reduce motion"></button>
+  </div>
+
+  <!-- ═════════ 1 ═════════ -->
+  <h2>1 · Switching Today and Look Back</h2>
+  <p class="sub">Tap the tabs in the phone.</p>
+  <div class="seg" role="group" aria-label="Tab switch option" id="seg1">
+    <button aria-pressed="true" onclick="pick(1,'morph',this)">A · Morph</button>
+    <button aria-pressed="false" onclick="pick(1,'slide',this)">B · Slide</button>
+    <button aria-pressed="false" onclick="pick(1,'quiet',this)">C · Quiet</button>
+  </div>
+  <div class="phone m-morph" id="demo1">
+    <div class="ttop">
+      <span class="gl"><i class="ph ph-list"></i></span>
+      <div class="tabs">
+        <button class="gl tab on" id="t-today" onclick="tab('today')"><i class="ph-fill ph-sun"></i><span class="lab">Today</span></button>
+        <button class="gl tab" id="t-lb" onclick="tab('lb')"><i class="ph ph-chart-line"></i><span class="lab">Look Back</span></button>
+      </div>
+    </div>
+    <div class="view today" id="v-today">
+      <p class="v-q">Did you take these?</p>
+      <div style="color:var(--text-secondary)">Levodopa 100mg with Entacapone 200mg</div>
+      <div class="v-btns"><span>Taken</span><span>Not taken</span></div>
+      <div class="v-row"><i class="ph-fill ph-footprints"></i><span>Walk · 09:40</span></div>
+      <div class="v-row"><i class="ph-fill ph-hand-heart"></i><span>Meds kicked in · 09:40</span></div>
+    </div>
+    <div class="view out right" id="v-lb">
+      <p class="v-q">Gaps between doses</p>
+      <div class="v-big"><b>13</b><span>min shorter than planned</span></div>
+      <div style="color:var(--text-muted);font-size:var(--text-label)">The 3 months before: 8 min</div>
+      <div class="v-dots" id="dots"></div>
+    </div>
+  </div>
+  <p class="note" id="note1"></p>
+  <p class="spec" id="spec1"></p>
+
+  <!-- ═════════ 2 ═════════ -->
+  <h2>2 · Confirming a dose</h2>
+  <p class="sub">Tap Taken. The record is the feedback: there is still no message.</p>
+  <div class="seg" role="group" aria-label="Logging option" id="seg2">
+    <button aria-pressed="true" onclick="pick(2,'fill',this)">A · Fill</button>
+    <button aria-pressed="false" onclick="pick(2,'travel',this)">B · Travel</button>
+    <button aria-pressed="false" onclick="pick(2,'quiet',this)">C · Quiet</button>
+  </div>
+  <div class="phone short d-fill" id="demo2"></div>
+  <button class="replay" onclick="resetDose()"><i class="ph ph-arrow-counter-clockwise"></i>Replay</button>
+  <p class="note" id="note2"></p>
+  <p class="spec" id="spec2"></p>
+
+  <!-- ═════════ 3 ═════════ -->
+  <h2>3 · Pressing and opening</h2>
+  <p class="sub">Press and hold the buttons, then let go. "Add to today" opens the sheet; tap the dark area to close it.</p>
+  <div class="seg" role="group" aria-label="Press option" id="seg3">
+    <button aria-pressed="true" onclick="pick(3,'settle',this)">A · Settle</button>
+    <button aria-pressed="false" onclick="pick(3,'ease',this)">B · Ease</button>
+    <button aria-pressed="false" onclick="pick(3,'bounce',this)">C · Bounce</button>
+  </div>
+  <div class="phone short p-scale s-settle" id="demo3">
+    <div class="pbtns">
+      <button class="pbtn" onclick="el('demo3').classList.add('open')">Add to today</button>
+      <button class="pbtn quiet">Not taken</button>
+    </div>
+    <div class="scrim" onclick="el('demo3').classList.remove('open')"></div>
+    <div class="sheet"><div class="pull"></div><div class="t">Add to today</div>
+      <div class="tiles"><span>Sleep</span><span>Food</span><span>Activity</span><span>Medication</span></div></div>
+  </div>
+  <p class="note" id="note3"></p>
+  <p class="spec" id="spec3"></p>
+
+  <h2>The rules any option has to keep</h2>
+  <ul class="rules">
+    <li><b>Never move what someone is about to tap.</b> A target that slides while a hand with tremor is on its way is a missed tap. Motion happens to what changed, after the tap.</li>
+    <li><b>Never make anyone wait.</b> Every tap counts the moment it lands, mid-animation included; motion only shows what already happened.</li>
+    <li><b>No overshoot.</b> A bounce reads as playful, and for a vestibular-sensitive eye, as wobble. Our spring settles without passing its mark.</li>
+    <li><b>Short.</b> 120 to 320 ms, the range the token page already has. The press is 90 ms in, so the release is felt.</li>
+    <li><b>Reduce motion keeps the feedback, drops the movement.</b> State still changes, by a short fade. Parkinson's medication can bring dizziness; this setting is not an edge case here.</li>
+    <li><b>Motion means something.</b> The one place we would spend the showier option is where the movement IS the message: an assumed dose becoming a confirmed one.</li>
+  </ul>
+
+  <h2>Proposed tokens</h2>
+  <table>
+    <tr><th>Token</th><th>Value</th><th>For</th></tr>
+    <tr><td><code>--motion-press</code></td><td>90ms</td><td>Press in. New.</td></tr>
+    <tr><td><code>--motion-fast</code></td><td>120ms</td><td>Fades, colour, press out. Exists.</td></tr>
+    <tr><td><code>--motion-base</code></td><td>200ms</td><td>Exits, scrims. Exists.</td></tr>
+    <tr><td><code>--motion-slow</code></td><td>320ms</td><td>Anything that travels or grows. Exists.</td></tr>
+    <tr><td><code>--ease-out</code></td><td>cubic-bezier(.2,0,0,1)</td><td>Fades and colour. Exists; Material's standard curve.</td></tr>
+    <tr><td><code>--ease-settle</code></td><td>a critically damped spring in <code>linear()</code></td><td>Anything that travels or grows. New.</td></tr>
+    <tr><td><code>--ease-exit</code></td><td>cubic-bezier(.3,0,.8,.15)</td><td>Things leaving: quick to go. New; Material's emphasised accelerate.</td></tr>
+  </table>
+
+  <h2>What the field does</h2>
+  <ul class="rules">
+    <li><b>Carbon (IBM)</b> splits motion into <i>productive</i> (quick, stays out of the way, for task work) and <i>expressive</i> (reserved for significant moments), with durations from 70 to 700 ms. DoseEgg is a productive app with one expressive moment.</li>
+    <li><b>Material 3 Expressive (Google, 2025)</b> moved from fixed curves to springs, with a <i>standard</i> scheme (settles) and an <i>expressive</i> one (bounces). We take the standard spring.</li>
+    <li><b>Apple</b>: Liquid Glass elements morph and merge rather than cut, which is Option A for tabs. iOS 26.4 added "Reduce Bright Effects" and a stronger Reduce Motion after people found the glass animations tiring, a reminder that delight has a cost for sensitive eyes.</li>
+    <li><b>The web can now animate between pages</b> (cross-document View Transitions, in Safari 18.2 and Chrome 126 onward). Today and Look Back are separate pages, and the pill can still glide between them. Older browsers simply switch, with nothing broken.</li>
+  </ul>
+  <p class="src">Sources:
+    <a href="https://carbondesignsystem.com/elements/motion/overview/">Carbon motion</a> ·
+    <a href="https://m3.material.io/styles/motion/overview">Material 3 motion</a> ·
+    <a href="https://pub.dev/documentation/material_expressive/0.8.0/">M3 Expressive spring tokens (community docs)</a> ·
+    <a href="https://www.tomsguide.com/phones/iphones/ios-26-4-finally-adds-the-hidden-controls-to-tone-down-liquid-glass-heres-how">iOS 26.4 Liquid Glass controls</a> ·
+    <a href="https://www.w3.org/WAI/WCAG21/Understanding/animation-from-interactions.html">WCAG 2.3.3</a> ·
+    <a href="https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API">View Transitions</a></p>
+</div>
+
+<script>
+const el = id => document.getElementById(id);
+const NOTES = {
+  1: { morph: ['<b>Recommended.</b> The bubble grows into the pill and the page lifts in. It says "same place, other view" without travel. Closest to Notion and Liquid Glass.', 'Pill 320ms settle spring · label fades in after 80ms · page 200ms fade + 8px lift'],
+       slide: ['The pages move sideways in the tabs\' order. Clear sense of place, but a whole screen travelling is the most movement on this page.', 'Pill 320ms settle spring · page slides 30% with fade, 320ms'],
+       quiet: ['Nothing moves; a short fade. Calm, but the switch is easy to miss when the two views share a header.', 'Pill and page 120ms fade'] },
+  2: { fill: ['<b>Recommended.</b> The hollow marker fills solid and rings once: an assumed dose becoming a confirmed one, which is the fact being recorded. The card leaves, the rail closes up.', 'Card exits 200ms · rail closes 320ms settle · marker fills 200ms · one ring 320ms'],
+       travel: ['The pill flies from the card into its row, then fills. Shows where it went, but the flight is showy and crosses the screen.', 'Flight 320ms settle · then A'],
+       quiet: ['The card fades and the marker swaps. Honest and calm; the change is easy to miss if you look away.', 'All 120ms fades'] },
+  3: { settle: ['<b>Recommended.</b> Press shrinks slightly and springs back; the sheet arrives fast and settles without overshoot.', 'Press 90ms in, 120ms out · sheet 320ms settle'],
+       ease: ['The same, on a plain ease-out curve. Fine, a little more mechanical.', 'Press 90/120ms · sheet 200ms ease-out'],
+       bounce: ['Shown so you can feel what we would not ship: the sheet overshoots by 20% and wobbles back. Lively, and wrong for an audience where motion can mean dizziness.', 'Sheet 600ms, 20% overshoot'] },
+};
+function pick(n, opt, btn){
+  btn.parentElement.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+  const d = el('demo' + n);
+  if (n === 1) d.className = 'phone m-' + opt;
+  if (n === 2){ d.className = 'phone short d-' + opt; resetDose(); }
+  if (n === 3) d.className = 'phone short ' + (opt === 'ease' ? 'p-tone' : 'p-scale') + ' s-' + opt;
+  el('note' + n).innerHTML = NOTES[n][opt][0]; el('spec' + n).textContent = NOTES[n][opt][1];
+  applyReduce();
+}
+let reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function applyReduce(){ [1,2,3].forEach(n => el('demo' + n).classList.toggle('reduce', reduce));
+  el('rmSwitch').setAttribute('aria-checked', String(reduce)); }
+function toggleReduce(){ reduce = !reduce; applyReduce(); }
+
+/* 1 · tabs */
+let cur = 'today';
+function tab(t){
+  if (t === cur) return;
+  const order = { today: 0, lb: 1 }, dir = order[t] > order[cur] ? 1 : -1;
+  el('t-today').classList.toggle('on', t === 'today'); el('t-lb').classList.toggle('on', t === 'lb');
+  el('t-today').querySelector('i').className = (t === 'today' ? 'ph-fill' : 'ph') + ' ph-sun';
+  el('t-lb').querySelector('i').className = (t === 'lb' ? 'ph-fill' : 'ph') + ' ph-chart-line';
+  const leave = el(cur === 'today' ? 'v-today' : 'v-lb'), come = el(t === 'today' ? 'v-today' : 'v-lb');
+  /* the arriving page starts on the side it is coming from, then moves in */
+  come.style.transition = 'none'; come.classList.remove('left', 'right'); come.classList.add('out', dir > 0 ? 'right' : 'left');
+  come.offsetWidth; come.style.transition = '';
+  leave.classList.remove('left', 'right'); leave.classList.add('out', dir > 0 ? 'left' : 'right');
+  come.classList.remove('out', 'left', 'right');
+  cur = t;
+}
+el('dots').innerHTML = Array.from({ length: 42 }, () => '<i></i>').join('');
+
+/* 2 · confirming a dose */
+function resetDose(){
+  el('demo2').innerHTML = `
+    <div class="card" id="card"><p class="v-q" style="margin:0">Did you take these?</p>
+      <div style="color:var(--text-secondary);font-size:var(--text-small)">Levodopa 100mg with Entacapone 200mg</div>
+      <div class="v-btns"><button class="primary" onclick="taken()">Taken</button><button>Not taken</button></div></div>
+    <div class="rail" id="rail"><div class="row">
+      <span class="mk" id="mk"><i class="ph ph-pill"></i><span class="ring"></span></span>
+      <span class="r-body"><span class="r-time">11:00</span><b>Levodopa 100mg</b><span class="chip" id="chip">Not confirmed</span></span>
+    </div></div>`;
+  el('rail').style.top = (el('card').offsetHeight + 24) + 'px';
+  applyReduce();
+}
+function finish(){
+  const mk = el('mk');
+  mk.classList.add('done'); mk.querySelector('i').className = 'ph-fill ph-pill';
+  el('chip').classList.add('hide');
+}
+function taken(){
+  const d = el('demo2'), card = el('card'), rail = el('rail');
+  const travel = d.classList.contains('d-travel') && !reduce;
+  /* the tap counts now; what follows only shows it */
+  if (travel){
+    const src = card.querySelector('button.primary').getBoundingClientRect(), dst = el('mk').getBoundingClientRect(), box = d.getBoundingClientRect();
+    const f = document.createElement('span'); f.className = 'fly'; f.innerHTML = '<i class="ph-fill ph-pill"></i>';
+    f.style.left = (src.left - box.left + src.width / 2 - 18) + 'px'; f.style.top = (src.top - box.top + src.height / 2 - 18) + 'px';
+    d.appendChild(f); f.offsetWidth;
+    f.style.transition = 'transform var(--motion-slow) var(--ease-settle), opacity var(--motion-fast) var(--ease-out) 300ms';
+    const dy = -(rail.getBoundingClientRect().top - box.top) + 24;
+    f.style.transform = `translate(${dst.left - src.left - src.width / 2 + 18}px, ${dst.top - src.top - src.height / 2 + 18 + dy}px)`;
+    setTimeout(() => { finish(); f.style.opacity = 0; }, 320);
+    setTimeout(() => f.remove(), 600);
+  }
+  card.classList.add('gone');
+  rail.style.transform = `translateY(${-(rail.getBoundingClientRect().top - d.getBoundingClientRect().top) + 24}px)`;
+  if (!travel) finish();
+}
+
+pick(1, 'morph', el('seg1').children[0]); pick(2, 'fill', el('seg2').children[0]); pick(3, 'settle', el('seg3').children[0]);
+</script>
+</body>
+</html>

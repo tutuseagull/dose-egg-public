@@ -16,6 +16,18 @@
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <link rel="stylesheet" href="../tokens.css">
+<meta name="theme-color" id="themeColor" content="">
+<script>
+/* phone edges: browser chrome takes the page colour, read from the tokens */
+function paintEdges(tinted){
+  const css = getComputedStyle(document.documentElement);
+  const c = (tinted ? css.getPropertyValue('--surface-accent') : css.getPropertyValue('--surface-page')).trim();
+  document.documentElement.style.setProperty('--edge', c);
+  const m = document.getElementById('themeColor'); if (m && c) m.setAttribute('content', c);
+}
+addEventListener('DOMContentLoaded', () => paintEdges(document.querySelector('.shell.tinted') != null));
+</script>
+
 <style>
 /* Every shared token (palette, type, space, radius, targets, elevation, glass)
    comes from ../tokens.css, linked above. Since 2026-10-09 that file is the ONE
@@ -51,6 +63,17 @@ body{margin:0;background:var(--backdrop);font-family:var(--font-sans);
      font-size:var(--text-body);line-height:var(--leading-body);
      color:var(--text-primary);-webkit-font-smoothing:antialiased;
      display:flex;justify-content:center;min-height:100vh}
+/* PHONE EDGES (2026-10-19). The grey backdrop frames the phone column on a desktop.
+   On a phone there is nothing to frame, but the browser still paints it above the
+   page (status bar), below it (toolbar, overscroll). Below phone width the page
+   colour fills the screen, and --edge lets a page paint the top in its own colour
+   (Today: the card's blue while the card is showing). theme-color, set by script,
+   tells browsers that support it the same thing. */
+@media (max-width: 480px){
+  html{background:var(--edge, var(--surface-page))}
+  body{background:var(--surface-page)}
+}
+
 /* dvh = DYNAMIC viewport height. Plain `vh` on a phone is measured against the
    browser window with its toolbars HIDDEN, so 100vh is always taller than what
    you can actually see — the bottom of the page sits behind the URL bar. `dvh`
@@ -3201,6 +3224,7 @@ window.addEventListener('scroll', () =>
 function updateTint(){
   const today = !el('scroll').hidden;
   document.querySelector('.shell').classList.toggle('tinted', !!currentSlot && today);
+  paintEdges(!!currentSlot && today);
 }
 
 
