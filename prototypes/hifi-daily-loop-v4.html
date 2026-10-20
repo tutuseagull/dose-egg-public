@@ -26,7 +26,11 @@ function paintEdges(tinted){
   document.documentElement.style.setProperty('--edge', c);
   const m = document.getElementById('themeColor'); if (m && c) m.setAttribute('content', c);
 }
-addEventListener('DOMContentLoaded', () => paintEdges(document.querySelector('.shell.tinted') != null));
+addEventListener('DOMContentLoaded', () => {
+  const s = document.createElement('div'); s.className = 'edge-top'; s.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(s);
+  paintEdges(document.querySelector('.shell.tinted') != null);
+});
 </script>
 
 <style>
@@ -73,7 +77,22 @@ body{margin:0;background:var(--backdrop);font-family:var(--font-sans);
 @media (max-width: 480px){
   html{background:var(--edge, var(--surface-page))}
   body{background:var(--surface-page)}
+  /* iOS 26 Safari ignores theme-color. It colours the strip above and below the
+     page from the body background, unless a FIXED element is showing, whose
+     colour it borrows (benfrain.com, 2025). So: a 1px fixed strip at the very top
+     carries --edge for the strip above, and the body's oat serves the strip below. */
+  .edge-top{position:fixed;top:0;left:0;right:0;height:1px;background:var(--edge, var(--surface-page));
+            z-index:1;pointer-events:none}
 }
+/* Closed overlays are fixed too, only invisible, and Safari was borrowing the
+   closed scrim's dark grey for the strip below the page. Once closed they are
+   hidden for real, after their closing motion has finished. */
+html .scrim:not(.open){visibility:hidden;transition:opacity var(--motion-base) var(--ease-out), visibility 0s linear var(--motion-base)}
+html .scrim.open{visibility:visible;transition:opacity var(--motion-base) var(--ease-out), visibility 0s}
+html .sheet:not(.open){visibility:hidden;transition:transform var(--motion-slow) var(--ease-settle), visibility 0s linear var(--motion-slow)}
+html .sheet.open{visibility:visible;transition:transform var(--motion-slow) var(--ease-settle), visibility 0s}
+html .drawer:not(.open){visibility:hidden;transition:opacity var(--motion-base) var(--ease-out), transform var(--motion-base) var(--ease-out), visibility 0s linear var(--motion-base)}
+html .drawer.open{visibility:visible}
 
 /* dvh = DYNAMIC viewport height. Plain `vh` on a phone is measured against the
    browser window with its toolbars HIDDEN, so 100vh is always taller than what
@@ -3129,8 +3148,15 @@ function addEntry(e, di){
   requestAnimationFrame(() => {
     const n = document.querySelector('.entry.fresh');
     if (!n) return;
-    n.scrollIntoView({ block:'center',
-                       behavior: REDUCED_MOTION.matches ? 'auto' : 'smooth' });
+    /* Only scroll when the new entry is NOT already in view between the header and
+       the dock. Confirming a dose usually leaves its row on screen, and scrolling
+       on top of the card leaving and the rail closing up was too much movement
+       (Tutu, 2026-10-19). */
+    const r = n.getBoundingClientRect();
+    const top = document.querySelector('.top').getBoundingClientRect().bottom;
+    const dock = document.querySelector('.dock'), bottom = dock ? dock.getBoundingClientRect().top : innerHeight;
+    if (r.top < top || r.bottom > bottom)
+      n.scrollIntoView({ block:'center', behavior: REDUCED_MOTION.matches ? 'auto' : 'smooth' });
     /* Remove the class on the live node rather than re-rendering, so the wash
        fades out via .ecard's transition instead of being replaced mid-fade. */
     setTimeout(() => n.classList.remove('fresh'), 1800);
