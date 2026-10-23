@@ -138,7 +138,7 @@ section h2{margin:0 0 var(--space-1);font-size:var(--text-heading);font-weight:6
 .card > i{font-size:18px;color:var(--text-muted);flex:0 0 auto}
 .c-body{flex:1;min-width:0}
 .c-title{display:block;font-weight:600}
-.c-line{display:block;font-size:var(--text-small);color:var(--text-secondary)}
+.c-line{display:block;font-size:var(--text-body);color:var(--text-secondary)}
 .c-meta{display:flex;flex-wrap:wrap;gap:var(--space-1) var(--space-3);margin-top:var(--space-1);
   font-size:var(--text-label);color:var(--text-muted)}
 .c-meta span{display:flex;align-items:center;gap:var(--space-1)}
@@ -146,7 +146,7 @@ section h2{margin:0 0 var(--space-1);font-size:var(--text-heading);font-weight:6
 /* a dose time: the clock is the headline, the medications follow */
 .slot .time{font-size:var(--text-title);font-weight:700;letter-spacing:-.01em;
   font-variant-numeric:tabular-nums;line-height:var(--leading-tight)}
-.slot .backup{font-size:var(--text-small);color:var(--text-secondary);font-weight:500}
+.slot .backup{font-size:var(--text-body);color:var(--text-secondary);font-weight:500}
 .slot .meds{display:block;margin-top:var(--space-1)}
 .slot .meds b{font-weight:600}
 
@@ -173,7 +173,7 @@ section h2{margin:0 0 var(--space-1);font-size:var(--text-heading);font-weight:6
 .btn.ghost:active{background:color-mix(in srgb, var(--paper-0) 55%, transparent)}
 .btn[disabled]{background:var(--surface-sunken);color:var(--text-muted);cursor:default}
 .textbtn{min-height:var(--target-min);padding:0 var(--space-3);border-radius:var(--radius-md);
-  display:inline-flex;align-items:center;gap:var(--space-2);color:var(--text-primary);font-size:var(--text-small)}
+  display:inline-flex;align-items:center;gap:var(--space-2);color:var(--text-primary);font-size:var(--text-body)}
 .textbtn i{font-size:18px}
 .textbtn.accent{color:var(--accent);font-weight:600}
 .textbtn:active{background:var(--surface-raised)}
@@ -186,10 +186,10 @@ section h2{margin:0 0 var(--space-1);font-size:var(--text-heading);font-weight:6
 
 .hist{border-top:1px solid var(--border-subtle)}
 .hrow{display:flex;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--border-subtle)}
-.hrow .when{flex:0 0 7.5rem;font-size:var(--text-small);font-weight:600}
-.hrow .what{flex:1;font-size:var(--text-small);color:var(--text-secondary)}
+.hrow .when{flex:0 0 7.5rem;font-size:var(--text-body);font-weight:600}
+.hrow .what{flex:1;font-size:var(--text-body);color:var(--text-secondary)}
 .hrow.now .when::after{content:' · now';font-weight:500;color:var(--accent)}
-.empty{color:var(--text-secondary);font-size:var(--text-small);margin:0}
+.empty{color:var(--text-secondary);font-size:var(--text-body);margin:0}
 
 /* ═══════════════════ sheets ═══════════════════
    The overlay carries the depth; everything inside it is flat. */
@@ -224,14 +224,14 @@ section h2{margin:0 0 var(--space-1);font-size:var(--text-heading);font-weight:6
 .saved i{font-size:16px;color:var(--accent)}
 .chips{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-2)}
 .chip{min-height:var(--target-min);padding:0 var(--space-3);border-radius:var(--radius-full);
-  border:1px solid var(--border-control);background:var(--surface-card);font-size:var(--text-small)}
+  border:1px solid var(--border-control);background:var(--surface-card);font-size:var(--text-body)}
 .chip:active{background:var(--surface-raised)}
 /* one time row: the time, its backup, its reminder, and who it is taken with */
 .trow{border:1px solid var(--border-control);border-radius:var(--radius-md);padding:var(--space-3);
   display:flex;flex-direction:column;gap:var(--space-2);margin-bottom:var(--space-3)}
 .trow .line{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
 .trow .line .grow{flex:1}
-.trow .or{font-size:var(--text-small);color:var(--text-secondary)}
+.trow .or{font-size:var(--text-body);color:var(--text-secondary)}
 .iconbtn{width:var(--target-min);height:var(--target-min);display:flex;align-items:center;
   justify-content:center;border-radius:var(--radius-md);color:var(--text-secondary);flex:0 0 auto}
 .iconbtn i{font-size:20px}
@@ -239,7 +239,7 @@ section h2{margin:0 0 var(--space-1);font-size:var(--text-heading);font-weight:6
 .iconbtn.on{color:var(--accent)}
 .seg{display:flex;gap:var(--space-1);background:var(--surface-sunken);border-radius:var(--radius-md);
   padding:var(--space-1)}
-.seg button{flex:1;min-height:var(--target-min);border-radius:var(--radius-sm);font-size:var(--text-small);
+.seg button{flex:1;min-height:var(--target-min);border-radius:var(--radius-sm);font-size:var(--text-body);
   color:var(--text-secondary);padding:0 var(--space-2)}
 .seg button[aria-pressed="true"]{background:var(--surface-card);color:var(--text-primary);font-weight:600;
   box-shadow:var(--content-edge)}
@@ -255,7 +255,7 @@ section h2{margin:0 0 var(--space-1);font-size:var(--text-heading);font-weight:6
 .switch[aria-checked="true"]::before{background:var(--accent)}
 .switch[aria-checked="true"]::after{transform:translateX(calc(var(--space-6) - var(--space-1)))}
 .preview{background:var(--surface-raised);border-radius:var(--radius-md);padding:var(--space-3);
-  font-size:var(--text-small);color:var(--text-secondary)}
+  font-size:var(--text-body);color:var(--text-secondary)}
 .preview b{color:var(--text-primary)}
 .starts{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;
   border-top:1px solid var(--border-subtle);padding-top:var(--space-4)}

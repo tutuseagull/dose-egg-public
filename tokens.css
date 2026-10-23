@@ -108,11 +108,13 @@
   --font-sans:  'Manrope', -apple-system, system-ui, sans-serif;
   --font-serif: var(--font-sans);   /* kept as a name so no component had to change */
 
+  /* Five sizes, each about 1.2x the one below (2026-10-23). 16 was retired and
+     merged into body: 16 and 17 looked the same, so having both only made
+     choosing harder. Secondary text is quieter by hue and weight, never size. */
   --text-display:  2rem;      /* 32 */
   --text-title:    1.5rem;    /* 24 */
-  --text-heading:  1.1875rem; /* 19, 600 */
+  --text-heading:  1.25rem;   /* 20, 600 */
   --text-body:     1.0625rem; /* 17, the base */
-  --text-small:    1rem;      /* 16 */
   --text-label:    0.875rem;  /* 14, THE FLOOR */
   --text-numeral:  3rem;      /* 48, the hero numeral. ONLY for the one number a statement
                                  is about, always with its coverage beside it (2026-10-12) */

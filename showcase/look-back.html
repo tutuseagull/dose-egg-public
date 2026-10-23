@@ -133,7 +133,7 @@ button{border:0;background:none;cursor:pointer;padding:0}
 .navrow .sub{display:block;font-size:var(--text-label);color:var(--text-muted);margin-top:var(--space-1)}
 .navrow:active{background:var(--surface-raised)}
 .tab[aria-current="page"]{flex:1 1 auto;padding:0 var(--space-4);font-weight:600;
-     font-size:var(--text-small)}
+     font-size:var(--text-body)}
 .tab[aria-current="page"] .tab-lab{display:inline}
 .tab, .top .icon-btn{
   background:var(--glass-fill);box-shadow:var(--glass-rim), var(--glass-shadow);
@@ -146,13 +146,13 @@ button{border:0;background:none;cursor:pointer;padding:0}
 /* ── page heading ── (not .ph: that is Phosphor's icon class) */
 .pagehead{margin:0 0 var(--space-4)}
 .pagehead h1{font-size:var(--text-title);font-weight:600;line-height:var(--leading-tight);margin:0}
-.pagehead p{margin:var(--space-1) 0 0;color:var(--text-muted);font-size:var(--text-small)}
+.pagehead p{margin:var(--space-1) 0 0;color:var(--text-muted);font-size:var(--text-body)}
 
 /* ── scale tabs (segmented) ── */
 .scales{display:flex;gap:var(--space-1);background:var(--surface-sunken);
   border-radius:var(--radius-md);padding:var(--space-1);margin-bottom:var(--space-4)}
 .scales button{flex:1;min-height:var(--target-routine);border-radius:var(--radius-sm);
-  font-size:var(--text-small);font-weight:500;color:var(--text-secondary)}
+  font-size:var(--text-body);font-weight:500;color:var(--text-secondary)}
 .scales button[aria-selected="true"]{background:var(--surface-card);color:var(--text-primary);
   font-weight:600;box-shadow:var(--content-edge)}
 
@@ -172,7 +172,7 @@ button{border:0;background:none;cursor:pointer;padding:0}
   min-height:var(--target-routine);margin-bottom:var(--space-2)}
 .periodfoot .cov{flex:1;font-size:var(--text-label);color:var(--text-muted)}
 .textbtn{min-height:var(--target-min);padding:0 var(--space-3);margin-right:calc(var(--space-3) * -1);
-  border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-small);
+  border-radius:var(--radius-md);color:var(--text-primary);font-size:var(--text-body);
   display:flex;align-items:center;gap:var(--space-2);flex:0 0 auto}
 .textbtn i{font-size:18px}
 .textbtn:active{background:var(--surface-raised)}
@@ -188,7 +188,7 @@ button{border:0;background:none;cursor:pointer;padding:0}
 .num{font-size:var(--text-numeral);font-weight:700;line-height:1;letter-spacing:-.02em;
      font-variant-numeric:tabular-nums}
 .unit{font-size:var(--text-heading);font-weight:600}
-.ro-line{font-size:var(--text-small);color:var(--text-secondary);line-height:var(--leading-tight)}
+.ro-line{font-size:var(--text-body);color:var(--text-secondary);line-height:var(--leading-tight)}
 .ro-cov{font-size:var(--text-label);color:var(--text-muted)}
 .ro-day{font-weight:600}
 
@@ -225,11 +225,11 @@ svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-we
 .stretch:active{background:var(--surface-raised)}
 .stretch .s-body{flex:1;min-width:0}
 .stretch .s-name{font-weight:600;display:block}
-.stretch .s-meta{display:block;font-size:var(--text-small);color:var(--text-secondary)}
+.stretch .s-meta{display:block;font-size:var(--text-body);color:var(--text-secondary)}
 .stretch .s-ask{display:block;font-size:var(--text-label);color:var(--accent);margin-top:var(--space-1)}
 .stretch > i{font-size:18px;color:var(--text-muted)}
 .none{background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--radius-md);
-  padding:var(--space-3) var(--card-pad);color:var(--text-secondary);font-size:var(--text-small);
+  padding:var(--space-3) var(--card-pad);color:var(--text-secondary);font-size:var(--text-body);
   margin-bottom:var(--space-3)}
 .periods{margin:0 0 var(--space-6);border-top:1px solid var(--border-subtle)}
 .prow{display:flex;align-items:baseline;gap:var(--space-3);padding:var(--space-3) 0;
@@ -237,7 +237,7 @@ svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-we
 .prow .p-when{flex:1;font-weight:500}
 .prow .p-val{font-variant-numeric:tabular-nums;text-align:right}
 .prow .p-cov{display:block;font-size:var(--text-label);color:var(--text-muted)}
-.how{margin:var(--space-2) 0 0;font-size:var(--text-small);color:var(--text-secondary);
+.how{margin:var(--space-2) 0 0;font-size:var(--text-body);color:var(--text-secondary);
   border-top:1px solid var(--border-subtle);padding-top:var(--space-3)}
 .how p{margin:0 0 var(--space-2)}
 .plan{font-size:var(--text-label);color:var(--text-muted);margin:0 0 var(--space-4)}
@@ -277,7 +277,7 @@ svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-we
 /* The one difference worth reading comes first; the rows below are for checking it.
    Heading + this sentence carry the "together, not because" framing, so there is no
    standing caveat line to read every time (Tutu, 2026-10-12). */
-.cmp-note{margin:0 0 var(--space-3);font-size:var(--text-small);color:var(--text-secondary)}
+.cmp-note{margin:0 0 var(--space-3);font-size:var(--text-body);color:var(--text-secondary)}
 .dismiss-wrap .textbtn{margin-left:calc(var(--space-3) * -1)}
 .dismiss-wrap p{margin:0;font-size:var(--text-label);color:var(--text-muted)}
 /* Hidden stretch: the same tombstone as Timeline's removed entry. It stays where the
@@ -286,11 +286,11 @@ svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-we
 .tomb{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;
   min-height:var(--target-critical);padding:0 0 0 var(--card-pad);margin-bottom:var(--space-3);
   border:1px dashed var(--border-interactive);border-radius:var(--radius-md)}
-.tomb-text{flex:1 1 10ch;min-width:0;font-size:var(--text-small);color:var(--text-muted)}
+.tomb-text{flex:1 1 10ch;min-width:0;font-size:var(--text-body);color:var(--text-muted)}
 .tomb-text b{font-weight:500;color:var(--text-secondary)}
 .tomb-undo{flex:0 0 auto;display:flex;align-items:center;gap:var(--space-2);
   min-height:var(--target-min);padding:0 var(--card-pad);border-radius:var(--radius-md);
-  font-size:var(--text-small);font-weight:500;color:var(--accent)}
+  font-size:var(--text-body);font-weight:500;color:var(--accent)}
 .tomb-undo i{font-size:18px}
 .tomb-undo:active{background:var(--surface-raised)}
 /* "Saved": the field writes as you type, so this confirms what already happened.

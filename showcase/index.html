@@ -55,7 +55,6 @@ addEventListener('DOMContentLoaded', () => {
   --rail-dot-x:14px;    /* terminus left = rail-x - (dot - rail width)/2 */
   --rail-dot-y:6px;     /* terminus sits just inside the last entry's padding */
   --meta-gap:5px;       /* icon → value inside a metadata pair. Optical, not scale. */
-  --text-meta:.875rem;  /* metadata, chips, timestamps — 14px floor */
 
   --drawer-w:320px;     /* menu panel width cap — same family as --shell-w */
   --shell-w:420px;      /* review-frame width — the toast is sized against this */
@@ -163,7 +162,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
          animation:rise var(--motion-base) var(--ease-out)}
 @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .confirm-q{font-size:var(--text-heading);font-weight:600;margin-bottom:2px}
-.confirm-list{font-size:var(--text-small);color:var(--text-primary);margin-bottom:2px}
+.confirm-list{font-size:var(--text-body);color:var(--text-primary);margin-bottom:2px}
 .confirm-meta{font-size:var(--text-label);color:var(--text-muted);margin-bottom:var(--space-4)}
 /* v2: two answers, not three options. "Did you take it?" has exactly two answers;
    the third button in v1 ("Edit") was a modifier on Yes wearing an answer's clothes,
@@ -171,7 +170,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
    Splitting it out fixes the semantics and removes the width ceiling at once. */
 .c-actions{display:flex;gap:var(--target-gap);flex-wrap:wrap}
 .c-btn{flex:1 1 6rem;min-height:var(--target-routine);border-radius:var(--radius-md);
-       font-weight:500;font-size:var(--text-small);background:var(--surface-page);
+       font-weight:500;font-size:var(--text-body);background:var(--surface-page);
        border:1px solid var(--border-interactive);color:var(--text-primary);
        padding:var(--space-2) var(--space-3);
        transition:background var(--motion-fast) var(--ease-out)}
@@ -181,7 +180,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 /* The third path. Quiet by weight and hue, never by size or contrast [C-16]. */
 .c-more{display:flex;align-items:center;justify-content:center;gap:var(--space-2);
         width:100%;min-height:var(--target-min);margin-top:var(--target-gap);
-        font-size:var(--text-small);font-weight:400;color:var(--accent);
+        font-size:var(--text-body);font-weight:400;color:var(--accent);
         border-radius:var(--radius-md)}
 .c-more i{font-size:18px}
 @media (hover:hover){ .c-more:hover{background:var(--surface-raised)} }
@@ -200,16 +199,16 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .nudges{display:flex;gap:var(--target-gap)}
 .nudge{flex:1;min-height:var(--target-routine);border-radius:var(--radius-md);
        border:1px solid var(--border-interactive);background:var(--surface-card);
-       font-family:inherit;font-size:var(--text-small);font-weight:500;color:var(--text-primary)}
+       font-family:inherit;font-size:var(--text-body);font-weight:500;color:var(--text-primary)}
 @media (hover:hover){ .nudge:hover{background:var(--surface-sunken)} }
 .medrow{display:flex;align-items:center;gap:var(--space-3);width:100%;
         min-height:var(--target-routine);padding:var(--space-3) var(--space-4);
         border:1px solid var(--border-subtle);border-radius:var(--radius-md);
         background:var(--surface-card);text-align:left;font-family:inherit;
-        font-size:var(--text-small);color:var(--text-primary)}
+        font-size:var(--text-body);color:var(--text-primary)}
 .medrow + .medrow{margin-top:var(--target-gap)}
 .medrow .mname{flex:1;font-weight:500}
-.medrow .mrole{font-size:var(--text-meta);letter-spacing:.06em;text-transform:uppercase;
+.medrow .mrole{font-size:var(--text-label);letter-spacing:.06em;text-transform:uppercase;
                color:var(--text-muted);flex:0 0 auto}
 .medrow .mstate{font-size:var(--text-label);color:var(--accent);font-weight:600;flex:0 0 auto}
 .medrow.off{background:var(--surface-page);border-style:dashed}
@@ -217,7 +216,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .medrow.off .mstate{color:var(--text-muted)}
 .slot-done{width:100%;min-height:var(--target-critical);border-radius:var(--radius-md);
            background:var(--accent);color:var(--on-accent);border:0;font-family:inherit;
-           font-size:var(--text-small);font-weight:600}
+           font-size:var(--text-body);font-weight:600}
 .slot-hint{font-size:var(--text-label);color:var(--text-muted)}
 
 /* ── lock screen ────────────────────────────────────────────────────────
@@ -248,7 +247,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .notif-b{color:var(--paper-200);font-size:15px;line-height:1.4}
 .notif-actions{display:flex;gap:var(--target-gap);margin-top:var(--space-4)}
 .notif-btn{flex:1;min-height:var(--target-routine);border-radius:var(--radius-md);
-           font-family:inherit;font-size:var(--text-small);font-weight:500;
+           font-family:inherit;font-size:var(--text-body);font-weight:500;
            background:rgba(255,255,255,.16);color:var(--paper-0);border:0}
 .notif-btn.primary{background:var(--paper-0);color:var(--paper-900);font-weight:600}
 .notif-btn:active{transform:scale(.98)}
@@ -288,7 +287,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .emark.declined{background:var(--surface-page)!important;border:1.5px solid currentColor}
 .emark.declined i{font-size:17px}
 
-.etime{display:block;font-size:var(--text-meta);color:var(--text-muted);font-weight:500;
+.etime{display:block;font-size:var(--text-label);color:var(--text-muted);font-weight:500;
        font-variant-numeric:tabular-nums;padding:var(--space-2) 0 var(--space-2)}
 .ecard{display:block;background:var(--surface-card);border:1px solid var(--border-subtle);
        border-radius:var(--radius-lg);padding:var(--card-pad);
@@ -296,13 +295,13 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 @media (hover:hover){ .entry:hover .ecard{background:var(--surface-raised)} }
 .ecard .chev{position:absolute;right:var(--space-4);top:50%;transform:translateY(-50%);
              color:var(--paper-400);font-size:18px;display:flex}
-.etext{display:block;font-size:var(--text-small);font-weight:600;color:var(--text-primary);
+.etext{display:block;font-size:var(--text-body);font-weight:600;color:var(--text-primary);
        line-height:1.35;padding-right:var(--space-6)}
 .emeta{display:flex;gap:var(--space-4);margin-top:var(--space-2);flex-wrap:wrap}
-.emeta span{font-size:var(--text-meta);color:var(--text-muted);display:flex;
+.emeta span{font-size:var(--text-label);color:var(--text-muted);display:flex;
             align-items:center;gap:var(--meta-gap)}
 .emeta i{font-size:15px}
-.enote{display:inline-block;font-size:var(--text-meta);color:var(--text-secondary);
+.enote{display:inline-block;font-size:var(--text-label);color:var(--text-secondary);
        background:var(--surface-sunken);border-radius:var(--radius-sm);
        padding:3px var(--space-2);margin-top:var(--space-3)}
 .entry.ahead{opacity:.55}
@@ -335,11 +334,11 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .tomb-card{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;
            background:transparent;border:1px dashed var(--border-subtle);
            border-radius:var(--radius-lg);padding:var(--space-2) var(--card-pad)}
-.tomb-text{flex:1 1 10ch;min-width:0;font-size:var(--text-small);color:var(--text-muted)}
+.tomb-text{flex:1 1 10ch;min-width:0;font-size:var(--text-body);color:var(--text-muted)}
 .tomb-text b{font-weight:500;color:var(--text-secondary)}
 .tomb-undo{flex:0 0 auto;display:flex;align-items:center;gap:var(--space-2);
            min-height:var(--target-min);padding:0 var(--space-3);
-           border-radius:var(--radius-md);font-size:var(--text-small);
+           border-radius:var(--radius-md);font-size:var(--text-body);
            font-weight:500;color:var(--accent)}
 .tomb-undo i{font-size:18px}
 /* NAV DOCK FORK: open like the rows. The dashed marker already says
@@ -366,14 +365,14 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
           font-size:var(--text-label);color:var(--accent);font-weight:600;
           letter-spacing:.04em;font-variant-numeric:tabular-nums}
 
-.empty-day{font-size:var(--text-small);color:var(--text-muted);padding:var(--space-4) 0 var(--space-6)}
+.empty-day{font-size:var(--text-body);color:var(--text-muted);padding:var(--space-4) 0 var(--space-6)}
 
 /* first-run empty state */
 .empty{text-align:center;padding:var(--space-12) var(--space-4)}
 .empty .mark{font-size:40px;margin-bottom:var(--space-4);color:var(--accent-quiet)}
 .empty h2{font-family:var(--font-serif);font-size:var(--text-title);font-weight:400;
           margin:0 0 var(--space-2)}
-.empty p{font-size:var(--text-small);color:var(--text-secondary);margin:0 auto;max-width:30ch}
+.empty p{font-size:var(--text-body);color:var(--text-secondary);margin:0 auto;max-width:30ch}
 
 /* ── FAB ────────────────────────────────────────────────────────────────
    v2: pinned to the VIEWPORT, not to the page.
@@ -427,7 +426,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .navrow i{font-size:22px;color:var(--mark);flex:0 0 auto;width:var(--space-6);
           text-align:center}
 .navrow .lab{flex:1;line-height:var(--leading-tight)}
-.navrow .sub{display:block;font-size:var(--text-meta);color:var(--text-muted);
+.navrow .sub{display:block;font-size:var(--text-label);color:var(--text-muted);
              font-weight:400;margin-top:var(--space-1)}
 /* where you are is a marker, not a colour swap — same rule the charts use */
 .navrow.here{font-weight:600}
@@ -435,7 +434,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
                     border-radius:var(--radius-full);background:var(--accent);flex:0 0 auto}
 .drawer-foot{margin-top:auto;padding:var(--space-4) var(--gutter) 0;
              border-top:1px solid var(--border-subtle);color:var(--text-muted);
-             font-size:var(--text-meta);line-height:var(--leading-body)}
+             font-size:var(--text-label);line-height:var(--leading-body)}
 
 /* ── sheets ── */
 .scrim{position:fixed;inset:0;background:rgba(26,25,22,.34);opacity:0;pointer-events:none;
@@ -475,7 +474,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .quick{flex:1 1 8rem;min-height:var(--target-critical);display:flex;align-items:center;
        justify-content:flex-start;background:var(--surface-raised);
        border:1px solid var(--border-subtle);
-       border-radius:var(--radius-md);font-size:var(--text-small);font-weight:500;
+       border-radius:var(--radius-md);font-size:var(--text-body);font-weight:500;
        padding:var(--space-3) var(--space-4);text-align:left;
        transition:background var(--motion-fast),border-color var(--motion-fast)}
 @media (hover:hover){ .quick:hover{background:var(--surface-sunken)} }
@@ -504,13 +503,13 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .tile-ico{width:38px;height:38px;border-radius:var(--radius-full);display:flex;
           align-items:center;justify-content:center;flex:0 0 auto}
 .tile-ico i{font-size:20px;color:#fff}
-.tile-name{font-size:var(--text-small);font-weight:500}
+.tile-name{font-size:var(--text-body);font-weight:500}
 .strip{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-min);
        padding:var(--space-3) var(--space-4);background:var(--surface-page);
        border:1px dashed var(--border-interactive);border-radius:var(--radius-md);width:100%;
-       text-align:left;font-size:var(--text-small)}
+       text-align:left;font-size:var(--text-body)}
 /* same label treatment as .tile-name, so Photo reads as a peer of the grid */
-.strip-name{font-size:var(--text-small);font-weight:500}
+.strip-name{font-size:var(--text-body);font-weight:500}
 .strip .sub{color:var(--text-muted);font-size:var(--text-label);font-weight:400}
 @media (hover:hover){ .strip:hover{background:var(--surface-raised)} }
 
@@ -525,7 +524,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .photo-add{display:flex;align-items:center;gap:var(--space-3);width:100%;text-align:left;
        min-height:var(--target-critical);padding:var(--space-3) var(--space-4);
        background:var(--surface-page);border:1px dashed var(--border-interactive);
-       border-radius:var(--radius-md);font-size:var(--text-small)}
+       border-radius:var(--radius-md);font-size:var(--text-body)}
 @media (hover:hover){ .photo-add:hover{background:var(--surface-raised)} }
 .photo-add > i{font-size:22px;color:var(--text-muted);flex:0 0 auto}
 .photo-shot{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;
@@ -558,7 +557,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
    the INK stops, not where the box stops. Setting a gap in a token and
    trusting it is how proximity quietly breaks. */
 .sec{display:flex;flex-direction:column;gap:var(--space-2)}
-.sec-h{font-size:var(--text-meta);letter-spacing:.08em;text-transform:uppercase;
+.sec-h{font-size:var(--text-label);letter-spacing:.08em;text-transform:uppercase;
        color:var(--text-muted);font-weight:500;line-height:var(--leading-tight)}
 .sec-opt{text-transform:none;letter-spacing:0}
 .d-head{display:flex;align-items:flex-start;gap:var(--space-3)}
@@ -578,7 +577,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
         border-radius:var(--radius-md);padding:0 var(--space-3)}
 .lbl-in:focus{outline:none;border-color:var(--accent);
               box-shadow:var(--focus-glow)}
-.d-title span{font-size:var(--text-meta);color:var(--text-muted)}
+.d-title span{font-size:var(--text-label);color:var(--text-muted)}
 
 /* Basis — the one control that changes what a doctor sees.
    Collapsed to a status row when the fact is settled; expanded when it is not. */
@@ -589,9 +588,9 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 @media (hover:hover){ .basis-row:hover{background:var(--surface-raised)} }
 .basis-row > i{font-size:22px;color:var(--text-muted);flex:0 0 auto}
 .basis-row .bt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto}
-.basis-row .bt b{font-size:var(--text-small);font-weight:500}
-.basis-row .bt em{font-size:var(--text-meta);color:var(--text-muted);font-style:normal}
-.basis-row .act{font-size:var(--text-meta);color:var(--accent);font-weight:500;flex:0 0 auto}
+.basis-row .bt b{font-size:var(--text-body);font-weight:500}
+.basis-row .bt em{font-size:var(--text-label);color:var(--text-muted);font-style:normal}
+.basis-row .act{font-size:var(--text-label);color:var(--accent);font-weight:500;flex:0 0 auto}
 /* Stacked, not segmented: three side-by-side labels wrap into unreadable
    two-line stacks at 150%+, and stacking buys a bigger target per option. */
 .opts{display:flex;flex-direction:column;gap:var(--target-gap)}
@@ -605,14 +604,14 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .opt > i{font-size:22px;color:var(--text-muted);flex:0 0 auto}
 .opt.on > i{color:var(--accent)}
 .opt .ot{display:flex;flex-direction:column;gap:1px;min-width:0}
-.opt .ot b{font-size:var(--text-small);font-weight:500}
-.opt .ot em{font-size:var(--text-meta);color:var(--text-muted);font-style:normal}
+.opt .ot b{font-size:var(--text-body);font-weight:500}
+.opt .ot em{font-size:var(--text-label);color:var(--text-muted);font-style:normal}
 
 /* Time — nudges, not a scroll picker. A ±15 button is a single tap that
    tolerates tremor; a wheel picker demands sustained fine control. */
 .timeval{font-family:var(--font-serif);font-size:var(--text-display);font-weight:400;
          font-variant-numeric:tabular-nums;line-height:1}
-.timesub{font-size:var(--text-meta);color:var(--text-muted)}
+.timesub{font-size:var(--text-label);color:var(--text-muted)}
 /* Duration sits with the time, not under "context". How long something lasted
    is a temporal fact — for an activity it is arguably the point, since the
    dose-response question is about how much movement happened, not that some
@@ -623,7 +622,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
    time and the entry name already use; one grammar, three places. */
 .minirow{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
 .minibtn{display:flex;align-items:center;gap:var(--space-1);min-height:var(--target-min);
-         font-size:var(--text-small);color:var(--text-secondary);
+         font-size:var(--text-body);color:var(--text-secondary);
          border-radius:var(--radius-sm);padding:0 var(--space-1)}
 .minibtn span{border-bottom:2px dotted var(--border-interactive);padding-bottom:1px}
 .minibtn i{font-size:15px;color:var(--text-muted)}
@@ -635,7 +634,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
    same." */
 .minibtn.step i{font-size:17px}
 @media (hover:hover){ .minibtn:hover{background:var(--surface-raised)} }
-.minisep{color:var(--paper-400);font-size:var(--text-small)}
+.minisep{color:var(--paper-400);font-size:var(--text-body)}
 /* The time is a button — tapping it swaps in numeric fields. Signalled with a
    dotted underline and a pencil, because a big number alone reads as output. */
 .timeval-btn{display:flex;align-items:center;gap:var(--space-3);
@@ -660,7 +659,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .nudges{display:flex;gap:var(--target-gap);flex-wrap:wrap}
 .nudge{flex:1 1 4.5rem;min-height:var(--target-routine);border-radius:var(--radius-md);
        background:var(--surface-page);border:1px solid var(--border-interactive);
-       font-size:var(--text-small);font-weight:500;font-variant-numeric:tabular-nums;
+       font-size:var(--text-body);font-weight:500;font-variant-numeric:tabular-nums;
        padding:var(--space-2)}
 @media (hover:hover){ .nudge:hover{background:var(--surface-raised)} }
 /* Disabled rather than hidden. Hiding would reflow the row and move the
@@ -674,7 +673,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .nowbtn{display:flex;align-items:center;justify-content:center;gap:var(--space-2);
         width:100%;min-height:var(--target-routine);border-radius:var(--radius-md);
         border:1px solid var(--border-interactive);background:var(--surface-page);
-        font-size:var(--text-small);font-weight:500}
+        font-size:var(--text-body);font-weight:500}
 .nowbtn i{font-size:18px;color:var(--text-muted)}
 @media (hover:hover){ .nowbtn:hover{background:var(--surface-raised)} }
 .nowbtn[disabled]{color:var(--text-muted);border-color:var(--border-subtle);
@@ -701,7 +700,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
          that one is the adjacent-target accessibility rule, not taste. */
       padding:var(--space-2) var(--space-3);border-radius:var(--radius-full);
       background:var(--surface-page);border:1px dashed var(--border-interactive);
-      font-size:var(--text-small);color:var(--text-secondary)}
+      font-size:var(--text-body);color:var(--text-secondary)}
 .chip i{font-size:18px;color:var(--text-muted);flex:0 0 auto}
 @media (hover:hover){ .chip:hover{background:var(--surface-raised)} }
 /* AFFORDANCE, 2026-08-12. Dashed used to mean both "empty" and "tap to open" —
@@ -724,7 +723,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
    silently vanish the way a missing glyph does. */
 .chip.set.guess{background:var(--surface-page);border-color:var(--border-interactive)}
 .est{font-weight:600;color:var(--accent-quiet);font-style:normal}
-.chip .est{font-size:var(--text-small);flex:0 0 auto}
+.chip .est{font-size:var(--text-body);flex:0 0 auto}
 /* ≈ carries the meaning visually; a screen reader gets the word instead, since
    "approximately equal to" is not what the symbol is doing here. */
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
@@ -748,24 +747,24 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
             border-radius:var(--radius-md)}
 .searchwrap i{font-size:19px;color:var(--text-muted);flex:0 0 auto}
 .searchin{flex:1 1 auto;min-width:0;border:none;background:none;font:inherit;
-          font-size:var(--text-small);color:var(--text-primary);outline:none;
+          font-size:var(--text-body);color:var(--text-primary);outline:none;
           min-height:var(--target-routine)}
 .rowlist{display:flex;flex-direction:column;gap:var(--space-2);
          max-height:44vh;overflow-y:auto;overscroll-behavior:contain}
 .rowitem{display:flex;align-items:center;gap:var(--space-3);width:100%;
          min-height:var(--target-critical);padding:0 var(--space-4);text-align:left;
          background:var(--surface-page);border:1px solid var(--border-subtle);
-         border-radius:var(--radius-md);font-size:var(--text-small)}
+         border-radius:var(--radius-md);font-size:var(--text-body)}
 @media (hover:hover){ .rowitem:hover{background:var(--surface-raised)} }
 .rowitem.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);
             background:var(--surface-raised)}
 .rowitem.add{border-style:dashed;border-color:var(--border-interactive);color:var(--accent)}
 .rowitem i{font-size:18px;color:var(--text-muted);flex:0 0 auto}
 .rowitem.add i{color:var(--accent)}
-.rowempty{font-size:var(--text-small);color:var(--text-muted);padding:var(--space-4) 0}
+.rowempty{font-size:var(--text-body);color:var(--text-muted);padding:var(--space-4) 0}
 /* Band label inside the scrolling list. Quieter than a .sec-h — it separates
    two parts of one list rather than announcing a new section. */
-.rowgroup{font-size:var(--text-meta);letter-spacing:.08em;text-transform:uppercase;
+.rowgroup{font-size:var(--text-label);letter-spacing:.08em;text-transform:uppercase;
           color:var(--text-muted);font-weight:500;line-height:var(--leading-tight);
           padding:var(--space-3) 0 var(--space-1)}
 .rowgroup:first-child{padding-top:0}
@@ -778,7 +777,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
        border-radius:var(--radius-md);padding:0 var(--space-2)}
 .numin:focus{outline:none;border-color:var(--accent);
              box-shadow:var(--focus-glow)}
-.numunit{font-size:var(--text-small);color:var(--text-muted)}
+.numunit{font-size:var(--text-body);color:var(--text-muted)}
 /* The platform's own date control. This is the one place a wheel is right, and
    the reason is that we do not build it: iOS renders its wheel, Android its
    calendar, a desktop browser its own — each already keyboard-reachable,
@@ -801,7 +800,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .picker{display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-3);
         background:var(--surface-page);border:1px solid var(--border-subtle);
         border-radius:var(--radius-md)}
-.picker .pl{font-size:var(--text-meta);color:var(--text-muted)}
+.picker .pl{font-size:var(--text-label);color:var(--text-muted)}
 /* Always present, one row tall, grows with what you write.
    It replaced a chip that opened it — and a chip is a SELECTOR by the rule two
    rules up: it sets a value and can be `.on`. "Note" set nothing, it revealed
@@ -810,7 +809,7 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
    interaction, a piece of state and a conditional branch all disappear.
    resize:none because the field sizes itself; a drag handle on a control that
    auto-grows is a promise of manual work nobody needs to do. */
-.note-in{width:100%;font:inherit;font-size:var(--text-small);color:var(--text-primary);
+.note-in{width:100%;font:inherit;font-size:var(--text-body);color:var(--text-primary);
          background:var(--surface-page);border:1px solid var(--border-subtle);
          border-radius:var(--radius-md);padding:var(--space-3);resize:none;
          min-height:var(--target-min);line-height:var(--leading-body);
@@ -820,12 +819,12 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 
 .d-done{min-height:var(--target-critical);border-radius:var(--radius-md);
         background:var(--accent);color:var(--on-accent);font-weight:500;
-        font-size:var(--text-small);width:100%}
+        font-size:var(--text-body);width:100%}
 @media (hover:hover){ .d-done:hover{background:var(--accent-hover)} }
 /* Destructive, and coloured as such. This is a UI action, not health data —
    the red/green ban in AGENTS.md is about never scoring a person's symptoms. */
 .d-remove{display:flex;align-items:center;justify-content:center;gap:var(--space-2);
-          min-height:var(--target-min);width:100%;font-size:var(--text-small);
+          min-height:var(--target-min);width:100%;font-size:var(--text-body);
           color:var(--feedback-error);font-weight:500;border-radius:var(--radius-md)}
 .d-remove i{font-size:19px}
 @media (hover:hover){ .d-remove:hover{background:var(--surface-raised)} }
@@ -851,13 +850,13 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 .tab .tab-lab{display:none}
 .tab[aria-selected="true"]{flex:1 1 auto;padding:0 var(--space-4);
      background:var(--surface-sunken);color:var(--text-primary);font-weight:600;
-     font-size:var(--text-small)}
+     font-size:var(--text-body)}
 .tab[aria-selected="true"] i{font-weight:bold}
 .tab[aria-selected="true"] .tab-lab{display:inline}
 .scroll[hidden]{display:none}
 .lb-note{margin-top:var(--space-4);padding:var(--space-4);border-radius:var(--radius-md);
          border:1px dashed var(--border-interactive);color:var(--text-secondary);
-         font-size:var(--text-small);line-height:var(--leading-body)}
+         font-size:var(--text-body);line-height:var(--leading-body)}
 .lb-note a{color:var(--accent)}
 
 /* menu as a popover: same element as v3's drawer, different shape */
@@ -930,7 +929,7 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
 .confirm-q{font-size:var(--text-heading);font-weight:600;line-height:var(--leading-tight);margin:0}
 .c-head{flex-wrap:nowrap}   /* the question wraps inside itself; the icon stays on its first line */
 .c-head .confirm-q{flex:1;min-width:0}
-.c-meta{font-size:var(--text-small);color:var(--text-muted);margin-top:var(--space-2);
+.c-meta{font-size:var(--text-body);color:var(--text-muted);margin-top:var(--space-2);
         font-variant-numeric:tabular-nums}
 .c-meta b{font-weight:600;color:var(--text-secondary)}
 .c-anchor{font-size:var(--text-body);line-height:var(--leading-body)}
@@ -1131,8 +1130,8 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
       <select onchange="setVar('--gutter',this.value)">
         <option value="12px">12</option><option value="16px" selected>16</option>
         <option value="20px">20</option></select></label>
-    <label>Meta / chip size
-      <select onchange="setVar('--text-meta',this.value)">
+    <label>Label size
+      <select onchange="setVar('--text-label',this.value)">
         <option value="12px">12 · below floor</option>
         <option value="13px">13 · below floor</option>
         <option value="0.875rem" selected>14 · floor</option>

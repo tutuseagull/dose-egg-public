@@ -36,12 +36,12 @@ button{font-family:inherit;font-size:inherit;color:inherit;border:0;background:n
   border-radius:var(--radius-sm)}
 .wrap{max-width:var(--shell-w);margin:0 auto;padding:var(--space-6) var(--gutter) var(--space-12)}
 .home{display:inline-flex;align-items:center;gap:var(--space-2);min-height:var(--target-min);
-  color:var(--text-secondary);text-decoration:none;font-size:var(--text-small)}
+  color:var(--text-secondary);text-decoration:none;font-size:var(--text-body)}
 h1{font-size:var(--text-title);font-weight:700;margin:var(--space-2) 0 var(--space-2);line-height:var(--leading-tight)}
 h2{font-size:var(--text-heading);font-weight:600;margin:var(--space-12) 0 var(--space-1)}
 p{margin:0 0 var(--space-3);color:var(--text-secondary)}
 .lede{color:var(--text-secondary)}
-.sub{font-size:var(--text-small);color:var(--text-muted);margin:0 0 var(--space-4)}
+.sub{font-size:var(--text-body);color:var(--text-muted);margin:0 0 var(--space-4)}
 .rm{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-routine);
   background:var(--surface-raised);border-radius:var(--radius-md);padding:var(--space-2) var(--space-4);margin:var(--space-4) 0}
 .rm .lab{flex:1}
@@ -58,15 +58,15 @@ p{margin:0 0 var(--space-3);color:var(--text-secondary)}
 /* option picker: one question, so the segmented control, not three buttons */
 .seg{display:flex;gap:var(--space-1);background:var(--surface-sunken);border-radius:var(--radius-md);
   padding:var(--space-1);margin-bottom:var(--space-3)}
-.seg button{flex:1;min-height:var(--target-min);border-radius:var(--radius-sm);font-size:var(--text-small);
+.seg button{flex:1;min-height:var(--target-min);border-radius:var(--radius-sm);font-size:var(--text-body);
   color:var(--text-secondary)}
 .seg button[aria-pressed="true"]{background:var(--surface-card);color:var(--text-primary);font-weight:600;
   box-shadow:var(--content-edge)}
-.note{font-size:var(--text-small);color:var(--text-secondary);margin:var(--space-3) 0 0}
+.note{font-size:var(--text-body);color:var(--text-secondary);margin:var(--space-3) 0 0}
 .note b{color:var(--text-primary)}
 .spec{font-size:var(--text-label);color:var(--text-muted);margin:var(--space-1) 0 0;font-variant-numeric:tabular-nums}
 .replay{display:inline-flex;align-items:center;gap:var(--space-2);min-height:var(--target-min);padding:0 var(--space-3);
-  margin-left:calc(var(--space-3) * -1);border-radius:var(--radius-md);color:var(--accent);font-weight:600;font-size:var(--text-small)}
+  margin-left:calc(var(--space-3) * -1);border-radius:var(--radius-md);color:var(--accent);font-weight:600;font-size:var(--text-body)}
 .replay i{font-size:18px}
 
 /* ── the mini phone every demo runs in ── */
@@ -85,7 +85,7 @@ p{margin:0 0 var(--space-3);color:var(--text-secondary)}
 /* the tab that is not current is a 48px bubble; the current one grows to fill.
    flex-grow animates, so the bubble can become the pill without a wheel of JS */
 .tab{flex:0 0 var(--target-routine);padding:0 var(--space-3);overflow:hidden;white-space:nowrap}
-.tab .lab{max-width:0;opacity:0;font-weight:600;font-size:var(--text-small)}
+.tab .lab{max-width:0;opacity:0;font-weight:600;font-size:var(--text-body)}
 .tab.on{flex:1 0 var(--target-routine);background:var(--glass-fill-strong)}
 .tab.on .lab{max-width:8em;opacity:1}
 .view{position:absolute;inset:0;padding:calc(var(--target-routine) + var(--space-6)) var(--space-4) var(--space-4)}
@@ -201,13 +201,13 @@ p{margin:0 0 var(--space-3);color:var(--text-secondary)}
   .tab, .tab .lab, .view, .card, .rail, .sheet{transition-property:opacity, background-color!important}
 }
 
-table{width:100%;border-collapse:collapse;margin:var(--space-3) 0;font-size:var(--text-small)}
+table{width:100%;border-collapse:collapse;margin:var(--space-3) 0;font-size:var(--text-body)}
 th,td{text-align:left;padding:var(--space-2) var(--space-2) var(--space-2) 0;border-bottom:1px solid var(--border-subtle);vertical-align:top}
 th{font-size:var(--text-label);color:var(--text-muted);font-weight:600}
 td code{font-size:var(--text-label);overflow-wrap:anywhere}
-ul.rules{padding-left:var(--space-4);color:var(--text-secondary);font-size:var(--text-small)}
+ul.rules{padding-left:var(--space-4);color:var(--text-secondary);font-size:var(--text-body)}
 ul.rules li{margin-bottom:var(--space-2)}
-.src{font-size:var(--text-small)}
+.src{font-size:var(--text-body)}
 .src a{color:var(--accent)}
 @media (hover:hover){ .replay:hover{background:var(--surface-raised)} }
 </style>
@@ -377,7 +377,7 @@ el('dots').innerHTML = Array.from({ length: 42 }, () => '<i></i>').join('');
 function resetDose(){
   el('demo2').innerHTML = `
     <div class="card" id="card"><p class="v-q" style="margin:0">Did you take these?</p>
-      <div style="color:var(--text-secondary);font-size:var(--text-small)">Levodopa 100mg with Entacapone 200mg</div>
+      <div style="color:var(--text-secondary);font-size:var(--text-body)">Levodopa 100mg with Entacapone 200mg</div>
       <div class="v-btns"><button class="primary" onclick="taken()">Taken</button><button>Not taken</button></div></div>
     <div class="rail" id="rail"><div class="row">
       <span class="mk" id="mk"><i class="ph ph-pill"></i><span class="ring"></span></span>

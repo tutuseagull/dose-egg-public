@@ -16,7 +16,6 @@
 :root{
   --gutter:16px;
   --card-pad:16px;
-  --text-meta:.875rem;
   --shell-w:420px;
   --drawer-w:320px;     /* menu panel width cap, same family as --shell-w */
 }
@@ -71,7 +70,7 @@ button{font-family:inherit;font-size:inherit;border:0;background:none;color:inhe
 .tab i{font-size:22px}
 .tab .tab-lab{display:none}
 .tab[aria-current="page"]{flex:1 1 auto;padding:0 var(--space-4);color:var(--text-primary);
-     font-weight:600;font-size:var(--text-small)}
+     font-weight:600;font-size:var(--text-body)}
 .tab[aria-current="page"] .tab-lab{display:inline}
 /* navigation layer: glass (tokens in tokens.css) */
 .tab, .top .icon-btn{
@@ -118,7 +117,7 @@ button.navrow{width:100%;text-align:left}
   color:var(--text-primary);font-size:var(--text-body)}
 .navrow i{font-size:22px;color:var(--mark);flex:0 0 auto;width:var(--space-6);text-align:center}
 .navrow .lab{flex:1;line-height:var(--leading-tight)}
-.navrow .sub{display:block;font-size:var(--text-meta);color:var(--text-muted);
+.navrow .sub{display:block;font-size:var(--text-label);color:var(--text-muted);
   font-weight:400;margin-top:var(--space-1)}
 /* where you are is a marker, not a colour swap — same rule the charts use */
 .navrow.here{font-weight:600}
@@ -126,7 +125,7 @@ button.navrow{width:100%;text-align:left}
   border-radius:var(--radius-full);background:var(--accent);flex:0 0 auto}
 .drawer-foot{margin-top:auto;padding:var(--space-4) var(--gutter) 0;
   border-top:1px solid var(--border-subtle);
-  color:var(--text-muted);font-size:var(--text-meta);line-height:var(--leading-body)}
+  color:var(--text-muted);font-size:var(--text-label);line-height:var(--leading-body)}
 .scrim{position:fixed;inset:0;background:color-mix(in srgb, var(--paper-900) 34%, transparent);opacity:0;pointer-events:none;
   transition:opacity var(--motion-base) var(--ease-out);z-index:50}
 .scrim.open{opacity:1;pointer-events:auto}
@@ -135,7 +134,7 @@ button.navrow{width:100%;text-align:left}
 .scales{display:flex;gap:var(--space-1);background:var(--surface-sunken);
   border-radius:var(--radius-md);padding:var(--space-1);margin-bottom:var(--space-4)}
 .scales button{flex:1;min-height:var(--target-routine);border-radius:var(--radius-sm);
-  font-size:var(--text-small);font-weight:500;color:var(--text-secondary)}
+  font-size:var(--text-body);font-weight:500;color:var(--text-secondary)}
 .scales button[aria-selected="true"]{background:var(--surface-card);color:var(--text-primary);
   font-weight:600;box-shadow:var(--content-edge)}
 
@@ -150,15 +149,15 @@ button.navrow{width:100%;text-align:left}
 .period .rangebox{flex:1;display:flex;flex-direction:column;align-items:center;
   justify-content:center;text-align:center;line-height:var(--leading-tight)}
 .period .r1{font-weight:600}
-.period .r2{font-size:var(--text-meta);color:var(--text-muted)}
+.period .r2{font-size:var(--text-label);color:var(--text-muted)}
 /* Fixed-height row under the stepper. It always exists, so the "this week"
    button appearing and disappearing never moves the chart under your finger. */
 .periodfoot{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;
   min-height:var(--target-routine);margin-bottom:var(--space-2)}
-.periodfoot .cov{flex:1;font-size:var(--text-meta);color:var(--text-muted)}
+.periodfoot .cov{flex:1;font-size:var(--text-label);color:var(--text-muted)}
 .periodfoot .jump{min-height:var(--target-min);padding:0 var(--space-3);
   margin-right:calc(var(--space-3) * -1);border-radius:var(--radius-md);
-  color:var(--text-primary);font-size:var(--text-small);font-weight:400;
+  color:var(--text-primary);font-size:var(--text-body);font-weight:400;
   display:flex;align-items:center;gap:var(--space-2);flex:0 0 auto}
 /* A text button, the same tertiary style as "Taken, but not as scheduled" on
    Today (Tutu, 2026-10-09): a bordered pill read as a big, unclear control.
@@ -175,8 +174,8 @@ button.navrow{width:100%;text-align:left}
    can hold, or selecting slides the chart under the finger. */
 .readout{min-height:calc(var(--space-12) + var(--space-8));background:var(--surface-raised);border-radius:var(--radius-md);
   padding:var(--space-3);margin-bottom:var(--space-2);display:flex;align-items:center}
-.ro-day{font-weight:600;font-size:var(--text-small);line-height:var(--leading-tight)}
-.ro-times{font-size:var(--text-meta);color:var(--accent);line-height:var(--leading-body)}
+.ro-day{font-weight:600;font-size:var(--text-body);line-height:var(--leading-tight)}
+.ro-times{font-size:var(--text-label);color:var(--accent);line-height:var(--leading-body)}
 .ro-times.muted{color:var(--text-muted)}
 
 /* ═══════════════════ charts ═══════════════════
@@ -204,12 +203,12 @@ svg{display:block;width:100%;height:auto}
 .legend{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-4);
   margin:var(--space-1) 0 var(--space-2)}
 .legend .key{display:flex;align-items:center;gap:var(--space-2);
-  font-size:var(--text-meta);color:var(--text-secondary)}
+  font-size:var(--text-label);color:var(--text-secondary)}
 .sw{width:11px;height:11px;border-radius:var(--radius-full);background:var(--mark);
   flex:0 0 auto;display:inline-block}
 .sw.assumed{background:var(--surface-card);border:1.5px dashed var(--mark)}
 .legend-note{background:var(--surface-raised);border-radius:var(--radius-md);
-  padding:var(--space-3);font-size:var(--text-meta);color:var(--text-secondary);
+  padding:var(--space-3);font-size:var(--text-label);color:var(--text-secondary);
   margin-bottom:var(--space-4)}
 
 /* ═══════════════════ blank-day control ═══════════════════ */
@@ -217,7 +216,7 @@ svg{display:block;width:100%;height:auto}
   border-radius:var(--radius-md);padding:var(--space-3) var(--card-pad);
   margin-bottom:var(--space-4)}
 .control .row{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-routine)}
-.control .row .lab{flex:1;font-size:var(--text-small)}
+.control .row .lab{flex:1;font-size:var(--text-body)}
 /* The switch LOOKS like a 52x32 toggle and BEHAVES like a 48px button: the
    visible track is a pseudo-element inset inside a full-height tap target.
    Drawing the track on the button itself would have made the whole control
@@ -235,8 +234,8 @@ svg{display:block;width:100%;height:auto}
 .switch[aria-checked="true"]::after{
   transform:translateX(calc(var(--space-6) - var(--space-1)))}
 .why{display:flex;align-items:center;gap:var(--space-1);min-height:var(--target-min);
-  color:var(--accent);font-size:var(--text-meta);font-weight:500}
-.whynote{font-size:var(--text-meta);color:var(--text-secondary);
+  color:var(--accent);font-size:var(--text-label);font-weight:500}
+.whynote{font-size:var(--text-label);color:var(--text-secondary);
   border-top:1px solid var(--border-subtle);padding-top:var(--space-3);margin-top:var(--space-1)}
 .whynote p{margin:0 0 var(--space-2)}
 .whynote p:last-child{margin:0}
@@ -244,12 +243,12 @@ svg{display:block;width:100%;height:auto}
 /* ═══════════════════ statements ═══════════════════ */
 .stmt{background:var(--surface-card);border:1px solid var(--border-subtle);
   border-radius:var(--radius-md);padding:var(--card-pad);margin-bottom:var(--space-3)}
-.stmt p{margin:0 0 var(--space-2);font-size:var(--text-small);
+.stmt p{margin:0 0 var(--space-2);font-size:var(--text-body);
   line-height:var(--leading-body)}
-.stmt .cov{margin:0;font-size:var(--text-meta);color:var(--text-muted)}
+.stmt .cov{margin:0;font-size:var(--text-label);color:var(--text-muted)}
 .sec-h{font-size:var(--text-heading);font-weight:600;
   margin:var(--space-6) 0 var(--space-2)}
-.lede{color:var(--text-muted);font-size:var(--text-meta);margin:0 0 var(--space-4)}
+.lede{color:var(--text-muted);font-size:var(--text-label);margin:0 0 var(--space-4)}
 </style>
 </head>
 <body>
