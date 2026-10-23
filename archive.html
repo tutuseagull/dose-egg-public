@@ -73,14 +73,14 @@ h1 {
 
 /* ── Section ── */
 section {
-  margin-bottom: 52px;
+  margin-bottom: 56px;
 }
 
 .section-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .section-dot {
@@ -113,6 +113,16 @@ section {
 .section--planning .section-dot   { background: #75A5B0; }
 .section--planning .section-label { color: #4A7A8A; }
 
+.section--viz .section-dot   { background: #D0A860; }
+.section--viz .section-label { color: #9A7430; }
+.section--viz .card-icon     { background: #FAF1E0; }
+
+/* a short line under a section label, above its cards */
+.section-note { font-size: 13px; color: #A8967A; line-height: 1.6; margin: -8px 0 16px; max-width: 52ch; }
+
+/* the date a playground card was first made, above its title */
+.card-date { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: #B09060; margin-bottom: 3px; }
+
 /* ── Cards ── */
 .card-list {
   display: flex;
@@ -141,8 +151,9 @@ section {
 
 .card-left {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 14px;
+  min-width: 0;
 }
 
 .card-icon {
@@ -202,6 +213,12 @@ section {
   color: #5A8C66;
 }
 
+/* phones: less side padding so cards get the width */
+@media (max-width: 480px) {
+  body { padding: 48px 20px 80px; }
+  .card { padding: 14px 16px; }
+}
+
 /* ── Footer ── */
 footer {
   margin-top: 72px;
@@ -220,7 +237,6 @@ footer::before {
 }
 
 .unpublished { color: #B9AC96; }
-.section-note { font-size:12px; color:#A8967A; line-height:1.7; margin:-6px 0 14px; max-width:52ch; }
 </style>
 </head>
 <body>

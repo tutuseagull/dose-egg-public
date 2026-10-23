@@ -73,14 +73,14 @@ h1 {
 
 /* ── Section ── */
 section {
-  margin-bottom: 52px;
+  margin-bottom: 56px;
 }
 
 .section-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .section-dot {
@@ -113,6 +113,16 @@ section {
 .section--planning .section-dot   { background: #75A5B0; }
 .section--planning .section-label { color: #4A7A8A; }
 
+.section--viz .section-dot   { background: #D0A860; }
+.section--viz .section-label { color: #9A7430; }
+.section--viz .card-icon     { background: #FAF1E0; }
+
+/* a short line under a section label, above its cards */
+.section-note { font-size: 13px; color: #A8967A; line-height: 1.6; margin: -8px 0 16px; max-width: 52ch; }
+
+/* the date a playground card was first made, above its title */
+.card-date { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: #B09060; margin-bottom: 3px; }
+
 /* ── Cards ── */
 .card-list {
   display: flex;
@@ -141,8 +151,9 @@ section {
 
 .card-left {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 14px;
+  min-width: 0;
 }
 
 .card-icon {
@@ -202,6 +213,12 @@ section {
   color: #5A8C66;
 }
 
+/* phones: less side padding so cards get the width */
+@media (max-width: 480px) {
+  body { padding: 48px 20px 80px; }
+  .card { padding: 14px 16px; }
+}
+
 /* ── Footer ── */
 footer {
   margin-top: 72px;
@@ -220,7 +237,6 @@ footer::before {
 }
 
 .unpublished { color: #B9AC96; }
-.section-note { font-size:12px; color:#A8967A; line-height:1.7; margin:-6px 0 14px; max-width:52ch; }
 </style>
 </head>
 <body>
@@ -236,7 +252,7 @@ footer::before {
 </header>
 
 <section class="section--prototypes">
-  <div class="section-head"><div class="section-label">Current</div></div>
+  <div class="section-header"><div class="section-dot"></div><div class="section-label">Latest prototype</div></div>
   <div class="card-list">
     <a class="card" href="showcase/index.html">
       <div class="card-left">
@@ -252,18 +268,8 @@ footer::before {
       <div class="card-left">
         <div class="card-icon">✦</div>
         <div>
-          <div class="card-title">Timeline <span class="badge">Newest</span></div>
+          <div class="card-title">Timeline</div>
           <div class="card-meta">Hi-fi v4. Today and Look Back are tabs at the top; the bottom is a row of ways in, with three layouts to compare in the demo bar. Glass navigation, Manrope, the matched palette, the dose card as a tint band, open timeline rows. Everything from v3 is here: the lock-screen confirm, the slot model, the 12-med slot.</div>
-        </div>
-      </div>
-      <span class="card-arrow">›</span>
-    </a>
-    <a class="card" href="prototypes/look-back.html">
-      <div class="card-left">
-        <div class="card-icon">◔</div>
-        <div>
-          <div class="card-title">Look Back</div>
-          <div class="card-meta">The retrospective surface · week and six-week scales off one record, every statement computed from the days it can see and carrying its own coverage. The demo bar's "early record" button shows what it says four days in.</div>
         </div>
       </div>
       <span class="card-arrow">›</span>
@@ -272,7 +278,7 @@ footer::before {
       <div class="card-left">
         <div class="card-icon">◑</div>
         <div>
-          <div class="card-title">Look Back · dose gaps</div>
+          <div class="card-title">Look Back <span class="badge">Dose gaps</span></div>
           <div class="card-meta">Are the gaps between doses getting shorter? Measured against the plan, on a 3-month default and a year view, with stretches the app finds in the record and the person names. A year of generated sample data.</div>
         </div>
       </div>
@@ -288,39 +294,19 @@ footer::before {
       </div>
       <span class="card-arrow">›</span>
     </a>
-    <a class="card" href="prototypes/motion-study.html">
-      <div class="card-left">
-        <div class="card-icon">≋</div>
-        <div>
-          <div class="card-title">Motion study <span class="badge">To choose</span></div>
-          <div class="card-meta">Three options each for switching Today and Look Back, confirming a dose, and press and open, with a Reduce motion switch, proposed motion tokens and the rules any option has to keep.</div>
-        </div>
-      </div>
-      <span class="card-arrow">›</span>
-    </a>
   </div>
 </section>
 
 <section class="section--learning">
-  <div class="section-head"><div class="section-label">Sandbox</div></div>
-  <p class="section-note">Capability probes rather than product — whether the platform can do the thing at all. Prototypes are the product; these are the experiments.</p>
+  <div class="section-header"><div class="section-dot"></div><div class="section-label">Sandbox</div></div>
+  <p class="section-note">Capability probes rather than product — whether the platform can do the thing at all, or a study that settled a decision. Prototypes are the product; these are the experiments.</p>
   <div class="card-list">
-    <a class="card" href="prototypes/ai-lab.html">
+    <a class="card" href="prototypes/motion-study.html">
       <div class="card-left">
-        <div class="card-icon">◍</div>
+        <div class="card-icon">≋</div>
         <div>
-          <div class="card-title">AI Lab</div>
-          <div class="card-meta">AI-assisted logging — draft, review, confirm</div>
-        </div>
-      </div>
-      <span class="card-arrow">›</span>
-    </a>
-    <a class="card" href="tremor-test.html">
-      <div class="card-left">
-        <div class="card-icon">〰️</div>
-        <div>
-          <div class="card-title">Tremor test</div>
-          <div class="card-meta">A working instrument, not a mockup — 20 s of accelerometer, resampled, windowed, FFT, and the power that lands in the 3 to 7 Hz band. Needs a phone.</div>
+          <div class="card-title">Motion study <span class="badge">Decided</span></div>
+          <div class="card-meta">Three options each for switching Today and Look Back, confirming a dose, and press and open, with a Reduce motion switch. Option A was chosen for all three and now lives in motion.css.</div>
         </div>
       </div>
       <span class="card-arrow">›</span>
@@ -335,11 +321,93 @@ footer::before {
       </div>
       <span class="card-arrow">›</span>
     </a>
+    <a class="card" href="tremor-test.html">
+      <div class="card-left">
+        <div class="card-icon">〰️</div>
+        <div>
+          <div class="card-title">Tremor test</div>
+          <div class="card-meta">A working instrument, not a mockup — 20 s of accelerometer, resampled, windowed, FFT, and the power that lands in the 3 to 7 Hz band. Needs a phone.</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="prototypes/ai-lab.html">
+      <div class="card-left">
+        <div class="card-icon">◍</div>
+        <div>
+          <div class="card-title">AI Lab</div>
+          <div class="card-meta">AI-assisted logging — draft, review, confirm</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+  </div>
+</section>
+
+<section class="section--viz">
+  <div class="section-header"><div class="section-dot"></div><div class="section-label">Data viz playground</div></div>
+  <p class="section-note">Chart and record experiments, newest first. The dated line is when each was first made.</p>
+  <div class="card-list">
+    <a class="card" href="explain-e01-test.html">
+      <div class="card-left">
+        <div class="card-icon">⁚</div>
+        <div>
+          <div class="card-date">Sep 11, 2026</div>
+          <div class="card-title">One explanation, computed (E-01)</div>
+          <div class="card-meta">The first Explain-era statement generated from a record rather than written — four records, three outcomes, and a window control that shows where the method is soft</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="aligned-week-test.html">
+      <div class="card-left">
+        <div class="card-icon">≣</div>
+        <div>
+          <div class="card-date">Sep 2, 2026</div>
+          <div class="card-title">One week on one time axis</div>
+          <div class="card-meta">Open on a phone — sleep, doses, meals and rough stretches on a single time axis, so the correlations are visible rather than asserted</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="quiet-mark-test.html">
+      <div class="card-left">
+        <div class="card-icon">◌</div>
+        <div>
+          <div class="card-date">Aug 19, 2026</div>
+          <div class="card-title">Quiet-day marks, five ways</div>
+          <div class="card-meta">Open on a phone — five ways to draw logged / quiet / unknown, a low-contrast check, and the six weeks with its sentence underneath</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="prototypes/look-back.html">
+      <div class="card-left">
+        <div class="card-icon">◔</div>
+        <div>
+          <div class="card-date">Aug 15, 2026</div>
+          <div class="card-title">Week view, the first Look Back</div>
+          <div class="card-meta">The first retrospective surface, since replaced as the front door by dose gaps · week and six-week scales off one record, every statement computed from the days it can see and carrying its own coverage. The demo bar's "early record" button shows what it says four days in.</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
+    <a class="card" href="chart-interaction-test.html">
+      <div class="card-left">
+        <div class="card-icon">👆</div>
+        <div>
+          <div class="card-date">Aug 13, 2026</div>
+          <div class="card-title">Five chart forms, live</div>
+          <div class="card-meta">Open on a phone — five interactive forms off one six-week dataset, plus the charts we deliberately did not build</div>
+        </div>
+      </div>
+      <span class="card-arrow">›</span>
+    </a>
   </div>
 </section>
 
 <section class="section--research">
-  <div class="section-head"><div class="section-label">Reference</div></div>
+  <div class="section-header"><div class="section-dot"></div><div class="section-label">Reference</div></div>
   <div class="card-list">
     <a class="card" href="information-architecture.html">
       <div class="card-left">
@@ -355,28 +423,8 @@ footer::before {
       <div class="card-left">
         <div class="card-icon">📄</div>
         <div>
-          <div class="card-title">Look Back — statement bank</div>
+          <div class="card-title">Look Back statement bank</div>
           <div class="card-meta">The sentences the retrospective surface says, written before any screen · 16 statements, five chart forms, seven rules</div>
-        </div>
-      </div>
-      <span class="card-arrow">›</span>
-    </a>
-    <a class="card" href="chart-interaction-test.html">
-      <div class="card-left">
-        <div class="card-icon">👆</div>
-        <div>
-          <div class="card-title">Look Back — charts, live</div>
-          <div class="card-meta">Open on a phone — five interactive forms off one six-week dataset, plus the charts we deliberately did not build</div>
-        </div>
-      </div>
-      <span class="card-arrow">›</span>
-    </a>
-    <a class="card" href="explain-e01-test.html">
-      <div class="card-left">
-        <div class="card-icon">⁚</div>
-        <div>
-          <div class="card-title">Look Back — E-01, computed <span class="badge">Newest</span></div>
-          <div class="card-meta">The first Explain-era statement generated from a record rather than written — four records, three outcomes, and a window control that shows where the method is soft</div>
         </div>
       </div>
       <span class="card-arrow">›</span>
@@ -385,28 +433,8 @@ footer::before {
       <div class="card-left">
         <div class="card-icon">▤</div>
         <div>
-          <div class="card-title">Look Back — decided, drawn, built</div>
+          <div class="card-title">Look Back coverage audit</div>
           <div class="card-meta">An audit: every Look Back use case against where it actually exists — the statement bank, a test page, or the prototype · and what the Demo still needs</div>
-        </div>
-      </div>
-      <span class="card-arrow">›</span>
-    </a>
-    <a class="card" href="aligned-week-test.html">
-      <div class="card-left">
-        <div class="card-icon">≣</div>
-        <div>
-          <div class="card-title">Look Back — one week, one axis</div>
-          <div class="card-meta">Open on a phone — sleep, doses, meals and rough stretches on a single time axis, so the correlations are visible rather than asserted</div>
-        </div>
-      </div>
-      <span class="card-arrow">›</span>
-    </a>
-    <a class="card" href="quiet-mark-test.html">
-      <div class="card-left">
-        <div class="card-icon">◌</div>
-        <div>
-          <div class="card-title">Look Back — drawing a quiet day</div>
-          <div class="card-meta">Open on a phone — five ways to draw logged / quiet / unknown, a low-contrast check, and the six weeks with its sentence underneath</div>
         </div>
       </div>
       <span class="card-arrow">›</span>
@@ -465,7 +493,7 @@ footer::before {
 </section>
 
 <section class="section--comparisons">
-  <div class="section-head"><div class="section-label">Archive</div></div>
+  <div class="section-header"><div class="section-dot"></div><div class="section-label">Archive</div></div>
   <div class="card-list">
     <a class="card" href="archive.html">
       <div class="card-left">
