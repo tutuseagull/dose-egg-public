@@ -117,6 +117,17 @@
   }
 
   .field { }
+  /* statements that came from P01's own questions (Oct 2026) */
+  .stmt.p01 { border-left: 3px solid var(--accent); }
+  .stmt-tag {
+    display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 4px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-border);
+  }
+  /* held: written down so the line is visible, not used anywhere yet */
+  .stmt.held { border: 1.5px dashed #B9A88E; background: transparent; }
+  .stmt.held .stmt-tag { color: #6E5C48; background: rgba(140,123,106,.08); border-color: rgba(140,123,106,.3); }
+  .stmt.held .stmt-text { text-decoration: none; }
   .field-label {
     font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
     color: var(--text-soft); margin-bottom: 3px;
@@ -175,11 +186,11 @@
     <div class="eyebrow">DoseEgg · Design</div>
     <h1>Look Back — statement bank</h1>
     <p class="subtitle">The sentences a patient would open the app to read, written before any screen. Each one carries what it needs to be true, what it may be drawn as, and what may never be drawn on it.</p>
-    <p class="meta">Draft 2 · August 2026 · for P01 and the domain lead to react to. Not a spec.</p>
+    <p class="meta">Draft 3 · October 2026 · for P01 and the domain lead to react to. Not a spec.</p>
   </header>
 
   <div class="rule">
-    <strong>Update, October 2026.</strong> The Look Back that P01 is now testing leads with a statement this bank does not hold: <em>are the gaps between my doses getting shorter?</em> (<a href="prototypes/look-back-gaps.html">dose gaps</a>). It came from her own question, not from this page. Its rules are in <a href="information-architecture.html">Information Architecture</a>. Write it into the bank at the next revision, next to the drift statements.
+    <strong>New in Draft 3 (October 2026): P01's own questions.</strong> When asked what she would want from Look Back, P01 named seven things, in her order: has the interval between doses got shorter; what else was going on (movement, how demanding life was, season); the big picture over a year, a quarter at a time; whether the condition is moving faster; before and after a medication change ("is this drug good?"); whether winter really is harder; whether movement has kept up (<code>docs/patient-voice-quotes.md</code> §6). They are folded in below, marked with a left rule and a <span class="stmt-tag">From P01</span> tag, plus a new <b>Long view</b> era for her quarter-and-year scale. Three of them cross into clinical interpretation; those sit apart at the end as <b>Held</b>, written down so the line is visible and used nowhere until a clinician and a lawyer have read them. <em>n=1: a high-engagement self-tracker. Her questions, not a population's.</em>
   </div>
 
   <p class="lede">The method here is deliberate. The failure mode in an analytics surface is building a chart and then hunting for a story in it. So this page is written in the other order: the statement first, the visual second, and for several statements the honest answer is <em>no visual at all</em>.</p>
@@ -763,6 +774,40 @@
     <strong>Why C-05 matters more than it looks.</strong> Almost no consumer health app will tell you it found nothing, because a null result reads as the product failing. But for a progressive condition, "this month looks like last month" is often the news the person most wants — and an app that can say it is an app you can believe when it says something did change. Shipping the null result is what makes the non-null results credible.
   </div>
 
+  <div class="stmt p01">
+    <div class="stmt-id">C-06 <span class="stmt-tag">From P01 · Built</span></div>
+    <p class="stmt-text">&ldquo;Your midday dose has been landing earlier than planned over these 3 months: about 10 minutes early in July, about 30 in September.&rdquo;</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">≥4 weeks of <code>asserted</code> doses in one slot, and a plan to measure them against</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Drift from plan: each dose's distance from its planned time, median per period. A plan change starts a new baseline.</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Dose gaps (built): the 3-month view, a mark per dose, the plan as the zero line</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>&ldquo;Wearing off sooner.&rdquo; &ldquo;Your medication is working less.&rdquo; An arrow. Any word for what the drift means. The meaning is the held statement H-01.</div></div>
+      <div class="field"><div class="field-label">Source</div><div class="field-value">P01, first question: &ldquo;我那个需要的间隔时间有没有变短？&rdquo;</div></div>
+    </div>
+  </div>
+  <div class="stmt p01">
+    <div class="stmt-id">C-07 <span class="stmt-tag">From P01 · Built</span></div>
+    <p class="stmt-text">&ldquo;From Aug 4 to Aug 19, doses landed further from plan than in the weeks either side.&rdquo; Then, once the person names it: &ldquo;The move, Aug 4 to 19.&rdquo;</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">7+ days that sit 20+ minutes from the 4 weeks either side, judged strongest first</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">A stretch the record finds for itself, proposed for the person to name or hide [C-15]</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">A band on the dose gaps chart (built)</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>Naming the stretch for them. Calling it a bad patch. Ranking stretches against each other.</div></div>
+      <div class="field"><div class="field-label">Source</div><div class="field-value">P01, &ldquo;which factors might be involved&rdquo;; stretches over calendar months, decided 2026-10-12</div></div>
+    </div>
+  </div>
+  <div class="stmt p01">
+    <div class="stmt-id">C-08 <span class="stmt-tag">From P01 · Built</span></div>
+    <p class="stmt-text">&ldquo;Also in your record then: rough-afternoon notes on 9 of 16 days, against 6 of 28 in the weeks around it. Movement sessions 4, against 11.&rdquo;</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">A stretch (C-07), and at least one other kind of entry inside it and around it</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Counts for the stretch against the weeks around it, in a fixed row order, never sorted</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">A short table under the stretch sheet (built), counts only, no percentages</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>Ranking the rows. A sentence led by movement (rule 5) or by medication. &ldquo;Because.&rdquo; &ldquo;How demanding life was&rdquo; appears only if the person logged it as context; the app never infers it.</div></div>
+      <div class="field"><div class="field-label">Source</div><div class="field-value">P01: movement, how demanding life is, season</div></div>
+    </div>
+  </div>
+
   <div class="era">
     <span class="era-name">Explain</span>
     <span class="era-when">from ~week 6–8</span>
@@ -827,6 +872,135 @@
     </div>
   </div>
 
+  <div class="stmt p01">
+    <div class="stmt-id">E-06 <span class="stmt-tag">From P01 · Not built</span></div>
+    <p class="stmt-text">&ldquo;On the 5 days with a high-protein breakfast, you noted the 8:00 dose kicking in later on 4. On the 9 other days, on 2.&rdquo;</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">≥5 days on each side; a meal with the protein flag and a kick-in note on the same morning</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Co-occurrence, both denominators stated, same shape as E-01</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Two dot columns</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>&ldquo;Avoid protein.&rdquo; Any dietary advice. The interaction is real but its size is individual, and the advice is the doctor's to give [C-05].</div></div>
+      <div class="field"><div class="field-label">Source</div><div class="field-value">P01's own experience; the pattern the pitch demo is built around</div></div>
+    </div>
+  </div>
+
+  <div class="era">
+    <span class="era-name">Long view</span>
+    <span class="era-when">from ~3 months</span>
+  </div>
+  <p class="era-job">Job: show me the big picture, a quarter at a time. P01's unit, and roughly the gap between neurology appointments. Still my own baseline only, and still no verdict on the direction.</p>
+
+  <div class="stmt p01">
+    <div class="stmt-id">L-01 <span class="stmt-tag">From P01 · Built</span></div>
+    <p class="stmt-text">&ldquo;By 3 months: January to March, doses landed about 5 minutes from plan. April to June, about 10. July to September, about 25.&rdquo;</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">≥2 quarters with ≥60% coverage each, against the plan in force at the time</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Drift from plan, one figure per quarter, each with its coverage</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">The &ldquo;by 3 months&rdquo; list in dose gaps (built)</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>A line joining the quarters. &ldquo;Getting worse.&rdquo; A forecast for next quarter.</div></div>
+      <div class="field"><div class="field-label">Source</div><div class="field-value">P01: &ldquo;一年内发生了什么事情……三个月一个季度为期&rdquo;</div></div>
+    </div>
+  </div>
+  <div class="stmt p01">
+    <div class="stmt-id">L-02 <span class="stmt-tag">From P01 · Built</span></div>
+    <p class="stmt-text">&ldquo;This year, a week at a time.&rdquo; (The year view: one mark per week, the week's median distance from plan.)</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">≥12 weeks; a week with fewer than 3 doses in the slot is drawn as unknown, not as a mark</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Weekly medians across a year</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">The year view in dose gaps (built), with stretches as bands</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>A trendline or a smoothed curve. Marking the &ldquo;best&rdquo; or &ldquo;worst&rdquo; week.</div></div>
+      <div class="field"><div class="field-label">Source</div><div class="field-value">P01: &ldquo;他要有个大趋势&rdquo;</div></div>
+    </div>
+  </div>
+  <div class="stmt p01">
+    <div class="stmt-id">L-03 <span class="stmt-tag">From P01 · Not built</span></div>
+    <p class="stmt-text">&ldquo;Your plan changed on Sep 2. In the 4 weeks before, the midday dose landed within 15 minutes of plan on 9 of 21 days. In the 4 weeks after, on 18 of 21.&rdquo;</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">A dated plan version (Medicine Cabinet) with ≥3 weeks of record on each side; equal windows</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Before and after a dated event the person made, both denominators stated</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Dose gaps with the plan change drawn as a dated line (the line is built; this sentence is not)</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>&ldquo;The change is working.&rdquo; &ldquo;Better.&rdquo; Any word that answers P01's &ldquo;is this drug good?&rdquo; That answer is H-02. The record before and after is hers to read; the verdict is the doctor's.</div></div>
+      <div class="field"><div class="field-label">Source</div><div class="field-value">P01: &ldquo;加了新的变量，有没有变变变好或变变不好？&rdquo;</div></div>
+    </div>
+  </div>
+  <div class="stmt p01">
+    <div class="stmt-id">L-04 <span class="stmt-tag">From P01 · Not built</span></div>
+    <p class="stmt-text">&ldquo;Movement sessions by month: June 11, July 9, August 12, September 10.&rdquo;</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">≥3 months of activity entries</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Count series, C-03 at a longer scale</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Count bars, one per month</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>A goal line. An average. &ldquo;You've slowed down.&rdquo; Pairing it with dose drift in the same breath (that is a co-occurrence and belongs in Explain, aimed by rule 5).</div></div>
+      <div class="field"><div class="field-label">Source</div><div class="field-value">P01: &ldquo;运动的 trending 是不是有继续跟进运动啊？&rdquo;</div></div>
+    </div>
+  </div>
+  <div class="stmt p01">
+    <div class="stmt-id">L-05 <span class="stmt-tag">From P01 · Year two</span></div>
+    <p class="stmt-text">&ldquo;Last winter (December to February), doses landed earlier than planned on 41 of 78 days. In spring, on 22 of 80.&rdquo;</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">A full year plus a season; ≥60% coverage in each season compared</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Season against season, both denominators stated</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">None at first; a season band on the year view later</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>&ldquo;Winter is harder for you.&rdquo; Any forecast for the coming winter. Local weather is a separate, later idea: it needs location and its own consent [C-14].</div></div>
+      <div class="field"><div class="field-label">Source</div><div class="field-value">P01: &ldquo;冬天是不是真的就是比较难熬啊？&rdquo;</div></div>
+    </div>
+  </div>
+
+  <div class="era">
+    <span class="era-name">Held: clinical and legal review first</span>
+    <span class="era-when">not used yet</span>
+  </div>
+  <p class="era-job">These answer what P01 actually wants to know, which is why they are written down. Each one turns a pattern into a judgment about her condition or her treatment, and that crosses from record into medical claim. The arithmetic behind them is often the same as an allowed statement above; what differs is the interpretation. None appears in any prototype, report or pitch until a clinician and a lawyer have read them. Then each either moves up with reviewed wording, or stays here with the reason.</p>
+
+  <div class="stmt held">
+    <div class="stmt-id">H-01 <span class="stmt-tag">Held</span></div>
+    <p class="stmt-text">&ldquo;The time between doses you need has been getting shorter, which can mean your condition is progressing.&rdquo;</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">The same data as C-06 and L-01</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Interpretation of drift as disease progression</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">None</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>Shipping it, in any wording, before review. The allowed half is C-06 and L-01: the drift, unnamed.</div></div>
+      <div class="field"><div class="field-label">Source</div><div class="field-value">P01: noticing when the condition is moving faster</div></div>
+    </div>
+  </div>
+  <div class="stmt held">
+    <div class="stmt-id">H-02 <span class="stmt-tag">Held</span></div>
+    <p class="stmt-text">&ldquo;Since your plan changed, your medication seems to be working better.&rdquo;</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">The same data as L-03</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Efficacy verdict on a treatment change</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">None</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>Shipping it before review. Also unsafe on the data alone: a before/after window cannot separate the change from the season, a busy month, or the change in logging that often follows a new plan.</div></div>
+      <div class="field"><div class="field-label">Source</div><div class="field-value">P01: &ldquo;这个药是不是好？&rdquo;</div></div>
+    </div>
+  </div>
+  <div class="stmt held">
+    <div class="stmt-id">H-03 <span class="stmt-tag">Held</span></div>
+    <p class="stmt-text">&ldquo;Your doses seem to kick in about 40 minutes after you take them and wear off about 3 hours later.&rdquo;</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">Paired dose and kick-in / wearing-off notes; the personal timing profile in the Feature Backlog</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">A personal pharmacokinetic profile, from self-report</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">None</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>Shipping it before review. It reads as a measured drug duration, which self-report cannot support, and it invites someone to re-time their own doses.</div></div>
+      <div class="field"><div class="field-label">Source</div><div class="field-value">P01's kick-in and wearing-off logging; Medicine Cabinet backlog item</div></div>
+    </div>
+  </div>
+  <div class="stmt held">
+    <div class="stmt-id">H-04 <span class="stmt-tag">Held</span></div>
+    <p class="stmt-text">&ldquo;Questions you could ask: Could we talk about the timing of my afternoon dose?&rdquo;</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">Any Compare or Explain statement that qualifies for the period</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">App-suggested questions for the doctor, drawn from patterns</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Report block 6, when it exists</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>Shipping app-written starters before review. The person writing her own questions is fine now; the app proposing them is the line to check, because a suggested question about a dose can be heard as a suggested change.</div></div>
+      <div class="field"><div class="field-label">Source</div><div class="field-value">The report draft (block 6, My questions for you)</div></div>
+    </div>
+  </div>
+
+  <div class="rule">
+    <strong>Considered and rejected: shortest-gap days against longest-gap days.</strong> Proposed while building dose gaps (2026-10-12): pick the days with the shortest gaps and look at what else happened on them. Extremes always &ldquo;find&rdquo; something, and the comparison rebuilds a good-day / bad-day ranking [C-08]. C-07's stretches answer the same question without ranking days.
+  </div>
+
   <!-- ══════════════════ BELOW THRESHOLD ══════════════════ -->
   <h2>What we say below the threshold</h2>
 
@@ -869,7 +1043,7 @@
   <!-- ══════════════════ OPEN ══════════════════ -->
   <h2>Open questions this page does not settle</h2>
   <ul>
-    <li><b>The interval anchor.</b> Does the period run from the last appointment, or is it a rolling 30/90 days? The appointment anchor is more meaningful and requires the user to enter a date we do not currently ask for.</li>
+    <li><b>The interval anchor.</b> Decided for now (Oct 2026): 3 months rolling, plus stretches the record finds. The appointment anchor stays the upgrade once a Next visit date exists.</li>
     <li><b>How many statements at once.</b> Three feels right; more starts to read as a dashboard. Untested.</li>
     <li><b>Ordering.</b> By recency, by confidence, or by how much the user has engaged with that kind of statement before? The third is adaptive and needs care — an adaptive surface can leak a judgment it never states.</li>
     <li><b>Dismissal.</b> If a statement can find the user on the Timeline, the user must be able to send it away. What "away" means — this one, this kind, forever — is unresolved.</li>
@@ -883,7 +1057,7 @@
 
   <footer>
     <span>DoseEgg · Design · Look Back statement bank</span>
-    <span>Draft 2 · August 2026</span>
+    <span>Draft 3 · October 2026</span>
   </footer>
 
 </div>
