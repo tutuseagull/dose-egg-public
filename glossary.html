@@ -252,7 +252,7 @@
     <div class="eyebrow">DoseEgg · Learning</div>
     <h1>Glossary</h1>
     <p class="subtitle">Key terms in English and Chinese — clinical, UX, and conceptual. Added as they come up in the project.</p>
-    <p class="meta">17 entries · Last updated August 2026</p>
+    <p class="meta">20 entries · Last updated October 2026</p>
   </header>
 
 
@@ -384,7 +384,7 @@
       <div class="entry-tags">
         <span class="etag clinical">Clinical</span>
         <span class="etag concept">Pharmacology</span>
-        <span class="etag ux">Analyze</span>
+        <span class="etag ux">Look Back</span>
       </div>
     </div>
   </div>
@@ -417,7 +417,7 @@
     </div>
     <div class="entry-body">
       <p class="entry-def">The umbrella terms for structured physical activity in PD. <b>Exercise</b> is the broadest and the safest default. <b>Physical therapy (PT)</b> means clinician-led sessions, usually prescribed. <b>Rehab</b> is the programme-level word. Exercise is the strongest evidence-backed non-drug intervention in Parkinson's — it is a treatment, not a lifestyle extra.</p>
-      <p class="entry-context">Terminology decision (Aug 2026): <b>"recovery exercise" is the wrong phrase</b> and should not appear in UI copy. "Recovery" implies returning to a previous baseline, which a progressive condition does not do — it sets up a promise the product cannot keep and the user will feel the gap. Use <b>exercise</b>, <b>PT</b>, or the softest single-word umbrella, <b>movement</b>. Note the asymmetry with Chinese: 康复 is standard and unloaded in clinical Mandarin, so this constraint is English-specific — relevant if bilingual support returns post-MVP. Counting these sessions is legitimate in Analyze because it counts a therapy delivered, never app usage.</p>
+      <p class="entry-context">Terminology decision (Aug 2026): <b>"recovery exercise" is the wrong phrase</b> and should not appear in UI copy. "Recovery" implies returning to a previous baseline, which a progressive condition does not do — it sets up a promise the product cannot keep and the user will feel the gap. Use <b>exercise</b>, <b>PT</b>, or the softest single-word umbrella, <b>movement</b>. Note the asymmetry with Chinese: 康复 is standard and unloaded in clinical Mandarin, so this constraint is English-specific — relevant if bilingual support returns post-MVP. Counting these sessions is legitimate in Look Back because it counts a therapy delivered, never app usage.</p>
       <div class="entry-tags">
         <span class="etag clinical">Clinical</span>
         <span class="etag ux">Copy rule</span>
@@ -533,10 +533,58 @@
     </div>
     <div class="entry-body">
       <p class="entry-def">The number of days a statement could actually see, stated alongside the statement itself. "You had a rough afternoon on 5 of the 9 days lunch was close to your dose" — 9 is the coverage. Without it, "5 days" is a rhetorical device rather than a fact: 5 out of 6 and 5 out of 40 are opposite findings that look identical when the denominator is hidden.</p>
-      <p class="entry-context">A hard rule for the Analyze surface: every claim carries its coverage. Two consequences follow. An entry logged without any depth still counts in the denominator — excluding bare entries would compute every pattern over only the days someone felt well enough to elaborate, biasing the whole product toward good days. And a day with no entry at all is <b>unknown, never zero</b>: it reduces coverage rather than adding a zero to the data. The clinical precedent is the CGM standard in type 1 diabetes, where a report is considered meaningful only at ~14 days <em>and</em> ≥70% data capture — a duration and a coverage floor together.</p>
+      <p class="entry-context">A hard rule for Look Back: every claim carries its coverage. Two consequences follow. An entry logged without any depth still counts in the denominator — excluding bare entries would compute every pattern over only the days someone felt well enough to elaborate, biasing the whole product toward good days. And a day with no entry at all is <b>unknown, never zero</b>: it reduces coverage rather than adding a zero to the data. The clinical precedent is the CGM standard in type 1 diabetes, where a report is considered meaningful only at ~14 days <em>and</em> ≥70% data capture — a duration and a coverage floor together.</p>
       <div class="entry-tags">
         <span class="etag ux">UX principle</span>
-        <span class="etag concept">Analyze</span>
+        <span class="etag concept">Look Back</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-terms">
+      <div class="entry-en">Slot (a dose time)</div>
+      <div class="entry-zh">服药时段</div>
+      <div class="entry-pinyin">fúyào shíduàn</div>
+    </div>
+    <div class="entry-body">
+      <p class="entry-def">One time of day in the schedule, holding a main medication (the anchor) and any add-ons taken with it. The app asks about a slot once, for the whole handful, rather than once per pill.</p>
+      <p class="entry-context">From P01 (D-16, August 2026). The Medicine Cabinet is entered by medication but reviewed as slots (&quot;Your day&quot;), because labels and doctors speak per medication while a day runs on times. Whether an add-on goes with the anchor is the person's choice per slot, never inferred.</p>
+      <div class="entry-tags">
+        <span class="etag ux">Data model</span>
+        <span class="etag ux">Medicine Cabinet</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-terms">
+      <div class="entry-en">Dose gap</div>
+      <div class="entry-zh">服药间隔</div>
+      <div class="entry-pinyin">fúyào jiàngé</div>
+    </div>
+    <div class="entry-body">
+      <p class="entry-def">How long someone went between one dose and the next, read against the plan rather than the clock: how far each dose landed from its planned time. On a fixed schedule every on-time gap is the same length, so the movement worth seeing is drift from plan.</p>
+      <p class="entry-context">Look Back's front door since October 2026, after P01 asked &quot;我那个需要的间隔时间有没有变短？&quot; (are the gaps I need getting shorter?). Doses landing earlier than planned is the usual felt sign of wearing-off. A plan change is a dated version, and gaps after it are read against the new plan.</p>
+      <div class="entry-tags">
+        <span class="etag concept">Look Back</span>
+        <span class="etag clinical">Wearing-off</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-terms">
+      <div class="entry-en">Stretch</div>
+      <div class="entry-zh">一段时期</div>
+      <div class="entry-pinyin">yí duàn shíqī</div>
+    </div>
+    <div class="entry-body">
+      <p class="entry-def">A run of seven or more days where dose gaps sat clearly apart from the four weeks either side. The app finds stretches in the record; the person names them, or hides them.</p>
+      <p class="entry-context">Chosen over calendar months because what someone lives through does not follow months. A stretch is a proposal, never a finding: it is drawn as a band, and &quot;Also in your record then&quot; shows counts for the stretch against the weeks around it, in a fixed order, never ranked [C-15].</p>
+      <div class="entry-tags">
+        <span class="etag concept">Look Back</span>
+        <span class="etag ux">UX principle</span>
       </div>
     </div>
   </div>
@@ -547,7 +595,7 @@
 
   <footer>
     <span>DoseEgg · Learning · Glossary</span>
-    <span>Last updated August 2026</span>
+    <span>Last updated October 2026</span>
   </footer>
 
 </div>

@@ -55,6 +55,9 @@
     text-transform:uppercase;padding:2px 7px;border-radius:4px;margin-left:6px;vertical-align:2px}
   .flag.mvp{background:var(--zh-soft);color:var(--zh);border:1px solid rgba(95,126,110,.25)}
   .flag.later{background:var(--warm-soft);color:#6E5C48;border:1px solid rgba(140,123,106,.25)}
+  .flag.upd{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-border)}
+  .changes{background:var(--card);border:1px solid var(--divider);border-radius:12px;padding:16px 20px;margin:0 0 32px}
+  .changes h3{margin-top:0}
   .flag.out{background:var(--divider);color:var(--text-soft);border:1px solid var(--divider)}
 
   table{width:100%;border-collapse:collapse;margin:16px 0 24px;font-size:13.5px}
@@ -87,9 +90,21 @@
 <header>
   <div class="eyebrow">DoseEgg · Design</div>
   <h1>Information architecture</h1>
-  <p class="subtitle">What the app's places are, what belongs in the menu, and how Look Back grows as the record fills up. Written to settle the menu question before any Look Back screens get drawn.</p>
-  <p class="meta">Draft 1 · August 2026 · proposal, not a decision</p>
+  <p class="subtitle">What the app's places are, what belongs in the menu, and how Look Back grows as the record fills up. First written in August to settle the menu question; brought up to date in October with what is now built: Timeline v4, Look Back's dose gaps and the Medicine Cabinet.</p>
+  <p class="meta">Draft 2 · October 2026 · matches the prototypes · <span class="flag upd">Updated</span> marks what changed since Draft 1</p>
 </header>
+
+<div class="changes">
+  <h3>What changed since Draft 1</h3>
+  <ul>
+    <li><b>Look Back left the menu.</b> Today and Look Back are tabs at the top (2026-10-09, after Notion's mobile app). The menu is a small popover with two places: Medicine Cabinet and Settings.</li>
+    <li><b>The bottom is a row of ways in</b>, not a floating button: a left slot, a quick note, and + for a specific kind of record. Which left slot is still open (three layouts in the demo bar).</li>
+    <li><b>Look Back's front door is dose gaps</b>: are the gaps between doses getting shorter, measured against the plan, 3 months by default, with stretches the person names (2026-10-12). The week view is kept in the Data viz playground.</li>
+    <li><b>Medicine Cabinet is built</b>: enter by medication, review as your day, a reminder per dose time with an optional backup time, dated schedule versions, and a faked photo of the label. Onboarding is one guided task inside it.</li>
+    <li><b>The schedule learns from use</b> in a narrower form than Draft 1 proposed: one offer, the first time a medication is logged by hand.</li>
+  </ul>
+  <p style="margin:0">Every decision behind these is dated in <code>docs/decision-log.md</code>.</p>
+</div>
 
 <p class="lede">The menu question is easy to answer badly, because every candidate sounds reasonable in a list. So this starts with a test rather than a list.</p>
 
@@ -98,7 +113,7 @@
 <h2>What earns a place in the menu</h2>
 
 <div class="rule">
-  <strong>Is it a place you go, or a thing you make?</strong> A menu is a drawer of destinations. Somewhere you return to, that holds state, that is still there when you come back. A report is not that: it is an <em>output</em>, produced from an interval, and it belongs beside the thing that defines the interval. An appointment is not that either: it is a single date, and it belongs where the date does work.
+  <strong>Is it a place you go, or a thing you make?</strong> A menu is a list of destinations. Somewhere you return to, that holds state, that is still there when you come back. A report is not that: it is an <em>output</em>, produced from an interval, and it belongs beside the thing that defines the interval. An appointment is not that either: it is a single date, and it belongs where the date does work.
 </div>
 
 <p>Two supporting checks, in order:</p>
@@ -107,53 +122,54 @@
   <li><b>Would someone go looking for it?</b> If the honest answer is "only right after doing something else," it is a step in that flow, not a destination.</li>
 </ul>
 
-<p>Applied honestly this cuts the candidate list roughly in half, which is the point. Every extra row in a drawer is a row someone has to read past for the life of the product.</p>
+<p>Applied honestly this cuts the candidate list roughly in half, which is the point. Every extra row in a menu is a row someone has to read past for the life of the product.</p>
 
 
 <!-- ══════════════ THE MAP ══════════════ -->
-<h2>The proposed map</h2>
+<h2>The map, as built <span class="flag upd">Updated</span></h2>
 
 <div class="map">
   <div class="node home">
-    <div class="role">Home · not a menu item</div>
-    <h4>Timeline <span class="flag mvp">Built</span></h4>
-    <p>The day's rail. Where nearly all time is spent, and the default screen on launch. It does not appear in the menu as a destination, but the menu needs a way back to it.</p>
+    <div class="role">Top tab · default on launch</div>
+    <h4>Today <span class="flag mvp">Built</span></h4>
+    <p>The day's rail. Where nearly all time is spent. The due dose leads as a card; answering it writes into the rail in place.</p>
     <ul>
-      <li>Floating button → the logging actions</li>
+      <li>Bottom dock → ways in: a left slot, a quick note, and + for a specific kind of record</li>
       <li>Tap an entry → detail sheet, correct or enrich</li>
-      <li>Scroll back → earlier days (timeline-based history nav)</li>
+      <li>Scroll back → earlier days</li>
     </ul>
   </div>
 
   <div class="node">
-    <div class="role">Menu · destination 1</div>
-    <h4>Look Back <span class="flag mvp">MVP</span></h4>
-    <p>The retrospective surface. Grows with the record: a rendering at first, comparisons later, co-occurrence last.</p>
+    <div class="role">Top tab</div>
+    <h4>Look Back <span class="flag mvp">Built</span></h4>
+    <p>The retrospective surface. A tab beside Today rather than a menu row, so it has a door that is not buried. Opens on dose gaps.</p>
     <ul>
-      <li>Owns the interval (week, six weeks, since last visit)</li>
-      <li>Holds the <b>Next visit</b> date, because that is where the date does work</li>
-      <li>Holds <b>Make a report</b>, because a report is made from an interval</li>
+      <li>Owns the interval: 3 months by default, a year view, and stretches the app finds and the person names</li>
+      <li>Will hold the <b>Next visit</b> date, because that is where the date does work (not built)</li>
+      <li>Will hold <b>Make a report</b>, because a report is made from an interval (not built)</li>
     </ul>
   </div>
 
   <div class="node">
-    <div class="role">Menu · destination 2</div>
-    <h4>Medicine Cabinet <span class="flag mvp">MVP</span></h4>
+    <div class="role">Menu · place 1</div>
+    <h4>Medicine Cabinet <span class="flag mvp">Built</span></h4>
     <p>The <b>schedule</b>: which medications you take and when each one is <em>meant</em> to happen. This is the intention, as opposed to the record of what actually happened. Content the user edits and returns to.</p>
     <ul>
-      <li>Per-med detail, schedule, conditional dosing</li>
+      <li>Entered by medication, reviewed as "Your day": each dose time with a main medication and its add-ons</li>
+      <li>A reminder per dose time, with an optional backup time; dated versions so a change never overwrites the past</li>
+      <li>Source of the "planned time" every Look Back measure is taken against</li>
       <li>Extends to non-drug treatments (PT, exercise) later</li>
-      <li>Source of the "planned time" every Look Back chart measures against</li>
     </ul>
   </div>
 
   <div class="node">
-    <div class="role">Menu · destination 3</div>
-    <h4>Settings <span class="flag mvp">MVP</span></h4>
+    <div class="role">Menu · place 2</div>
+    <h4>Settings <span class="flag later">Not built</span></h4>
     <p>Not optional: two decided features have nowhere else to live.</p>
     <ul>
       <li>In-app text size control (decided 2026-08-05)</li>
-      <li>AI settings page — every AI touchpoint with its on/off state (Open Questions)</li>
+      <li>AI settings: a ledger of every AI touchpoint, each remote one reversible (AI Data Flow)</li>
       <li>Data export and account, when those exist</li>
     </ul>
   </div>
@@ -162,17 +178,17 @@
     <div class="role">Not a destination</div>
     <h4>Report <span class="flag out">Inside Look Back</span></h4>
     <p>An artefact you generate, hand over, and stop thinking about. It has no standing state to return to, and it is produced from an interval that Look Back already owns.</p>
-    <p>Putting it there also lands it in the right place for consent: generating is an explicit user action, which is exactly what the AI rules require [C-14, C-15].</p>
+    <p>Putting it there also lands it in the right place for consent: generating is an explicit user action, which is exactly what the AI rules require [C-14, C-15]. Templated, never generated.</p>
   </div>
 </div>
 
-<div class="rule warn">
-  <strong>An observation, not a challenge.</strong> The MVP menu is three rows. The no-tabs and hamburger decision was made in May, before the surface count was known, and a drawer holding three items is close to the point where a drawer stops earning its cost. I would still keep it — it is cheap, and the list grows post-MVP with caregiver, sharing and history — but if the menu is <em>still</em> three rows when the design is otherwise done, that is the moment to re-examine rather than ship a drawer out of habit.
+<div class="rule">
+  <strong>Resolved October 2026.</strong> Draft 1 flagged that a drawer holding three rows was close to not earning its cost. It got re-examined: Look Back moved to a tab, and the menu shrank to a popover holding two places. The June no-tabs call existed to keep the bottom of the screen for logging; tabs at the <em>top</em> keep that intent. If the tabs do not work in testing, they fold back into the menu cheaply.
 </div>
 
 
 <!-- ══════════════ ENTRY POINTS ══════════════ -->
-<h2>How people reach Look Back</h2>
+<h2>How people reach Look Back <span class="flag upd">Updated</span></h2>
 
 <p>Four ways in, and they are not equivalent. What matters is what the person already wants when they arrive, because that determines what should be on screen.</p>
 
@@ -182,22 +198,22 @@
   </thead>
   <tbody>
     <tr>
-      <td data-label="From"><strong>The menu</strong></td>
+      <td data-label="From"><strong>The Look Back tab</strong></td>
       <td data-label="Wanting">Nothing specific. Browsing.</td>
-      <td data-label="Lands on">Current period, nothing selected, whatever statements qualify.</td>
-      <td data-label="Notes">The only entry with no question attached, so it carries the summary state.</td>
+      <td data-label="Lands on">Dose gaps over the last 3 months, nothing selected.</td>
+      <td data-label="Notes">Built. The only entry with no question attached, so it carries the summary state. Was "the menu" in Draft 1.</td>
     </tr>
     <tr>
       <td data-label="From"><strong>An entry on the Timeline</strong></td>
       <td data-label="Wanting">"Is this normal for me?" A question already formed.</td>
       <td data-label="Lands on">That day, already selected, in the period containing it.</td>
-      <td data-label="Notes">The strongest entry point. Never dump them on the summary and make them find the day again.</td>
+      <td data-label="Notes">The strongest entry point. Never dump them on the summary and make them find the day again. Not built yet.</td>
     </tr>
     <tr>
       <td data-label="From"><strong>A card at the top of Timeline</strong></td>
       <td data-label="Wanting">Nothing yet — the app is offering.</td>
       <td data-label="Lands on">The statement that qualified, with its evidence.</td>
-      <td data-label="Notes">Quiet card, never a badge or a push. Must be dismissible or it becomes 鸡肋.</td>
+      <td data-label="Notes">Quiet card, never a badge or a push. Must be dismissible or it becomes 鸡肋. Not built yet.</td>
     </tr>
     <tr>
       <td data-label="From"><strong>A visit reminder</strong></td>
@@ -214,7 +230,7 @@
 
 
 <!-- ══════════════ NO PLAN ══════════════ -->
-<h2>What happens if someone skips onboarding</h2>
+<h2>What happens if someone skips onboarding <span class="flag upd">Updated</span></h2>
 
 <div class="rule">
   <strong>First, the word.</strong> Two different things, and almost every rule below turns on the difference. The <b>schedule</b> is the intention: which medications you take and roughly when each one is meant to happen. The <b>record</b> is what actually happened: the entries. AGENTS.md already leans on this — "a schedule is a plan, not an observation" is why an <code>assumed</code> dose may never be counted as a taken one. Below, "schedule" always means the intention.
@@ -226,9 +242,11 @@
   <strong>Onboarding is a shortcut into Medicine Cabinet, not a separate flow.</strong> Same editor, two doors. Skipping costs nothing except a door you can still find later, in the one place where looking for it makes sense. It also halves the build: one screen to design, not a wizard plus an editor that drift apart.
 </div>
 
+<p><b>As built (2026-10-12):</b> the Cabinet's first run is one guided task, <em>Add your first medication</em>, with two ways in: a photo of the label or typing it. There is no "Not now" button; leaving the screen is the skip. The photo path drafts what it read, marked ≈ and outlined until the person touches it, and nothing lands until they confirm [C-15].</p>
+
 <h3>With no schedule, the app degrades honestly</h3>
 <ul>
-  <li><b>No confirmation cards.</b> There is nothing to propose, so the default logging path is the floating button. The loop still closes, it is just manual.</li>
+  <li><b>No confirmation cards.</b> There is nothing to propose, so the default logging path is the + in the bottom dock. The loop still closes, it is just manual.</li>
   <li><b>No <code>assumed</code> entries.</b> That basis only exists relative to a schedule. Everything is <code>asserted</code>, which is the stronger kind of record anyway.</li>
   <li><b>No planned-time rails in Look Back</b>, and no statement that says "as planned." Rhythm statements still work: "your midday dose ranged from 12:15 to 2:00" needs no schedule to be true.</li>
 </ul>
@@ -237,8 +255,8 @@
   <strong>This generalises the ladder.</strong> A statement's requirement is not only <em>how much</em> record exists but <em>which kinds</em>. Schedule-dependent statements gate on a schedule the same way co-occurrence gates on five days each side. Nothing new to invent — it is the same rule with a second axis.
 </div>
 
-<h3>The schedule can build itself from use</h3>
-<p>If someone logs the same medication at roughly the same time three mornings running, the app already knows a slot. It can offer one: <em>"You have logged Rytary around 8 most mornings. Want me to expect it?"</em> Confirm, adjust, or dismiss. That is the confirmation-card pattern turned on the schedule itself, and it means setup becomes a by-product of use rather than a toll gate.</p>
+<h3>The schedule can build itself from use <span class="flag upd">Updated</span></h3>
+<p>Draft 1 proposed waiting for three mornings of the same medication at the same time, then offering a slot. The decided version is simpler: <b>the first time a medication is logged by hand, the app offers a reminder for it</b>, proposing only the name and the time it saw. Confirm, adjust, or dismiss; dismissed means never asked again. That is still the confirmation-card pattern turned on the schedule itself, and setup still becomes a by-product of use rather than a toll gate. It fires sooner, and it needs no pattern detection to explain.</p>
 
 <div class="rule warn">
   <strong>Guard on that.</strong> The app may only ever propose <em>what it has seen</em> — a medication the person logged, at a time they used. It may never propose a dose they have not taken, a time they have not used, or an amount at all. The line is the same one as everywhere else: this is a memory aid, not a prescription. Offer it once per pattern and never again if dismissed.
@@ -296,6 +314,7 @@
 
 <!-- ══════════════ PHASES ══════════════ -->
 <h2>What Look Back can honestly say, by how much record exists</h2>
+<p><span class="flag upd">Updated</span> The ladder below still holds. What changed is the first thing Look Back shows once there is enough record: dose gaps, which sits in the Compare row and answers the question P01 actually asked. Its rules are in the next section.</p>
 
 <p class="lede">The requirement is not a single screen with an empty state bolted on. Each row below is a genuinely different thing the surface is for. The rule underneath all of them: a data requirement is a property of each <em>statement</em>, not a gate on the surface, so the page always renders whatever currently qualifies and never shows a locked card.</p>
 
@@ -348,6 +367,15 @@
 </div>
 
 
+<h3>Dose gaps, the current front door <span class="flag upd">New</span></h3>
+<ul>
+  <li><b>A gap is measured against the plan, not the clock.</b> On a fixed schedule every on-time gap is the same length; what moves is how far a dose lands from plan. A plan change is a dated version in the Cabinet, and gaps after it are measured against the new plan.</li>
+  <li><b>3 months by default</b>, roughly the appointment rhythm, with a year view whose mark is a week's median.</li>
+  <li><b>Stretches find themselves</b> (7+ days that sit apart from the weeks around them), and the person names or hides each one. The app proposes; the person decides [C-15].</li>
+  <li><b>"Also in your record then"</b> shows counts for the stretch against the weeks around it, in a fixed order, never ranked, never aimed at activity or medication.</li>
+</ul>
+
+
 <!-- ══════════════ OPEN ══════════════ -->
 <h2>Open, and what I would do</h2>
 
@@ -364,19 +392,21 @@
   <strong>Guard it, though.</strong> Appointments creep into scheduling features — reminders, doctor details, a calendar, a history of visits. The MVP version is one date and one pre-visit nudge. If it grows past that before the report is validated, it has grown for its own sake.
 </div>
 
-<h3>Does Look Back appear in the menu on day one?</h3>
-<p>Yes. Hiding a row until it earns content makes the app feel unstable, and there is something honest to show from the first week anyway. The alternative — a visible row that opens an apology — is what the day-0 line in the table above exists to avoid.</p>
+<h3>Is the Look Back tab there on day one?</h3>
+<p>Yes. Hiding a tab until it earns content makes the app feel unstable, and there is something honest to show from the first week anyway. The alternative, a visible tab that opens an apology, — is what the day-0 line in the table above exists to avoid.</p>
 
 <h3>Still unsettled</h3>
 <ul>
-  <li>Whether "Medicine Cabinet" survives as the user-facing name or stays an internal one.</li>
-  <li>Where a caregiver view would attach, if it ever exists. Not MVP, but it is the most likely fourth menu row and worth not painting into a corner.</li>
+  <li>Whether "Medicine Cabinet" survives as the user-facing name. P01 would rather name the space herself; renaming is not built.</li>
+  <li>The bottom dock's left slot: camera, How I feel, or both (layouts A, B, C in the demo bar). Layout A breaks the lower-third rule, so that rule stands until this is settled.</li>
+  <li>12-hour or 24-hour times. Time fields follow the phone's locale while cards show 24-hour; one display rule is needed.</li>
+  <li>Where a caregiver view would attach, if it ever exists. Not MVP, but it is the most likely third menu row and worth not painting into a corner.</li>
   <li>Whether the Timeline arrival card and the visit reminder are the same mechanism wearing two hats, or genuinely separate.</li>
 </ul>
 
 <footer>
   <span>DoseEgg · Design · Information architecture</span>
-  <span>Draft 1 · August 2026</span>
+  <span>Draft 2 · October 2026</span>
 </footer>
 
 </div>

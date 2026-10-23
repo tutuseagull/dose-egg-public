@@ -242,7 +242,7 @@
     <div class="eyebrow">DoseEgg · Working Doc</div>
     <h1>Open Questions</h1>
     <p class="subtitle">A running log of product and design questions — by feature area. Updated as decisions are made. This page holds <strong>unknowns only</strong>: feature requirements live in the <span class="unpublished">Feature Backlog</span>, interaction decisions (D-xx) in the <span class="unpublished">Daily Loop Flow</span>, and rules (C-xx) in <span class="unpublished">Design Constraints</span>. When a question gets answered, it's marked Decided here with a pointer to where the answer now lives.</p>
-    <p class="meta">Last updated August 2026</p>
+    <p class="meta">Last updated October 2026</p>
   </header>
 
   <div class="legend">
@@ -250,6 +250,89 @@
     <div class="legend-item"><span class="dot" style="background:var(--decided)"></span> Decided</div>
     <div class="legend-item"><span class="dot" style="background:var(--future)"></span> Future / post-MVP</div>
     <div class="legend-item"><span class="dot" style="background:var(--research)"></span> Needs external input</div>
+  </div>
+
+
+  <!-- ══════════════════════
+       FEATURE: NAVIGATION, MEDICINE CABINET & REMINDERS (added October 2026)
+  ══════════════════════ -->
+  <div class="feature-block">
+    <div class="feature-head">
+      <span class="feature-tag mvp">MVP</span>
+      <h2>Navigation, Medicine Cabinet &amp; reminders</h2>
+    </div>
+    <p class="feature-desc">
+      Opened October 2026 with Timeline v4 and the first Medicine Cabinet prototype. The map as built is in <a href="information-architecture.html" style="color:var(--decided,#4A7A8A);">Information Architecture</a>; every decision below is dated in <code>docs/decision-log.md</code>.
+    </p>
+
+    <div class="questions">
+
+      <div class="q">
+        <span class="q-status decided"></span>
+        <div class="q-body">
+          <span class="q-label decided">Decided</span>
+          <p class="q-text">Where does Look Back live? <strong>A tab at the top, beside Today (2026-10-09).</strong></p>
+          <p class="q-note">The menu shrank to a popover holding places only: Medicine Cabinet and Settings. Supersedes the May no-tabs call, whose intent (keep the bottom for logging) the top tabs keep. Folds back into the menu cheaply if testing says so.</p>
+        </div>
+      </div>
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">Which control takes the bottom dock's left slot: camera, How I feel, or both?</p>
+          <p class="q-note">Three layouts behind the demo bar for P01: A camera · quick note · +, B How I feel · quick note · +, C camera · How I feel · +. A breaks the lower-third rule (Photo belongs above the episode zone); B and C respect it. The rule stands until this is settled.</p>
+        </div>
+      </div>
+      <div class="q">
+        <span class="q-status decided"></span>
+        <div class="q-body">
+          <span class="q-label decided">Decided</span>
+          <p class="q-text">How is the schedule set up? <strong>A guided first task, then by hand, then offered from use (2026-10-12).</strong></p>
+          <p class="q-note">First run is one task inside the Cabinet, Add your first medication, by photo or by typing. The first time a medication is logged by hand, the app offers a reminder for it, proposing only what it saw; dismissed means never asked again.</p>
+        </div>
+      </div>
+      <div class="q">
+        <span class="q-status decided"></span>
+        <div class="q-body">
+          <span class="q-label decided">Decided</span>
+          <p class="q-text">Does a schedule change overwrite the old one? <strong>No: dated versions (2026-10-12).</strong></p>
+          <p class="q-note">Changing times, medications in a dose, or roles starts a new version from a date; the old one is frozen. Reminder and backup changes do not start a version. This is what lets dose gaps measure each stretch against the plan that was in force.</p>
+        </div>
+      </div>
+      <div class="q">
+        <span class="q-status decided"></span>
+        <div class="q-body">
+          <span class="q-label decided">Decided</span>
+          <p class="q-text">Can a reminder repeat? <strong>Only if the person set a backup time (2026-10-12).</strong></p>
+          <p class="q-note">&quot;11:00, or by 11:30&quot;: answering the first means the second never fires. App-initiated re-alerts stay ruled out.</p>
+        </div>
+      </div>
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">12-hour or 24-hour times?</p>
+          <p class="q-note">Time fields follow the phone's locale (12-hour on a US phone) while cards show 24-hour. One display rule is needed before a real build.</p>
+        </div>
+      </div>
+      <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open</span>
+          <p class="q-text">Does the person get to name the Cabinet?</p>
+          <p class="q-note">P01 wants to name the space herself. Renaming is not built. Linked to whether &quot;Medicine Cabinet&quot; survives as the user-facing name at all.</p>
+        </div>
+      </div>
+      <div class="q">
+        <span class="q-status future"></span>
+        <div class="q-body">
+          <span class="q-label future">Future</span>
+          <p class="q-text">Either/or doses, and medications with no next dose for days</p>
+          <p class="q-note">Two different medications as alternatives for one dose time are not modelled beyond a backup time. A weekly or as-needed medication would keep an unanswered card for days, because a dose only yields to the next dose.</p>
+        </div>
+      </div>
+
+    </div>
   </div>
 
 
@@ -262,7 +345,7 @@
       <h2>Analyze / Look Back — the retrospective surface</h2>
     </div>
     <p class="feature-desc">
-      The third surface alongside Timeline and the doctor export. Opened as an outcome-first workstream in August 2026: the statements a patient would return for were written before any chart, and live in the <a href="analyze-statements.html" style="color:var(--decided,#4A7A8A);">Analyze statement bank</a> along with the visual language and the rules every statement obeys. <em>Direction: build the retrospective, non-judgmental view first — a rewarding way to see your own record. The pre-appointment / visit-prep framing is the destination, not the first build.</em>
+      The second tab beside Today, and the home of the doctor export. Opened as an outcome-first workstream in August 2026: the statements a patient would return for were written before any chart, and live in the <a href="analyze-statements.html" style="color:var(--decided,#4A7A8A);">Analyze statement bank</a> along with the visual language and the rules every statement obeys. <strong>Front door since 2026-10-12: dose gaps</strong>, against the plan, 3 months by default, with stretches the person names (<a href="prototypes/look-back-gaps.html" style="color:var(--decided,#4A7A8A);">prototype</a>). <em>Direction: build the retrospective, non-judgmental view first — a rewarding way to see your own record. The pre-appointment / visit-prep framing is the destination, not the first build.</em>
     </p>
 
     <div class="questions">
@@ -313,10 +396,11 @@
       </div>
 
       <div class="q">
-        <span class="q-status open"></span>
+        <span class="q-status decided"></span>
         <div class="q-body">
-          <span class="q-label open">Open</span>
-          <p class="q-text">Does the interval run from the last appointment, or is it a rolling window?</p>
+          <span class="q-label decided">Decided for now</span>
+          <p class="q-text">Does the interval run from the last appointment, or is it a rolling window? <strong>3 months rolling, plus stretches (2026-10-12).</strong></p>
+          <p class="q-note">Dose gaps opens on the last 3 months, P01's own unit and roughly the appointment rhythm, with a year view. Periods the record finds for itself ("stretches") cover what a calendar window misses. The appointment anchor below is still the upgrade once a Next visit date exists.</p>
           <p class="q-note">An appointment anchor ("since your last visit") is more meaningful than a rolling 30/90 days and reframes the cold-start problem entirely — but it requires the user to enter a date the app does not currently ask for, and needs a fallback for anyone who never does. It would also be the one legitimate notification trigger, since it fires on a real event rather than on an engagement target.</p>
         </div>
       </div>
@@ -327,6 +411,7 @@
           <span class="q-label open">Open</span>
           <p class="q-text">How many statements at once, in what order, and how does a user dismiss one?</p>
           <p class="q-note">Three at a time feels right; more reads as a dashboard. Ordering by recency and by confidence are both defensible — ordering by past engagement is adaptive and risky, because an adaptive surface can leak a judgment it never states. If a statement can find the user on the Timeline, the user must be able to send it away; what "away" means (this one / this kind / forever) is unresolved.</p>
+          <p class="q-note"><strong>Progress, October 2026:</strong> dose gaps leads with one sentence, not three. A stretch the app found can be hidden one at a time, with Undo; that is the first built answer to "this one".</p>
         </div>
       </div>
 
@@ -706,7 +791,7 @@
 
   <footer>
     <span>DoseEgg · Open Questions · Working doc</span>
-    <span>Last updated June 2026</span>
+    <span>Last updated October 2026</span>
   </footer>
 
 </div>
