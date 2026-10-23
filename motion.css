@@ -99,3 +99,18 @@ html .sheet { transition-timing-function: var(--ease-settle); }
               transform var(--motion-base) var(--ease-exit);
 }
 .card-ghost.leaving { opacity: 0; transform: translateY(calc(var(--space-2) * -1)) scale(.98); }
+
+/* ── Sheets: the handle ─────────────────────────────────────────────
+   The grey bar at the top of a sheet closes it on a tap and follows a drag
+   down (behaviour in sheet-handle.js). The bar stays small; its hit area is a
+   full target tall and wide enough to find without aiming. */
+html .sheet .pull { position: relative; cursor: grab; touch-action: none; }
+html .sheet .pull::before {
+  content: ''; position: absolute;
+  inset: calc(var(--target-min) / -2) calc(var(--target-min) * -2);
+}
+html .sheet .pull:focus-visible { outline: none; box-shadow: var(--focus-glow); }
+/* While a sheet is open, a drag that reaches the page must not become the
+   browser's pull-to-refresh or a rubber-band of the page behind. */
+html .sheet { overscroll-behavior: contain; }
+html:has(.sheet.open), html:has(.sheet.open) body { overscroll-behavior: none; }

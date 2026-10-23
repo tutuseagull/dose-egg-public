@@ -1970,6 +1970,11 @@ function dayLabelText(i){
    DEPTH IS OPTIONAL, IDENTITY IS NOT. A placeholder label must never reach the
    record. */
 let logStep = null;          // null = categories · otherwise the chosen type
+/* How the + sheet was opened. 'shortcut' = straight into a step from a dock
+   button (layout B or C's How I feel). A shortcut's step is the top level, so
+   its head offers Close, not Back: Back would climb to "Add to today", a
+   level the person never visited (Tutu, 2026-10-23). */
+let logFrom = null;
 
 /* ONE grid, one idiom, ordered by how often it is reached.
    RESTRUCTURED 2026-08-15. The sheet had grown to eight targets in four visual
@@ -2058,8 +2063,11 @@ function renderLogSheet(){
         <span class="tile-name">${name}</span></button>`).join('') + '</div>';
   } else {
     h += `<div class="log-head">
-        <button class="backbtn" onclick="openCategory(null)" aria-label="Back">
-          <i class="ph ph-caret-left"></i></button>
+        ${logFrom === 'shortcut'
+          ? `<button class="backbtn" onclick="closeSheets()" aria-label="Close">
+               <i class="ph ph-x"></i></button>`
+          : `<button class="backbtn" onclick="openCategory(null)" aria-label="Back">
+               <i class="ph ph-caret-left"></i></button>`}
         <h2>${TYPE_NAME[logStep]}</h2>
       </div>`;
     /* The camera leads the Food step — a photo is the fastest complete meal
@@ -3181,7 +3189,7 @@ function setSheetInert(openId){
     if (sid === openId) n.removeAttribute('inert'); else n.setAttribute('inert',''); });
 }
 function openSheet(id){
-  if (id === 'sheet-log'){ logStep = null; searchQ = ''; renderLogSheet(); }
+  if (id === 'sheet-log'){ logStep = null; logFrom = null; searchQ = ''; renderLogSheet(); }
   lastFocus = document.activeElement;
   el('scrim').classList.add('open');
   SHEETS.forEach(s => el(s).classList.toggle('open', s === id));
@@ -3344,7 +3352,7 @@ function toggleLeftSlot(){ layoutN = (layoutN + 1) % LAYOUTS.length; renderLeftS
 function feelTap(){
   showTab('today');
   openSheet('sheet-log');
-  logStep = 'symptom'; searchQ = ''; renderLogSheet();
+  logStep = 'symptom'; logFrom = 'shortcut'; searchQ = ''; renderLogSheet();
 }
 function leftSlotTap(){
   showTab('today');
@@ -3384,5 +3392,7 @@ function rightSlotTap(){
 
 renderCard(); renderTimeline(); renderLogSheet(); setSheetInert(null); renderLeftSlot();
 </script>
+<!-- the sheet handle: tap to close, drag down to close (shared, see the file) -->
+<script src="../sheet-handle.js" data-close="closeSheets"></script>
 </body>
 </html>
