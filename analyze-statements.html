@@ -190,7 +190,7 @@
   </header>
 
   <div class="rule">
-    <strong>New in Draft 3 (October 2026): P01's own questions.</strong> When asked what she would want from Look Back, P01 named seven things, in her order: has the interval between doses got shorter; what else was going on (movement, how demanding life was, season); the big picture over a year, a quarter at a time; whether the condition is moving faster; before and after a medication change ("is this drug good?"); whether winter really is harder; whether movement has kept up (<code>docs/patient-voice-quotes.md</code> §6). They are folded in below, marked with a left rule and a <span class="stmt-tag">From P01</span> tag, plus a new <b>Long view</b> era for her quarter-and-year scale. Three of them cross into clinical interpretation; those sit apart at the end as <b>Held</b>, written down so the line is visible and used nowhere until a clinician and a lawyer have read them. <em>n=1: a high-engagement self-tracker. Her questions, not a population's.</em>
+    <strong>New in Draft 3 (October 2026): P01's own questions.</strong> When asked what she would want from Look Back, P01 named these, in her order: has the interval between doses got shorter, or how often she takes them; what else was going on (movement, how demanding life was, season); the big picture over a year, a quarter at a time; whether the condition is moving faster; before and after a medication change, and how different medications compare ("is this drug good?"); whether winter really is harder; whether movement has kept up (<code>docs/patient-voice-quotes.md</code> §6). They are folded in below, marked with a left rule and a <span class="stmt-tag">From P01</span> tag, plus a new <b>Long view</b> era for her quarter-and-year scale. Three of them cross into clinical interpretation; those sit apart at the end as <b>Held</b>, written down so the line is visible and used nowhere until a clinician and a lawyer have read them. <em>n=1: a high-engagement self-tracker. Her questions, not a population's.</em>
   </div>
 
   <p class="lede">The method here is deliberate. The failure mode in an analytics surface is building a chart and then hunting for a story in it. So this page is written in the other order: the statement first, the visual second, and for several statements the honest answer is <em>no visual at all</em>.</p>
@@ -945,6 +945,28 @@
       <div class="field"><div class="field-label">Source</div><div class="field-value">P01: &ldquo;冬天是不是真的就是比较难熬啊？&rdquo;</div></div>
     </div>
   </div>
+  <div class="stmt p01">
+    <div class="stmt-id">L-06 <span class="stmt-tag">From P01 · Not built</span></div>
+    <p class="stmt-text">&ldquo;Doses per day, by month: most days in July had 5. Most days in September had 6, and on 11 of them there was a dose around 16:00 that is not in your plan.&rdquo;</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">≥2 months of <code>asserted</code> doses; the plan versions in force, so planned and unplanned doses can be told apart</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Count per day, the most common count per month, with unplanned doses named by time</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">Count bars, one per month, unplanned doses as a separate mark on the same bar</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>&ldquo;You need more medication.&rdquo; &ldquo;Extra dose&rdquo; as a fault. Any hint that the unplanned dose should go into the plan: that is the prescriber's call (and the Cabinet only ever offers a reminder for what the person already takes).</div></div>
+      <div class="field"><div class="field-label">Source</div><div class="field-value">P01: 用药间隔时间有没有变短 / 用药频率有没有改变</div></div>
+    </div>
+  </div>
+  <div class="stmt p01">
+    <div class="stmt-id">L-07 <span class="stmt-tag">From P01 · Not built</span></div>
+    <p class="stmt-text">&ldquo;Your plans this year, side by side. January to April: doses about 5 minutes from plan, logged on 102 of 120 days. May to August: about 15, on 98 of 123. Since September: about 10, on 46 of 53.&rdquo;</p>
+    <div class="stmt-grid">
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">≥2 dated plan versions with ≥3 weeks of record each</div></div>
+      <div class="field"><div class="field-label">Evidence type</div><div class="field-value">One row per plan version: drift from plan and coverage, in date order, never sorted</div></div>
+      <div class="field"><div class="field-label">Visual</div><div class="field-value">A row per version under the year view; the version boundaries as dated lines on the chart</div></div>
+      <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>Sorting the versions best first. A winner. &ldquo;Plan B worked better.&rdquo; The comparison is the record under each plan; which drug suits her is the verdict in H-02. Versions also differ in season and life, so the rows carry their dates in full.</div></div>
+      <div class="field"><div class="field-label">Source</div><div class="field-value">P01: 不同的药带来的变化对比</div></div>
+    </div>
+  </div>
 
   <div class="era">
     <span class="era-name">Held: clinical and legal review first</span>
@@ -965,9 +987,9 @@
   </div>
   <div class="stmt held">
     <div class="stmt-id">H-02 <span class="stmt-tag">Held</span></div>
-    <p class="stmt-text">&ldquo;Since your plan changed, your medication seems to be working better.&rdquo;</p>
+    <p class="stmt-text">&ldquo;Since your plan changed, your medication seems to be working better.&rdquo; Or, across versions: &ldquo;Your current combination suits you best.&rdquo;</p>
     <div class="stmt-grid">
-      <div class="field"><div class="field-label">Needs</div><div class="field-value">The same data as L-03</div></div>
+      <div class="field"><div class="field-label">Needs</div><div class="field-value">The same data as L-03 and L-07</div></div>
       <div class="field"><div class="field-label">Evidence type</div><div class="field-value">Efficacy verdict on a treatment change</div></div>
       <div class="field"><div class="field-label">Visual</div><div class="field-value">None</div></div>
       <div class="field"><div class="field-value forbid"><div class="field-label">Never</div>Shipping it before review. Also unsafe on the data alone: a before/after window cannot separate the change from the season, a busy month, or the change in logging that often follows a new plan.</div></div>
