@@ -769,6 +769,11 @@ html.kb-open .sheet{max-height:calc(var(--vvh) - var(--space-2));
 html.kb-open #sheet-log{overflow:hidden}
 html.kb-open #log-body{flex:1 1 auto;min-height:0}
 html.kb-open #log-body .rowlist{flex:1 1 auto;min-height:var(--target-critical);max-height:none}
+/* While typing, the Froze row steps aside (Tutu, 2026-11-03): it doubled the
+   list's own "Froze in place" row and took a third of the room left above the
+   keyboard. Someone mid-freeze is not typing a search; the row returns the
+   moment the keyboard closes. */
+html.kb-open #log-body .quick-row{display:none}
 .rowitem{display:flex;align-items:center;gap:var(--space-3);width:100%;
          min-height:var(--target-critical);padding:0 var(--space-4);text-align:left;
          background:var(--surface-page);border:1px solid var(--border-subtle);
