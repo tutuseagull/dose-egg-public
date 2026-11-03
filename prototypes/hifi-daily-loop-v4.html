@@ -1118,7 +1118,8 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
 .photo-add{border-style:solid}
 
 /* five tiles: the odd one out takes the full row */
-.grid .tile:last-child:nth-child(odd){grid-column:1 / -1}
+/* every tile the same size (Tutu, 2026-11-03): How I feel already has its own
+   shortcut in the dock, so nothing in this grid needs to be wider */
 </style>
 </head>
 <body>
@@ -3586,6 +3587,8 @@ function rightSlotTap(){
 renderCard(); renderTimeline(); renderLogSheet(); setSheetInert(null); renderLeftSlot();
 </script>
 <!-- the sheet handle: tap to close, drag down to close (shared, see the file) -->
+<!-- times follow the phone's 12 / 24-hour setting (shared, see the file) -->
+<script src="../timefmt.js"></script>
 <script src="../sheet-handle.js" data-close="closeSheets"></script>
 </body>
 </html>
