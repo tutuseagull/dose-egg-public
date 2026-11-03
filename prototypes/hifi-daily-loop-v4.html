@@ -780,6 +780,14 @@ html.kb-open #log-body .quick-row{display:none}
 .rowitem.add{border-style:dashed;border-color:var(--border-interactive);color:var(--accent)}
 .rowitem i{font-size:18px;color:var(--text-muted);flex:0 0 auto}
 .rowitem.add i{color:var(--accent)}
+/* a medication row with its amounts: the name, then one chip per amount */
+.doserow{display:flex;align-items:stretch;gap:var(--space-2)}
+.doserow .rowitem{flex:1 1 auto;min-width:0}
+.amtchips{display:flex;gap:var(--space-2);flex:0 0 auto}
+.amtchip{min-width:var(--target-critical);min-height:var(--target-critical);border-radius:var(--radius-md);
+         border:1px solid var(--border-subtle);background:var(--surface-page);font-size:var(--text-body);
+         font-weight:600;color:var(--text-primary)}
+@media (hover:hover){ .amtchip:hover{background:var(--surface-raised)} }
 .rowempty{font-size:var(--text-body);color:var(--text-muted);padding:var(--space-4) 0}
 /* Band label inside the scrolling list. Quieter than a .sec-h — it separates
    two parts of one list rather than announcing a new section. */
@@ -1120,6 +1128,7 @@ i.c-type{font-size:24px;line-height:1;margin-top:2px}   /* the icon alone, no wo
     <button class="demo-btn" id="slotToggle" onclick="toggleLeftSlot()">bottom A: camera · note</button>
     <button class="demo-btn" onclick="openLock()">lock screen</button>
     <button class="demo-btn" onclick="demoAddDose()">+ due dose</button>
+    <button class="demo-btn" onclick="demoStartedEarly()">split dose</button>
     <button class="demo-btn" onclick="demoBigSlot()">12-med slot</button>
     <button class="demo-btn" onclick="demoLastNight()">last night</button>
     <button class="demo-btn" onclick="demoEmpty()">empty</button>
@@ -1335,7 +1344,13 @@ const CONTEXT = {
      read as "Food: With food". Everything else gets "Label: value", because a
      value alone loses the question it answered — "High" does not say protein,
      and "Tremor" under "Meds kicked in" reads as if the entry WERE tremor. */
-  dose:     [ { key:'meal',    label:'Food',     icon:'ph-fork-knife', bare:true,
+  /* Amount first (P02, 2026-11-03): fractions of a tablet are ordinary, and a ¼
+     top-up logged as a whole dose is a wrong record. Still optional: a dose with
+     no amount blocks nothing [AGENTS.md]. Choices come from the medication's own
+     amounts, set once in the Medicine Cabinet (AMOUNTS below stands in for it). */
+  dose:     [ { key:'amount',  label:'Amount',   icon:'ph-pill', bare:true, amounts:true,
+                choices:['¼ tablet','½ tablet','1 tablet'] },
+              { key:'meal',    label:'Food',     icon:'ph-fork-knife', bare:true,
                 choices:['Before food','With food','After food'] } ],
   /* Low/Some/High stays the fast path — most people estimate, and the evidence
      is about roughly how much protein, not exact grams. `grams` is a second,
@@ -1380,6 +1395,13 @@ const CONTEXT = {
    shortcuts change with the label — the same per-label override the symptom
    follow-ups already use. */
 const SLEEP_FIELDS = { 'Nap': { choices:[20,30,45,60] } };
+
+/* The amounts each medication is taken in, as the Cabinet's "Amounts you take"
+   would supply them. They are the one-tap chips on the Medication step and the
+   choices in the detail sheet. Keyed by the name the person logs. */
+const AMOUNTS = { 'Levodopa 100mg':['¼','½','1'], 'Levodopa 150mg':['½','1'],
+                  'Entacapone':['1'], 'Amantadine':['1'] };
+const amountsFor = name => AMOUNTS[name] || ['½','1'];
 
 /* What a new entry is called, per type. The tiles create an entry with the
    generic label and open the sheet on it, so the label is the first thing you
@@ -1426,8 +1448,18 @@ const SUGGEST = {
      collides with ordinary tiredness, which is a different entry entirely.
      Both remain the patient terms glossary.html asks for; the prefix only
      says whose wearing off it is. */
+  /* Widened 2026-11-03. The additions follow the items patients recognise on
+     the Wearing-off checklist (PMD Alliance, after the WOQ), in plain words:
+     cramp, dizzy, heart racing (P02 cut her own dose over it), foggy head,
+     anxious, sweating, hard to speak. "Extra movement" is the non-stigmatising
+     word for dyskinesia [C-11], its own entry so it never merges with tremor
+     [C-01]. The EASIER states are a separate group at the end (EASIER), so
+     they never take the top of the list. */
   symptom:  ['Tremor','Stiffness','Froze in place','Low energy',
-             'Meds kicked in','Meds wearing off'],
+             'Meds kicked in','Meds wearing off','Slowness','Extra movement',
+             'Cramp','Pain','Dizzy','Heart racing','Foggy head','Anxious',
+             'Low mood','Sweating','Hard to speak',
+             'Moving easily','Relaxed','Clear head','Feeling like myself'],
   note:     []
 };
 
@@ -1452,8 +1484,18 @@ const SYMPTOM_FIELDS = {
   'Froze in place': { key:'justbefore', label:'Just before it',
     choices:['Turning','A doorway','Starting to walk','A crowd','In a hurry','Tired'] },
   'Low energy':     { key:'lowfeel',  label:'How it feels',
-    choices:['Heavy limbs','Sleepy','Foggy','Flat','Aching'] }
+    choices:['Heavy limbs','Sleepy','Foggy','Flat','Aching'] },
+  /* with Where (C-02), "Moving easily" can say one side is ON while the other is not */
+  'Moving easily':  { key:'easy', label:'What feels easy',
+    choices:['Walking','Hands','Getting up','Turning','Speaking'] },
+  'Relaxed': null, 'Clear head': null, 'Feeling like myself': null
 };
+/* Easier states: logged the same way, drawn the same way (no colour, no "good"
+   badge), and listed in their own group at the end. Research diaries only name
+   the clinical version ("ON without dyskinesia"); there is no validated list of
+   patient words for feeling well, so these are a first pass to test with P01
+   and P02, in their own terms (手脚灵活, 放松). */
+const EASIER = ['Moving easily','Relaxed','Clear head','Feeling like myself'];
 const SYMPTOM_DEFAULT = { key:'notice', label:'What you notice',
   choices:['Tremor','Stiffness','Slowness','Extra movement','Balance',
            'Fatigue','Foggy','Pain'] };
@@ -1465,7 +1507,10 @@ function fieldsFor(e){
     const o = SLEEP_FIELDS[e.text];
     return o ? base.map(f => ({ ...f, ...o })) : base;
   }
+  if (e.type === 'dose')
+    return base.map(f => f.amounts ? { ...f, choices: amountsFor(e.text).map(a => a + ' tablet') } : f);
   if (e.type !== 'symptom') return base;
+  if (SYMPTOM_FIELDS[e.text] === null) return [];      /* nothing to ask about a clear head */
   const extra = SYMPTOM_FIELDS[e.text] || SYMPTOM_DEFAULT;
   return [{ ...extra, icon:ICON.symptom, multi:true }].concat(base);
 }
@@ -1501,6 +1546,27 @@ let currentSlot = { sched:'11:00', anchor:'Levodopa 100mg',   /* matches the Cab
    ROLE, NOT DRUG: which medication plays the add-on differs per person and per
    slot, so nothing here is hard-coded to a drug name. */
 const slotMeds = sl => [sl.anchor, ...sl.addons];
+
+/* SPLIT DOSES (P02, 2026-11-03). Some people take part of a planned dose early,
+   ahead of something they have planned (a child's class, a walk), and the rest
+   later or not at all. The PLAN stays simple; the RECORD holds every actual take.
+   A take of the anchor medication logged within 2 hours before a planned time
+   becomes part of that dose. When the dose comes due, the card already knows it
+   has started, so it never asks "Did you take this?" about a dose she began. The
+   same rule keeps the reminder from nagging. No planning rules ("on class days,
+   split"): that would be the app planning doses, which is the prescriber's. */
+const PLAN_TIMES = ['07:30','11:00','14:30','18:00','21:30'];   /* = the Cabinet's sample */
+const PLAN_ANCHOR = 'Levodopa 100mg';
+const STARTED = {};   /* planned time -> the early take that started it */
+function linkToNextSlot(e){
+  if (e.text !== PLAN_ANCHOR) return;
+  const t = toMin(e.time);
+  const next = PLAN_TIMES.find(s => toMin(s) > t && toMin(s) - t <= 120);
+  if (!next || (currentSlot && currentSlot.sched === next)) return;
+  e.slot = next; e.role = 'anchor'; e.partOf = next;
+  e.meta = (e.meta || []).concat([['ph-clock', `Part of the ${next} dose`]]);
+  STARTED[next] = e;
+}
 const roleOf   = (sl, name) => name === sl.anchor ? 'anchor' : 'addon';
 
 /* N-scaling [D-16]. N=1 names the drug. N=3 lists them. N=12 cannot be listed at
@@ -1740,6 +1806,25 @@ function renderTimeline(){
   });
   tl.innerHTML = h;
 }
+/* A dose that was started early asks about the REST, never the whole thing.
+   Two self-describing answers, same as the ordinary card: "Took the rest" and
+   "Nothing more". Not "Not taken", which would be false. */
+function startedCardHTML(sl, st, an, ad, adds){
+  const amt = st.fields && st.fields.amount;
+  return `<div class="confirm">
+    <div class="c-head"><div class="confirm-q">Did you take the rest?</div>
+      <i class="ph ph-pill c-type" aria-hidden="true"></i></div>
+    <div class="c-anchor"><span class="c-name">${esc(an)}</span>${ad ? ` <span class="c-dose">${esc(ad)}</span>` : ''}</div>
+    ${sl.addons.length ? `<div class="c-addon">with ${esc(adds)}</div>` : ''}
+    <div class="c-meta"><b>Scheduled ${esc(sl.sched)}</b> · started ${esc(st.time)}${amt ? `, ${esc(amt)}` : ''}</div>
+    <div class="c-actions">
+      <button class="c-btn primary" onclick="cardRest(true)">Took the rest</button>
+      <button class="c-btn" onclick="cardRest(false)">Nothing more</button>
+    </div>
+    <button class="c-more" onclick="cardAdjust()">
+      <span>Taken, but not as scheduled</span><i class="ph ph-caret-right"></i></button>
+    </div>`;
+}
 function renderCard(){
   const a = el('card-area');
   if (!currentSlot){ a.innerHTML=''; updateTint(); return; }
@@ -1777,6 +1862,8 @@ function renderCard(){
     ? `<b>Scheduled yesterday ${esc(sl.sched)}</b> · now ${nowTime()}`
     : `<b>Scheduled ${esc(sl.sched)}</b>`
       + (Math.min(drift, 1440 - drift) >= 15 ? ` · now ${nowTime()}` : '');
+  const started = STARTED[sl.sched];
+  if (started){ a.innerHTML = startedCardHTML(sl, started, an, ad, adds); updateTint(); return; }
   a.innerHTML = `<div class="confirm">
     <div class="c-head"><div class="confirm-q">${q}</div>
       <i class="ph ph-pill c-type" aria-hidden="true"></i>
@@ -2150,7 +2237,15 @@ function openCategory(t){
 function logNamed(type, text){
   closeSheets();
   const e = { time:nowTime(), recorded:nowTime(), text, type, basis:'asserted' };
+  if (type === 'dose') linkToNextSlot(e);
   if (hasInterval(type)) e.anchor = 'end';
+  addEntry(e, 0);
+}
+function logDose(text, amount){
+  closeSheets();
+  const e = { time:nowTime(), recorded:nowTime(), text, type:'dose', basis:'asserted',
+              fields:{ amount } };
+  linkToNextSlot(e);
   addEntry(e, 0);
 }
 function logOther(type){
@@ -2526,7 +2621,13 @@ function searchRowsHTML(type, current, pickExpr, addExpr, inputId){
     h += `<button class="rowitem add" onclick="${addExpr}">
       <i class="ph ph-plus"></i>Use “${esc(searchQ.trim())}”</button>`;
 
-  const row = t => `<button class="rowitem${t===current?' on':''}" onclick="${pickExpr(t)}">${esc(t)}</button>`;
+  /* Medication, from the + sheet: the name logs it, an amount chip logs it WITH
+     that amount. Same one tap either way, so "¼ now" costs nothing extra. */
+  const row = (type === 'dose' && inputId === 'search-log')
+    ? t => `<div class="doserow"><button class="rowitem" onclick="${pickExpr(t)}">${esc(t)}</button>
+        <span class="amtchips">${amountsFor(t).map(a =>
+          `<button class="amtchip" aria-label="${esc(t)}, ${a} tablet" onclick="logDose(${q(t)},'${a} tablet')">${a}</button>`).join('')}</span></div>`
+    : t => `<button class="rowitem${t===current?' on':''}" onclick="${pickExpr(t)}">${esc(t)}</button>`;
 
   if (qy){
     /* Filtering already shortens the list, and bands would only fragment it. */
@@ -2551,7 +2652,10 @@ function searchRowsHTML(type, current, pickExpr, addExpr, inputId){
       h += '<div class="rowgroup">Yours</div>' + mine.map(row).join('');
       h += '<div class="rowgroup">All</div>';
     }
-    h += [...all].sort((a, b) => a.localeCompare(b)).map(row).join('');
+    /* How I feel keeps its easier states together at the end of All */
+    const easier = type === 'symptom' ? all.filter(t => EASIER.includes(t)) : [];
+    h += [...all].filter(t => !easier.includes(t)).sort((a, b) => a.localeCompare(b)).map(row).join('');
+    if (easier.length) h += '<div class="rowgroup">When it is easier</div>' + easier.map(row).join('');
     if (!all.length) h += '<div class="rowempty">Nothing here yet.</div>';
     /* Restored after the two-band rewrite dropped it. The "Use “X”" row only
        shows once you have typed, so without this the door is invisible to
@@ -2953,6 +3057,23 @@ function resolveSlot(basis){
   currentSlot = null; renderCard();
 }
 function cardYes(){ cardExit(() => resolveSlot('asserted')); }
+/* Started early: "Took the rest" records every medication in the dose as taken at
+   the scheduled time (amount left open; the early part already has its own).
+   "Nothing more" means what was taken is already on the record: the anchor is
+   covered by the early take, and the add-ons are reported not taken. */
+function cardRest(tookRest){
+  cardExit(() => {
+    const sl = currentSlot; clearPending(sl);
+    slotMeds(sl).forEach((m, ord) => {
+      if (!tookRest && m === sl.anchor) return;
+      addEntry({ time:sl.sched, recorded:nowTime(), text:m, type:'dose',
+                 basis: tookRest ? 'asserted' : 'declined', slot:sl.sched,
+                 role:roleOf(sl, m), ord,
+                 meta: tookRest && m === sl.anchor ? [['ph-clock','Rest of the dose']] : undefined }, slotDay(sl));
+    });
+    delete STARTED[sl.sched]; currentSlot = null; renderCard();
+  });
+}
 function cardNo(){
   /* "No" is a REPORTED skip → basis:'declined'. Clinically valuable, and distinct
      from 'assumed' (we asked and got nothing back). */
@@ -3139,6 +3260,17 @@ function lockAnswer(basis){
 }
 
 /* a new dose falling due quietly collapses the unanswered one into the timeline as 'assumed' */
+/* P02's case: ¼ of the 18:00 dose taken early before a class, then 18:00
+   comes due. The take is logged first, then the dose falls due, so the card
+   shows the started state. */
+function demoStartedEarly(){
+  if (currentSlot){ yieldSlot(currentSlot); currentSlot = null; }
+  const e = { time:'17:20', recorded:'17:20', text:PLAN_ANCHOR, type:'dose', basis:'asserted',
+              fields:{ amount:'¼ tablet' }, note:'Before the class' };
+  linkToNextSlot(e); addEntry(e, 0);
+  currentSlot = { sched:'18:00', anchor:PLAN_ANCHOR, addons:['Entacapone 200mg'] };
+  renderCard(); renderTimeline();
+}
 function demoAddDose(){
   if (currentSlot){ yieldSlot(currentSlot); renderTimeline(); }
   const t = ['14:30','18:00','21:30'];

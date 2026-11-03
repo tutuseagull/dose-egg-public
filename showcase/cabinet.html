@@ -226,6 +226,9 @@ section h2{margin:0 0 var(--space-1);font-size:var(--text-heading);font-weight:6
 .chip{min-height:var(--target-min);padding:0 var(--space-3);border-radius:var(--radius-full);
   border:1px solid var(--border-control);background:var(--surface-card);font-size:var(--text-body)}
 .chip:active{background:var(--surface-raised)}
+.chip[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);
+  background:var(--surface-raised);font-weight:600}
+.amt{font-weight:400;color:var(--text-secondary)}
 /* one time row: the time, its backup, its reminder, and who it is taken with */
 .trow{border:1px solid var(--border-control);border-radius:var(--radius-md);padding:var(--space-3);
   display:flex;flex-direction:column;gap:var(--space-2);margin-bottom:var(--space-3)}
@@ -349,12 +352,18 @@ let seq = 100; const nid = p => p + (seq++);   /* above the sample's ids, so a n
 
 function sampleCabinet(){
   meds = [
-    { id: 'm1', name: 'Levodopa', amount: '100mg' },
-    { id: 'm2', name: 'Entacapone', amount: '200mg' },
-    { id: 'm3', name: 'the small white one', amount: '' },     /* her name, kept as is */
+    /* amount = what ONE is (optional, for the export); unit + amounts = the
+       amounts this person actually takes, as one-tap chips (P02, 2026-11-03:
+       fractions of a tablet are the norm, not the edge) */
+    { id: 'm1', name: 'Levodopa', amount: '100mg', unit: 'tablet', amounts: ['¼', '½', '1'] },
+    { id: 'm2', name: 'Entacapone', amount: '200mg', unit: 'tablet', amounts: ['1'] },
+    { id: 'm3', name: 'the small white one', amount: '', unit: 'tablet', amounts: ['½', '1'] },     /* her name, kept as is */
   ];
   slots = [
-    { id: 's1', time: '07:30', backup: '', remind: true,  items: [{ med: 'm1', role: 'main' }, { med: 'm2', role: 'addon' }] },
+    { id: 's1', time: '07:30', backup: '', remind: true,  items: [{ med: 'm1', role: 'main', amt: '½' }] },
+    /* an add-on at its own time (P02 takes hers two hours after the main dose):
+       alone at its time it has no role, it is just a medication at a time */
+    { id: 's1b', time: '09:30', backup: '', remind: true, items: [{ med: 'm2', role: 'main', amt: '1' }] },
     { id: 's2', time: '11:00', backup: '11:30', remind: true, items: [{ med: 'm1', role: 'main' }, { med: 'm2', role: 'addon' }] },
     { id: 's3', time: '14:30', backup: '', remind: false, items: [{ med: 'm1', role: 'main' }, { med: 'm2', role: 'addon' }] },
     { id: 's4', time: '18:00', backup: '', remind: true,  items: [{ med: 'm1', role: 'main' }] },
@@ -383,19 +392,23 @@ const addDays = (iso, n) => { const d = new Date(iso + 'T12:00:00Z'); d.setUTCDa
    leads; add-ons follow in order. A slot with no main is a flat set, which the
    model must still express (the complex-PD case). */
 const medLabel = m => m.amount ? `${esc(m.name)} ${esc(m.amount)}` : esc(m.name);
+/* at a time: "Levodopa ½ tablet". The amount taken leads over the strength, because
+   "½" is how the person thinks about it; strength stays on the medication. */
+const itemLabel = i => { const m = medOf(i.med); if (!m) return '';
+  return i.amt ? `${esc(m.name)} <span class="amt">${esc(i.amt)} ${esc(m.unit || 'tablet')}</span>` : medLabel(m); };
 function slotWords(s){
-  const main = s.items.filter(i => i.role === 'main').map(i => medOf(i.med)).filter(Boolean);
-  const adds = s.items.filter(i => i.role === 'addon').map(i => medOf(i.med)).filter(Boolean);
-  const lead = main.map(m => `<b>${medLabel(m)}</b>`).join(', ');
-  return lead && adds.length ? `${lead} with ${adds.map(medLabel).join(', ')}`
-       : lead || adds.map(m => `<b>${medLabel(m)}</b>`).join(', ');
+  const main = s.items.filter(i => i.role === 'main' && medOf(i.med));
+  const adds = s.items.filter(i => i.role === 'addon' && medOf(i.med));
+  const lead = main.map(i => `<b>${itemLabel(i)}</b>`).join(', ');
+  return lead && adds.length ? `${lead} with ${adds.map(itemLabel).join(', ')}`
+       : lead || adds.map(i => `<b>${itemLabel(i)}</b>`).join(', ');
 }
 const scheduleSummary = () => {
   const ts = timed(sortSlots()).filter(s => s.items.length).map(s => s.time);
   return ts.length ? `${ts.length} time${ts.length > 1 ? 's' : ''} a day: ${ts.join(', ')}` : 'No times set';
 };
 
-/* Every change to times, medications in a slot, or roles goes through here, so the
+/* Every change to times, medications in a slot, roles, or the amount at a time goes through here, so the
    history can never be skipped. Reminder and backup changes are how the person
    is reminded, not what they take, so they do not start a version. */
 let changeStart = TODAY;
@@ -545,12 +558,24 @@ function openAdd(){
 }
 
 /* ═════════ one medication ═════════ */
+/* the amounts offered as chips; the person turns on the ones they use */
+const FRACTIONS = ['⅛', '¼', '½', '¾', '1', '1½', '2'];
+function toggleAmount(f){
+  const md = medOf(sheetId); const on = md.amounts.includes(f);
+  md.amounts = on ? md.amounts.filter(x => x !== f) : FRACTIONS.filter(x => x === f || md.amounts.includes(x));
+  sheetDirty = true; renderSheet(); render();
+}
+function setAmt(mid, sid, a){
+  const it = slotOf(sid).items.find(i => i.med === mid); it.amt = it.amt === a ? '' : a;
+  scheduleChanged(); sheetDirty = true; renderSheet(); render();
+}
 const STARTER = ['Levodopa', 'Carbidopa-levodopa', 'Entacapone', 'Opicapone', 'Amantadine',
                  'Rasagiline', 'Safinamide', 'Pramipexole', 'Ropinirole', 'Rotigotine'];
 function openMed(id, preset, fromSlot){
   let md = id ? medOf(id) : null;
   const isNew = !md;
-  if (!md){ md = { id: nid('m'), name: preset ? preset.name : '', amount: preset ? preset.amount || '' : '', fresh: true };
+  if (!md){ md = { id: nid('m'), name: preset ? preset.name : '', amount: preset ? preset.amount || '' : '',
+                   unit: 'tablet', amounts: ['½', '1'], fresh: true };
             meds.push(md); }
   openSheet('med', md.id); sheetNew = isNew; parentSlot = fromSlot || null; renderSheet();
   if (preset && preset.time){ addTimeTo(md.id, preset.time); markDirty(); }
@@ -570,9 +595,21 @@ function medSheet(){
     <p class="hint">Your own name is fine. The app never changes it.</p>
   </div>
   <div class="field">
-    <label for="m-amt">Amount <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
+    <span class="lab">Amounts you take</span>
+    <div class="chips" role="group" aria-label="Amounts you take">${FRACTIONS.map(f =>
+      `<button class="chip" aria-pressed="${md.amounts.includes(f)}" onclick="toggleAmount('${f}')">${f}</button>`).join('')}</div>
+    <div class="line" style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-2)">
+      <label for="m-unit" class="or" style="color:var(--text-secondary)">Counted in</label>
+      <input class="tf" id="m-unit" type="text" autocomplete="off" value="${esc(md.unit || '')}" style="max-width:12rem"
+        placeholder="tablet" oninput="setMed('unit', this.value)">
+    </div>
+    <p class="hint">These become one-tap choices when you log it, and when you set an amount for each time.</p>
+  </div>
+  <div class="field">
+    <label for="m-amt">What one ${esc(md.unit || 'tablet')} is <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
     <input class="tf" id="m-amt" type="text" autocomplete="off" value="${esc(md.amount)}"
-      placeholder="100mg, 1 tablet" oninput="setMed('amount', this.value)">
+      placeholder="100mg, or 25/100" oninput="setMed('amount', this.value)">
+    <p class="hint">Only used if you choose to include amounts in a report.</p>
   </div>
   <div class="field">
     <span class="lab">When do you take it?</span>
@@ -605,6 +642,8 @@ function timeRowHTML(md, s){
         <button class="iconbtn" aria-label="Remove backup time" onclick="setBackup('${s.id}','')"><i class="ph ph-x"></i></button></div>`
       : `<button class="textbtn" style="align-self:flex-start;margin-left:calc(var(--space-3) * -1)" onclick="setBackup('${s.id}', plus30('${s.time}'))">
           <i class="ph ph-clock-clockwise"></i>Add a backup time</button>`}
+    ${md.amounts.length ? `<div class="chips" role="group" aria-label="Amount at ${s.time || 'this time'}" style="margin-top:0">${md.amounts.map(a =>
+        `<button class="chip" aria-pressed="${me.amt === a}" onclick="setAmt('${md.id}','${s.id}','${a}')">${a} ${esc(md.unit || 'tablet')}</button>`).join('')}</div>` : ''}
     ${others.length ? `<div class="seg" role="group" aria-label="Taken how">
         <button aria-pressed="${me.role === 'main'}" onclick="setRole('${md.id}','${s.id}','main')">On its own</button>
         <button aria-pressed="${me.role === 'addon'}" onclick="setRole('${md.id}','${s.id}','addon')">With ${esc(others[0].name)}</button>
@@ -664,7 +703,7 @@ function slotSheet(){
   <div class="field">
     <span class="lab">Taken at this time</span>
     <div class="medlist">${s.items.map(i => { const m = medOf(i.med); return `<button class="mrow" onclick="openMed('${m.id}', null, '${s.id}')">
-      <span class="nm">${medLabel(m)}</span><span class="role">${i.role === 'main' ? 'Main' : 'Add-on'}</span>
+      <span class="nm">${itemLabel(i)}</span>${n > 1 ? `<span class="role">${i.role === 'main' ? 'Main' : 'Add-on'}</span>` : ''}
       <i class="ph ph-caret-right" aria-hidden="true"></i></button>`; }).join('')}</div>
   </div>
   <div class="field">
@@ -757,7 +796,7 @@ function addDrafts(){
   const idMap = {};
   photo.items.forEach((it, k) => {
     if (it.state !== 'ok') return;
-    const md = { id: nid('m'), name: it.name.trim() || it.read, amount: it.amount.trim() };
+    const md = { id: nid('m'), name: it.name.trim() || it.read, amount: it.amount.trim(), unit: 'tablet', amounts: ['1'] };
     meds.push(md); idMap[k] = md.id;
   });
   photo.items.forEach((it, k) => {
