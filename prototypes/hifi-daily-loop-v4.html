@@ -935,6 +935,8 @@ button.navrow{width:100%;text-align:left}
    and + becomes Save. Driven by "has text", not by focus, so tapping Save
    cannot blur the field and flip the button back mid-tap. */
 .dock.composing #leftSlot{display:none}
+/* B2 while writing: the field takes the row, the note button steps aside */
+.dock.noting #leftSlot{display:none}
 
 /* layout C: How I feel as the wide middle control */
 .feel-pill{pointer-events:auto;flex:1;min-width:0;min-height:var(--target-critical);
@@ -3488,13 +3490,23 @@ function showTab(t){
                                 feeling gets the widest, easiest target
    The note field may later carry How I feel too (type a sentence, the app
    offers a feeling). Deliberately not built yet: nav first, flow later. */
+/* DECIDED 2026-11-03 (Tutu, after P01): layout B, How I feel in the dock, not the
+   camera. P01's two shortcuts are "I took my med" (the reminder and the card) and
+   "I feel off / on" (How I feel). A and C are retired: the camera broke the
+   lower-third rule, and Photo is one sheet away under +.
+   Open inside B: where How I feel sits. B2 is the default and the recommendation:
+   How I feel is the wide middle control, Quick note the small left button. The
+   shortcut row is defined by what it is FOR (mid-episode), not by what is most
+   frequent [AGENTS.md, Menus & layout], and a wide centred target is the easiest
+   to hit with either thumb and with tremor. The note costs no extra tap: typing
+   always needed a tap into the field, and the button opens the field focused. */
 const LAYOUTS = [
-  { key:'A', left:'camera', middle:'note', tag:'A: camera · note' },
-  { key:'B', left:'feel',   middle:'note', tag:'B: feel · note' },
-  { key:'C', left:'camera', middle:'feel', tag:'C: camera · feel' }
+  { key:'B2', left:'note', middle:'feel', tag:'B2: note · feel (wide)' },
+  { key:'B',  left:'feel', middle:'note', tag:'B: feel · note (wide)' }
 ];
 const LEFT = { camera:{ ico:'ph-camera',   label:'Add a photo' },
-               feel:  { ico:'ph-hand-heart', label:'How I feel' } };
+               feel:  { ico:'ph-hand-heart', label:'How I feel' },
+               note:  { ico:'ph-note-pencil', label:'Quick note' } };
 let layoutN = 0;
 function renderLeftSlot(){
   const L = LAYOUTS[layoutN], m = LEFT[L.left], b = el('leftSlot');
@@ -3502,6 +3514,7 @@ function renderLeftSlot(){
   b.setAttribute('aria-label', m.label);
   el('noteBar').hidden  = L.middle !== 'note';
   el('feelPill').hidden = L.middle !== 'feel';
+  el('dock').classList.remove('noting');
   if (L.middle !== 'note'){                       /* leaving the note layout clears any draft state */
     el('quickNote').value = ''; el('quickNote').style.height = ''; setComposing(false);
   }
@@ -3521,7 +3534,22 @@ function feelTap(){
 function leftSlotTap(){
   showTab('today');
   if (LAYOUTS[layoutN].left === 'camera'){ pickPhoto('note'); return; }   /* v3 photo path, unchanged */
+  if (LAYOUTS[layoutN].left === 'note'){ openNoteMode(); return; }
   feelTap();
+}
+/* B2: the note button turns the dock into the note field, focused, so writing
+   starts on the same tap. Leaving it empty brings How I feel straight back. */
+function openNoteMode(){
+  const d = el('dock'); d.classList.add('noting');
+  el('noteBar').hidden = false; el('feelPill').hidden = true;
+  const t = el('quickNote'); t.focus();
+  t.onblur = () => setTimeout(() => { if (!t.value.trim()) closeNoteMode(); }, 0);
+}
+function closeNoteMode(){
+  if (LAYOUTS[layoutN].middle !== 'feel') return;
+  el('dock').classList.remove('noting');
+  el('noteBar').hidden = true; el('feelPill').hidden = false;
+  el('quickNote').onblur = null;
 }
 
 /* Quick note: words with no category. Stored as a note entry with the text
@@ -3548,6 +3576,7 @@ function postNote(){
   addEntry({ time:nowTime(), recorded:nowTime(), text:'Note', type:'note',
              basis:'asserted', note:v }, 0);
   t.value = ''; t.style.height = ''; setComposing(false); t.blur();
+  closeNoteMode();
 }
 function rightSlotTap(){
   if (el('dock').classList.contains('composing')){ postNote(); return; }

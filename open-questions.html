@@ -268,6 +268,15 @@
     <div class="questions">
 
       <div class="q">
+        <span class="q-status open"></span>
+        <div class="q-body">
+          <span class="q-label open">Open · decide before the pitch</span>
+          <p class="q-text">Who is DoseEgg for: engaged patients with a responsive doctor, or the gap between any patient and their doctors?</p>
+          <p class="q-note">From a long-diagnosed patient who logs nothing (Nov 2026): &ldquo;the record is the feedback&rdquo; holds when someone who can act on the record reads it. For her it does not: long waits, a doctor who is not current, drugs out of reach. The first framing is the engaged self-tracker; the second also covers her, through a report for a new doctor, an export for her own AI, and logging that asks almost nothing. The answer changes the pitch and what the MVP leads with.</p>
+        </div>
+      </div>
+
+      <div class="q">
         <span class="q-status decided"></span>
         <div class="q-body">
           <span class="q-label decided">Decided</span>
@@ -276,11 +285,11 @@
         </div>
       </div>
       <div class="q">
-        <span class="q-status open"></span>
+        <span class="q-status decided"></span>
         <div class="q-body">
-          <span class="q-label open">Open</span>
+          <span class="q-label decided">Decided 2026-11-03</span>
           <p class="q-text">Which control takes the bottom dock's left slot: camera, How I feel, or both?</p>
-          <p class="q-note">Three layouts behind the demo bar for P01: A camera · quick note · +, B How I feel · quick note · +, C camera · How I feel · +. A breaks the lower-third rule (Photo belongs above the episode zone); B and C respect it. The rule stands until this is settled.</p>
+          <p class="q-note">Three layouts behind the demo bar for P01: A camera · quick note · +, B How I feel · quick note · +, C camera · How I feel · +. A breaks the lower-third rule (Photo belongs above the episode zone); B and C respect it. The rule stands until this is settled. <strong>Decided (Tutu, after P01): layout B. P01's two shortcuts are &ldquo;I took my med&rdquo; (the reminder) and &ldquo;I feel off or on&rdquo; (How I feel). Default B2 puts How I feel as the wide middle control and Quick note as the small left button: the row is for mid-episode use, not for what is most frequent, and the note costs no extra tap. A and C retired; Photo lives under +.</strong></p>
         </div>
       </div>
       <div class="q">
@@ -308,19 +317,19 @@
         </div>
       </div>
       <div class="q">
-        <span class="q-status open"></span>
+        <span class="q-status decided"></span>
         <div class="q-body">
-          <span class="q-label open">Open</span>
+          <span class="q-label decided">Decided 2026-11-03</span>
           <p class="q-text">12-hour or 24-hour times?</p>
-          <p class="q-note">Time fields follow the phone's locale (12-hour on a US phone) while cards show 24-hour. One display rule is needed before a real build.</p>
+          <p class="q-note">Time fields follow the phone's locale (12-hour on a US phone) while cards show 24-hour. One display rule is needed before a real build. <strong>Decided: follow the phone's setting everywhere, cards included. 24-hour in the cards was a prototype habit. Not built yet.</strong></p>
         </div>
       </div>
       <div class="q">
-        <span class="q-status open"></span>
+        <span class="q-status decided"></span>
         <div class="q-body">
-          <span class="q-label open">Open</span>
+          <span class="q-label decided">Decided 2026-11-03</span>
           <p class="q-text">Does the person get to name the Cabinet?</p>
-          <p class="q-note">P01 wants to name the space herself. Renaming is not built. Linked to whether &quot;Medicine Cabinet&quot; survives as the user-facing name at all.</p>
+          <p class="q-note">P01 wants to name the space herself. Renaming is not built. Linked to whether &quot;Medicine Cabinet&quot; survives as the user-facing name at all. <strong>Decided: the person can rename the Cabinet's screen title; the menu keeps &ldquo;Medicine Cabinet&rdquo; until they do, so it stays findable. Not built yet.</strong></p>
         </div>
       </div>
       <div class="q">
@@ -387,11 +396,11 @@
       </div>
 
       <div class="q">
-        <span class="q-status open"></span>
+        <span class="q-status decided"></span>
         <div class="q-body">
-          <span class="q-label open">Open</span>
+          <span class="q-label decided">Decided</span>
           <p class="q-text">How much data before the surface says anything — and what does it show below that?</p>
-          <p class="q-note">Working answer: the data requirement is a property of each <em>statement</em>, not a global gate on the surface, so the page renders whatever currently qualifies. Rough ladder — rhythm statements from ~6 days, week-over-week comparison from ~3 weeks, co-occurrence from ~6–8 weeks and only with ≥5 days on each side. Below the threshold: the week-in-progress chart filling in, plus a shorter true sentence. <strong>Never a locked card, greyed-out preview, countdown, or progress bar toward an insight.</strong> Research to do: N-of-1 trial methodology (the domain lead already runs one) and the CGM consensus standard in T1D (~14 days at ≥70% data capture — a duration <em>and</em> a coverage floor; verify the figures before citing).</p>
+          <p class="q-note">Working answer: the data requirement is a property of each <em>statement</em>, not a global gate on the surface, so the page renders whatever currently qualifies. Rough ladder — rhythm statements from ~6 days, week-over-week comparison from ~3 weeks, co-occurrence from ~6–8 weeks and only with ≥5 days on each side. Below the threshold: the week-in-progress chart filling in, plus a shorter true sentence. <strong>Never a locked card, greyed-out preview, countdown, or progress bar toward an insight.</strong> Research to do: N-of-1 trial methodology (the domain lead already runs one) and the CGM consensus standard in T1D (~14 days at ≥70% data capture — a duration <em>and</em> a coverage floor; verify the figures before citing). <strong>Answered by the ladder in the statement bank and Information Architecture: a requirement per statement, never a locked or counted-down insight.</strong></p>
         </div>
       </div>
 
@@ -524,11 +533,11 @@
       </div>
 
       <div class="q">
-        <span class="q-status open"></span>
+        <span class="q-status decided"></span>
         <div class="q-body">
-          <span class="q-label open">Open</span>
+          <span class="q-label decided">Decided</span>
           <p class="q-text">Can the app identify recurring patterns without using an LLM?</p>
-          <p class="q-note">Simple frequency counting (same phrase 3+ times → suggest as quick-log) requires no AI and no data leaving the device. Fuzzy matching catches minor variations. Lightweight on-device NLP clustering is more powerful but adds complexity. A full cloud LLM is most capable but raises consent and privacy concerns. <strong>Recommendation: start with frequency + fuzzy match, design data model to support ML later.</strong></p>
+          <p class="q-note">Simple frequency counting (same phrase 3+ times → suggest as quick-log) requires no AI and no data leaving the device. Fuzzy matching catches minor variations. Lightweight on-device NLP clustering is more powerful but adds complexity. A full cloud LLM is most capable but raises consent and privacy concerns. <strong>Recommendation: start with frequency + fuzzy match, design data model to support ML later.</strong> <strong>Answered: frequency plus fuzzy match first, on the phone; notes are stored so phrases can be tagged later without migration [C-12].</strong></p>
         </div>
       </div>
 
@@ -598,11 +607,11 @@
       </div>
 
       <div class="q">
-        <span class="q-status open"></span>
+        <span class="q-status decided"></span>
         <div class="q-body">
-          <span class="q-label open">Open</span>
+          <span class="q-label decided">Decided</span>
           <p class="q-text">On-device vs. cloud AI — which model runs where, and what does the user need to know?</p>
-          <p class="q-note">Pattern detection from log frequency can run entirely on-device — no data leaves the phone, no third-party AI. This sidesteps most privacy and HIPAA concerns. Cloud AI (for report generation, semantic understanding) sends data to an external server. Users should know which is which. <strong>Design principle:</strong> on-device first for passive features; cloud AI only on explicit user action.</p>
+          <p class="q-note">Pattern detection from log frequency can run entirely on-device — no data leaves the phone, no third-party AI. This sidesteps most privacy and HIPAA concerns. Cloud AI (for report generation, semantic understanding) sends data to an external server. Users should know which is which. <strong>Design principle:</strong> on-device first for passive features; cloud AI only on explicit user action. <strong>Answered in AI Data Flow (2026-08-15): local by default, remote by consent, and the ask names the alternative.</strong></p>
         </div>
       </div>
 
@@ -739,11 +748,11 @@
     <div class="questions">
 
       <div class="q">
-        <span class="q-status open"></span>
+        <span class="q-status decided"></span>
         <div class="q-body">
-          <span class="q-label open">Open</span>
+          <span class="q-label decided">Decided</span>
           <p class="q-text">Will users log negative space — what they did NOT do, or feeling off — not just what they did?</p>
-          <p class="q-note">Structured fields capture actions (dose taken, workout done). They don't naturally hold absences: forgot meds, skipped activity, a vague OFF period. A freeform sentence ("couldn't get off the couch till noon") encodes OFF + inactivity + mood at once, at lower effort. <strong>Core hypothesis to test:</strong> a journal mode captures negative space that a timeline grid misses.</p>
+          <p class="q-note">Structured fields capture actions (dose taken, workout done). They don't naturally hold absences: forgot meds, skipped activity, a vague OFF period. A freeform sentence ("couldn't get off the couch till noon") encodes OFF + inactivity + mood at once, at lower effort. <strong>Core hypothesis to test:</strong> a journal mode captures negative space that a timeline grid misses. <strong>Answered in the build: Not taken (declined), the quiet day as a third state, and Nothing more on a started dose.</strong></p>
         </div>
       </div>
 
