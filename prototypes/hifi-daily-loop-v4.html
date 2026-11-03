@@ -482,6 +482,14 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
          justify-content:center;border-radius:var(--radius-full);color:var(--text-secondary);
          margin-left:calc(var(--space-3) * -1);flex:0 0 auto}
 .backbtn i{font-size:22px}
+.log-head h2{flex:1 1 auto;min-width:0}
+/* Close sits on the right edge, its glyph lined up with the content edge the way
+   Back's lines up on the left. Same size, same colour, mirrored margin. */
+.closebtn{width:var(--target-min);height:var(--target-min);display:flex;align-items:center;
+          justify-content:center;border-radius:var(--radius-full);color:var(--text-secondary);
+          margin-right:calc(var(--space-3) * -1);flex:0 0 auto}
+.closebtn i{font-size:22px}
+@media (hover:hover){ .closebtn:hover{background:var(--surface-raised)} }
 @media (hover:hover){ .backbtn:hover{background:var(--surface-raised)} }
 
 /* Sheet rhythm — two values, and only ONE place each is set.
@@ -747,6 +755,16 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
           min-height:var(--target-routine)}
 .rowlist{display:flex;flex-direction:column;gap:var(--space-2);
          max-height:44vh;overflow-y:auto;overscroll-behavior:contain}
+/* KEYBOARD OPEN (Tutu, 2026-11-03, on iPhone): the sheet sat on the keyboard but
+   was still as tall as before, so its top, the search field being typed into,
+   went off the top of the screen. Now an open sheet is capped to the visible
+   height, and in the + sheet the list is what gives up the room: the head and
+   the field stay in view, the list shrinks and scrolls, the Froze row stays. */
+html.kb-open .sheet{max-height:calc(var(--vvh) - var(--space-2));
+                    padding-bottom:var(--space-4)}
+html.kb-open #sheet-log{overflow:hidden}
+html.kb-open #log-body{flex:1 1 auto;min-height:0}
+html.kb-open #log-body .rowlist{flex:1 1 auto;min-height:var(--target-critical);max-height:none}
 .rowitem{display:flex;align-items:center;gap:var(--space-3);width:100%;
          min-height:var(--target-critical);padding:0 var(--space-4);text-align:left;
          background:var(--surface-page);border:1px solid var(--border-subtle);
@@ -2049,10 +2067,24 @@ function tilesNow(){
   if (LAYOUTS[layoutN].left === 'camera') return TILES;
   const t = TILES.slice(); t.splice(1, 0, ['note','ph-camera','Photo']); return t;
 }
+/* The + sheet's head, same shape as the Cabinet's and Look Back's sheets:
+   Back on the LEFT only when there is a level above to go back to; Close (✕)
+   always on the RIGHT. A step opened by a dock shortcut has no level above, so
+   it gets Close only, and its title starts on the content edge like every other
+   sheet title (Tutu, 2026-11-03: an ✕ in Back's place pushed the title in). */
+function logHeadHTML(title, canGoBack){
+  return `<div class="log-head">
+      ${canGoBack ? `<button class="backbtn" onclick="openCategory(null)" aria-label="Back">
+        <i class="ph ph-caret-left"></i></button>` : ''}
+      <h2>${title}</h2>
+      <button class="closebtn" onclick="closeSheets()" aria-label="Close">
+        <i class="ph ph-x"></i></button>
+    </div>`;
+}
 function renderLogSheet(){
   let h = '';
   if (!logStep){
-    h += '<h2>Add to today</h2>';
+    h += logHeadHTML('Add to today', false);
     /* Photo is a tile now rather than a strip of its own. It keeps the thing
        that mattered — one tap to the shutter — and loses the special shape that
        was making it read as a different kind of thing. */
@@ -2061,14 +2093,7 @@ function renderLogSheet(){
         <span class="tile-ico" style="background:var(--mark)"><i class="ph-fill ${ico}"></i></span>
         <span class="tile-name">${name}</span></button>`).join('') + '</div>';
   } else {
-    h += `<div class="log-head">
-        ${logFrom === 'shortcut'
-          ? `<button class="backbtn" onclick="closeSheets()" aria-label="Close">
-               <i class="ph ph-x"></i></button>`
-          : `<button class="backbtn" onclick="openCategory(null)" aria-label="Back">
-               <i class="ph ph-caret-left"></i></button>`}
-        <h2>${TYPE_NAME[logStep]}</h2>
-      </div>`;
+    h += logHeadHTML(TYPE_NAME[logStep], logFrom !== 'shortcut');
     /* The camera leads the Food step — a photo is the fastest complete meal
        entry there is. It only appears here on a cold start, because once you
        have any food history the Food tile skips straight to the detail sheet,
@@ -3253,6 +3278,9 @@ if (vv){
   const trackKeyboard = () => {
     const hidden = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
     document.documentElement.style.setProperty('--kb', Math.round(hidden) + 'px');
+    /* what is actually visible, so an open sheet can be capped to it (below) */
+    document.documentElement.style.setProperty('--vvh', Math.round(vv.height) + 'px');
+    document.documentElement.classList.toggle('kb-open', hidden > 80);
   };
   vv.addEventListener('resize', trackKeyboard);
   vv.addEventListener('scroll', trackKeyboard);
