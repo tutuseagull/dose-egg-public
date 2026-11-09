@@ -396,7 +396,7 @@ const T = {
     period:(a,b,n)=>`<b>${a} to ${b}</b> · ${span(n)}`,
     coverage:(k,n)=>`Something was logged on <b>${k} of ${n} days</b>. A day with no entries is unknown, not zero.`,
     planNow:'Current plan',
-    planLine:(times)=>`Levodopa ${times.length} times a day: ${times.join(', ')}. Entacapone once, at ${'{E}'}.`,
+    planLine:(times)=>`Levodopa ${times.length} times a day: ${times.join(', ')}. Entacapone 3 times a day: {E}. The small white one at 21:30.`,
     b1:'At a glance', b2:'Dose times and how I felt', b3:'Alongside', b4:'Days that stood out', b5:'Questions to discuss',
     b1new:'Plan history', b2new:'By 3 months', b3new:'What the record holds',
     obsDrift:(k,n,m)=>`The 14:30 dose was taken earlier than planned on <b>${k} of ${n}</b> logged days, typically by ${m} minutes.`,
@@ -416,7 +416,7 @@ const T = {
     addq:'Add a question',
     foot1:'Summarized from what the patient logged in DoseEgg. Not a medical assessment.',
     foot2:(d)=>`Made ${d}. Only doses the patient confirmed are counted; planned doses never count as taken.`,
-    plHead:['From','Plan'], plRows:(a,b)=>[[a,'Levodopa 4 times a day: 08:00, 12:00, 16:00, 20:00'],[b,'Levodopa 5 times a day: 07:30, 11:00, 14:30, 18:00, 21:30, with Entacapone at 09:30']],
+    plHead:['From','Plan'], plRows:(a,b)=>[[a,'Levodopa 4 times a day: 08:00, 12:00, 16:00, 20:00'],[b,'Levodopa 5 times a day: 07:30, 11:00, 14:30, 18:00, 21:30; Entacapone at 09:30, 11:00, 14:30; the small white one at 21:30']],
     qHead:['3 months','From plan, typically','Days logged'],
     qVal:m=>`${m} min`, qDays:(k,n)=>`${k} of ${n}`,
     qNote:'Measured against the plan in force at the time. Only confirmed doses count.',
@@ -446,7 +446,7 @@ const T = {
     period:(a,b,n)=>`<b>${a}〜${b}</b>・${span(n)}`,
     coverage:(k,n)=>`記録があった日：<b>${n}日中${k}日</b>。記録のない日は「不明」で、ゼロとは数えません。`,
     planNow:'現在の服薬計画',
-    planLine:(times)=>`レボドパ 1日${times.length}回：${times.join('、')}。エンタカポン 1日1回：{E}。`,
+    planLine:(times)=>`レボドパ 1日${times.length}回：${times.join('、')}。エンタカポン 1日3回：{E}。the small white one：21:30。`,
     b1:'まとめ', b2:'服薬時刻と体調', b3:'あわせて記録されたこと', b4:'気になった日', b5:'相談したいこと',
     b1new:'服薬計画の履歴', b2new:'3か月ごと', b3new:'記録の内容',
     obsDrift:(k,n,m)=>`14:30の服薬は、記録のある<b>${n}日中${k}日</b>で予定より早く、多くは約${m}分早めでした。`,
@@ -466,7 +466,7 @@ const T = {
     addq:'質問を追加',
     foot1:'DoseEggで本人が記録した内容をまとめたものです。医学的な評価ではありません。',
     foot2:(d)=>`作成日：${d}。本人が確認した服薬のみ数えています。予定の服薬を「服用済み」とは数えません。`,
-    plHead:['開始日','計画'], plRows:(a,b)=>[[a,'レボドパ 1日4回：08:00、12:00、16:00、20:00'],[b,'レボドパ 1日5回：07:30、11:00、14:30、18:00、21:30、エンタカポン 09:30']],
+    plHead:['開始日','計画'], plRows:(a,b)=>[[a,'レボドパ 1日4回：08:00、12:00、16:00、20:00'],[b,'レボドパ 1日5回：07:30、11:00、14:30、18:00、21:30。エンタカポン：09:30、11:00、14:30。the small white one：21:30']],
     qHead:['3か月','予定とのずれ（典型）','記録のある日'],
     qVal:m=>`${m}分`, qDays:(k,n)=>`${n}日中${k}日`,
     qNote:'その時点の計画と比べています。本人が確認した服薬のみ数えています。',
@@ -503,7 +503,10 @@ const AMT = { en:{ L:'½ tablet (100mg)', E:'1 tablet (200mg)' }, ja:{ L:'½錠�
    own time, the afternoon dose often taken early, wearing off before it, and a
    later kick-in after high-protein breakfasts. Two days have no entries. */
 let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-const PLAN = ['07:30','11:00','14:30','18:00','21:30'], ENTA = '09:30';
+/* = the Medicine Cabinet's sample, so the walk-through agrees with itself. "the small
+   white one" is the person's own name for a medication: shown as written, in every
+   language, never renamed [AGENTS.md]. */
+const PLAN = ['07:30','11:00','14:30','18:00','21:30'], ENTA = ['09:30','11:00','14:30'];
 const toMin = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
 const fromMin = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(Math.round(m % 60)).padStart(2, '0')}`;
 const TODAY = new Date(); TODAY.setHours(12, 0, 0, 0);
@@ -610,7 +613,8 @@ function paperHTML(){
   const t = T[lang], sep = lang === 'ja' ? '：' : ':';
   const first = dayAt(N - 1), last = dayAt(0);
   const times = PLAN.map(clk);
-  let plan = t.planLine(times).replace('{E}', clk(ENTA));
+  /* written with 24-hour times, then formatted once (formatting twice would double "AM") */
+  let plan = clkAll(t.planLine(PLAN).replace('{E}', ENTA.join(lang === 'ja' ? '、' : ', ')));
   if (amounts) plan = lang === 'ja'
     ? plan.replace('レボドパ', `レボドパ ${AMT.ja.L}`).replace('エンタカポン', `エンタカポン ${AMT.ja.E}`)
     : plan.replace('Levodopa', `Levodopa ${AMT.en.L}`).replace('Entacapone', `Entacapone ${AMT.en.E}`);
