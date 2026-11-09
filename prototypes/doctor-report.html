@@ -321,7 +321,6 @@ html .sheet.open{visibility:visible}
   </div>
 
   <main class="scroll">
-    <p class="lede" id="t-lede"></p>
 
     <!-- SETTINGS (2026-11-09): sensible defaults need no setup, so the page opens
          straight on the report. One line says what you are looking at; Adjust
@@ -580,7 +579,7 @@ function chartSVG(t){
 /* ═════════ the page, one template per scenario ═════════ */
 function render(){
   const c = T.en;
-  el('t-screen').textContent = c.screen; el('t-lede').textContent = c.lede;
+  el('t-screen').textContent = c.screen;
   el('t-save').textContent = c.save; el('t-savehint').textContent = c.saveHint;
   el('amtHint').textContent = amounts ? c.amtOn : c.amtOff;
   el('scHint').textContent = scene === 'reg'
