@@ -136,17 +136,25 @@ button{border:0;background:none;cursor:pointer;padding:0}
    A document a doctor reads, so it looks like paper: white, flat, a hairline, no
    app chrome inside it. It reads the same on a phone, on a laptop shown across the
    desk, and printed. */
-.paper{background:var(--surface-card);border:1px solid var(--border-subtle);
-       border-radius:var(--radius-md);padding:var(--paper-pad);
-       display:flex;flex-direction:column;gap:var(--space-6)}
+.paper{display:flex;flex-direction:column;gap:var(--space-3)}
+/* SECTIONS AS CARDS (Tutu, 2026-11-09). On screen each section is a card, so a
+   ten-minute reader can find one block at a glance; the summary card (who, when,
+   the plan, at a glance) is tinted so it reads as the part to look at first.
+   Inside a card the rhythm is set once: --space-3 between lines, --space-4 under
+   the heading. Printed, the cards become flat sections with a hairline. */
+.card{background:var(--surface-card);border:1px solid var(--border-subtle);
+      border-radius:var(--radius-md);padding:var(--paper-pad);
+      display:flex;flex-direction:column;gap:var(--space-4)}
+.card.summary{background:var(--surface-accent);border-color:transparent}
 .paper[lang="ja"]{font-family:var(--font-sans), 'Noto Sans JP', sans-serif}
-.p-head{display:flex;flex-direction:column;gap:var(--space-1);
-        padding-bottom:var(--space-4);border-bottom:1px solid var(--border-subtle)}
+.p-head{display:flex;flex-direction:column;gap:var(--space-2)}
 .p-kicker{font-size:var(--text-label);font-weight:600;color:var(--text-muted);letter-spacing:.02em}
 .p-title{font-size:var(--text-heading);font-weight:700;line-height:var(--leading-tight);margin:0}
 .p-meta{font-size:var(--text-body);color:var(--text-secondary)}
 .p-meta b{color:var(--text-primary);font-weight:600}
 .blk{display:flex;flex-direction:column;gap:var(--space-3)}
+.card.blk{gap:var(--space-3)}
+.summary .blk{padding-top:var(--space-4);border-top:1px solid color-mix(in srgb, var(--mark) 18%, transparent)}
 .blk h3{margin:0;font-size:var(--text-body);font-weight:700;line-height:var(--leading-tight)}
 .blk h3 .n{color:var(--text-muted);font-weight:600;margin-right:var(--space-2)}
 
@@ -204,7 +212,7 @@ button{border:0;background:none;cursor:pointer;padding:0}
       margin-left:calc(var(--space-3) * -1);border-radius:var(--radius-md);color:var(--accent);
       display:flex;align-items:center;gap:var(--space-2);font-weight:500}
 .addq i{font-size:18px}
-.p-foot{padding-top:var(--space-4);border-top:1px solid var(--border-subtle);
+.p-foot{padding:var(--space-2) var(--space-1) 0;
         font-size:var(--text-label);color:var(--text-muted);display:flex;flex-direction:column;gap:var(--space-1)}
 
 /* ── the one action: save it as a file to hand over ── */
@@ -224,7 +232,9 @@ button{border:0;background:none;cursor:pointer;padding:0}
   .demo-bar,.top,.controls,.act,.addq,.edge-top{display:none!important}
   .shell{max-width:none;background:#fff}
   .scroll{padding:0}
-  .paper{border:0;padding:0}
+  .paper{gap:0}
+  .card{border:0;border-top:1px solid #ccc;border-radius:0;padding:5mm 0;background:#fff;break-inside:avoid}
+  .card.summary{border-top:0;padding-top:0}
   .qs textarea{border:0;padding:0;overflow:visible}
 }
 </style>
@@ -266,7 +276,7 @@ button{border:0;background:none;cursor:pointer;padding:0}
     <article class="paper" id="paper" data-clock-skip></article>
 
     <div class="act">
-      <button class="btn" onclick="savePdf()"><i class="ph ph-file-arrow-down"></i><span id="t-save"></span></button>
+      <button class="btn" onclick="savePdf()"><i class="ph ph-export"></i><span id="t-save"></span></button>
       <p class="hint" id="t-savehint" style="text-align:center"></p>
     </div>
   </main>
@@ -283,14 +293,14 @@ const T = {
     reg:'Regular doctor', neu:'New doctor',
     amt:'Include amounts', amtOff:'Amounts are left out. Times are shown, not how much.',
     amtOn:'Amounts are included, as you logged them.',
-    save:'Save as PDF', saveHint:'Saves a file to your phone. Nothing is sent anywhere.',
+    save:'Save or share PDF', saveHint:'Makes the PDF on your phone. You choose where it goes: Files, Mail, Messages, or print.',
     kicker:'Report for my visit · DoseEgg',
     titleReg:'The last two weeks', titleNew:'My record so far',
-    period:(a,b,n)=>`<b>${a} to ${b}</b> · ${n} days`,
+    period:(a,b,n)=>`<b>${a} to ${b}</b> · ${span(n)}`,
     coverage:(k,n)=>`Something was logged on <b>${k} of ${n} days</b>. A day with no entries is unknown, not zero.`,
     planNow:'Current plan',
     planLine:(times)=>`Levodopa ${times.length} times a day: ${times.join(', ')}. Entacapone once, at ${'{E}'}.`,
-    b1:'At a glance', b2:'Dose times and how I felt', b3:'Alongside', b4:'Notable days', b5:'My questions for you',
+    b1:'At a glance', b2:'Dose times and how I felt', b3:'Alongside', b4:'Notable days', b5:'Questions to discuss',
     b1new:'Plan history', b2new:'By 3 months', b3new:'What the record holds',
     obsDrift:(k,n,m)=>`The 14:30 dose was taken earlier than planned on <b>${k} of ${n}</b> logged days, typically by ${m} minutes.`,
     obsOff:(k,n,a,b)=>`“Meds wearing off” was noted on <b>${k} of ${n}</b> logged days, most often between ${a} and ${b}.`,
@@ -307,8 +317,7 @@ const T = {
     qs:['Could we talk about the afternoon dose? It often wears off before the next one.',
         'Is it worth trying breakfast with less protein on days I need the morning dose to work quickly?'],
     addq:'Add a question',
-    qnote:'Written by me.',
-    foot1:'Recorded by the patient in DoseEgg. Not a medical assessment.',
+    foot1:'Summarized from what the patient logged in DoseEgg. Not a medical assessment.',
     foot2:(d)=>`Made ${d}. Only doses the patient confirmed are counted; planned doses never count as taken.`,
     plHead:['From','Plan'], plRows:(a,b)=>[[a,'Levodopa 4 times a day: 08:00, 12:00, 16:00, 20:00'],[b,'Levodopa 5 times a day: 07:30, 11:00, 14:30, 18:00, 21:30, with Entacapone at 09:30']],
     qHead:['3 months','Doses landed, typically','Days logged'],
@@ -333,14 +342,14 @@ const T = {
     reg:'いつもの医師', neu:'初めての医師',
     amt:'量を含める', amtOff:'量は含めていません。時刻のみ表示します。',
     amtOn:'記録した量を含めています。',
-    save:'PDFとして保存', saveHint:'ファイルをスマートフォンに保存します。どこにも送信されません。',
+    save:'PDFを保存・共有', saveHint:'PDFはスマートフォン上で作成されます。送り先（ファイル、メール、メッセージ、印刷）はご自身で選べます。',
     kicker:'受診用レポート · DoseEgg',
     titleReg:'直近2週間', titleNew:'これまでの記録',
-    period:(a,b,n)=>`<b>${a}〜${b}</b>・${n}日間`,
+    period:(a,b,n)=>`<b>${a}〜${b}</b>・${span(n)}`,
     coverage:(k,n)=>`記録があった日：<b>${n}日中${k}日</b>。記録のない日は「不明」で、ゼロとは数えません。`,
     planNow:'現在の服薬計画',
     planLine:(times)=>`レボドパ 1日${times.length}回：${times.join('、')}。エンタカポン 1日1回：{E}。`,
-    b1:'まとめ', b2:'服薬時刻と体調', b3:'あわせて記録されたこと', b4:'気になった日', b5:'先生への質問',
+    b1:'まとめ', b2:'服薬時刻と体調', b3:'あわせて記録されたこと', b4:'気になった日', b5:'相談したいこと',
     b1new:'服薬計画の履歴', b2new:'3か月ごと', b3new:'記録の内容',
     obsDrift:(k,n,m)=>`14:30の服薬は、記録のある<b>${n}日中${k}日</b>で予定より早く、多くは約${m}分早めでした。`,
     obsOff:(k,n,a,b)=>`「薬が切れてきた」の記録は<b>${n}日中${k}日</b>で、多くは${a}〜${b}の間でした。`,
@@ -357,8 +366,7 @@ const T = {
     qs:['午後の薬について相談できますか。次の服薬の前に切れることが多いです。',
         '朝の薬を早く効かせたい日は、朝食のたんぱく質を控えてみる価値はありますか。'],
     addq:'質問を追加',
-    qnote:'自分で書いた質問です。',
-    foot1:'DoseEggで本人が記録した内容です。医学的な評価ではありません。',
+    foot1:'DoseEggで本人が記録した内容をまとめたものです。医学的な評価ではありません。',
     foot2:(d)=>`作成日：${d}。本人が確認した服薬のみ数えています。予定の服薬を「服用済み」とは数えません。`,
     plHead:['開始日','計画'], plRows:(a,b)=>[[a,'レボドパ 1日4回：08:00、12:00、16:00、20:00'],[b,'レボドパ 1日5回：07:30、11:00、14:30、18:00、21:30、エンタカポン 09:30']],
     qHead:['3か月','服薬時刻（典型）','記録のある日'],
@@ -379,6 +387,17 @@ const T = {
   }
 };
 /* amounts, only when switched on; same words in both languages as the Cabinet's chips */
+/* A span in the unit people think in, with the exact days kept beside it once it
+   is long enough to need a bigger unit: "about 9 months (281 days)". Up to 4
+   weeks it is just days. */
+function span(n){
+  const ja = lang === 'ja';
+  if (n < 28) return ja ? `${n}日間` : `${n} days`;
+  const [v, u] = n < 91 ? [Math.round(n / 7), ja ? '週間' : 'weeks']
+               : n < 730 ? [Math.round(n / 30.4), ja ? 'か月' : 'months']
+               : [Math.round(n / 365 * 10) / 10, ja ? '年' : 'years'];
+  return ja ? `約${v}${u}（${n}日間）` : `about ${v} ${u} (${n} days)`;
+}
 const AMT = { en:{ L:'½ tablet (100mg)', E:'1 tablet (200mg)' }, ja:{ L:'½錠（100mg）', E:'1錠（200mg）' } };
 
 /* ═════════ the sample record (generated, seeded: the same every load) ═════════
@@ -490,7 +509,7 @@ function render(){
     const hp = LOGGED.filter(d => d.highProt), rest = LOGGED.filter(d => !d.highProt);
     const hpLate = hp.filter(d => d.kickLate).length, restLate = rest.filter(d => d.kickLate).length;
 
-    h += `<header class="p-head">
+    h += `<div class="card summary"><header class="p-head">
       <span class="p-kicker">${t.kicker}</span>
       <h2 class="p-title">${t.titleReg}</h2>
       <span class="p-meta">${t.period(fmtDate(first), fmtDate(last), N)}</span>
@@ -501,16 +520,16 @@ function render(){
       ${obs(`${off.length}/${n}`, clkAll(t.obsOff(off.length, n, offA, offB)))}
       ${obs(`${early.length}/${n}`, clkAll(t.obsDrift(early.length, n, earlyBy)))}
       ${obs(`${hpLate}/${hp.length}`, clkAll(t.obsProt(hpLate, hp.length, restLate, rest.length)))}
-    </section>`;
-    h += `<section class="blk"><h3><span class="n">2</span>${t.b2}</h3>${chartSVG(t)}
+    </section></div>`;
+    h += `<section class="blk card"><h3><span class="n">2</span>${t.b2}</h3>${chartSVG(t)}
       <div class="legend"><span><i class="k dose"></i>${t.legDose}</span><span><i class="k plan"></i>${t.legPlan}</span>
         <span><i class="k off"></i>${t.legOff}</span><span><i class="k on"></i>${t.legOn}</span>
         <span><i class="k none"></i>${t.legNone}</span></div></section>`;
     const vals = [hp.length, LOGGED.filter(d => d.move).length, LOGGED.filter(d => d.shortSleep).length, LOGGED.filter(d => d.extra).length];
-    h += `<section class="blk"><h3><span class="n">3</span>${t.b3}</h3><div class="facts">${
+    h += `<section class="blk card"><h3><span class="n">3</span>${t.b3}</h3><div class="facts">${
       t.facts.map(([l, f], i) => `<div class="fact"><span class="fl">${l}</span><span class="fv">${f(vals[i], n)}</span></div>`).join('')
     }</div><p class="note-small">${t.factsNote}</p></section>`;
-    h += `<section class="blk"><h3><span class="n">4</span>${t.b4}</h3><ul class="days">${
+    h += `<section class="blk card"><h3><span class="n">4</span>${t.b4}</h3><ul class="days">${
       t.notable.map(([i, txt]) => { const ago = [11, 6, 0][i];
         return `<li><span class="d">${fmtDate(dayAt(ago), true)}</span><span>${clkAll(txt)}</span></li>`; }).join('')
     }</ul></section>`;
@@ -521,7 +540,7 @@ function render(){
     const Q = [ [dayAt(span), dayAt(190), 6, 74, 91], [dayAt(189), dayAt(120), 8, 61, 70],
                 [dayAt(119), dayAt(60), 9, 52, 60], [dayAt(59), dayAt(0), 21, 51, 60] ];
     const logged = Q.reduce((a, q) => a + q[3], 0), total = Q.reduce((a, q) => a + q[4], 0);
-    h += `<header class="p-head">
+    h += `<div class="card summary"><header class="p-head">
       <span class="p-kicker">${t.kicker}</span>
       <h2 class="p-title">${t.titleNew}</h2>
       <span class="p-meta">${t.period(fmtDate(dayAt(span)), fmtDate(last), total)}</span>
@@ -531,27 +550,22 @@ function render(){
     h += `<section class="blk"><h3><span class="n">1</span>${t.b1new}</h3>
       <table class="tbl"><thead><tr><th>${t.plHead[0]}</th><th>${t.plHead[1]}</th></tr></thead><tbody>${
         t.plRows(fmtDate(v1), fmtDate(v2)).map(r => `<tr><td style="white-space:nowrap">${r[0]}</td><td>${clkAll(r[1])}</td></tr>`).join('')
-      }</tbody></table></section>`;
-    h += `<section class="blk"><h3><span class="n">2</span>${t.b2new}</h3>
+      }</tbody></table></section></div>`;
+    h += `<section class="blk card"><h3><span class="n">2</span>${t.b2new}</h3>
       <table class="tbl"><thead><tr><th>${t.qHead[0]}</th><th class="r">${t.qHead[1]}</th><th class="r">${t.qHead[2]}</th></tr></thead><tbody>${
         Q.map(q => `<tr><td>${fmtDate(q[0])}–${fmtDate(q[1])}</td><td class="r">${t.qVal(q[2])}</td><td class="r">${t.qDays(q[3], q[4])}</td></tr>`).join('')
       }</tbody></table><p class="note-small">${t.qNote}</p></section>`;
-    const holds = [1184, 412, 486, 152, 233];
-    h += `<section class="blk"><h3><span class="n">3</span>${t.b3new}</h3><div class="facts">${
-      t.holds.map(([l, f], i) => `<div class="fact"><span class="fl">${l}</span><span class="fv">${f(holds[i])}</span></div>`).join('')
-    }</div><p class="note-small">${t.holdsNote(logged, total)}</p></section>`;
-    h += `<section class="blk"><h3><span class="n">4</span>${t.b4}</h3><ul class="days">${
+    h += `<section class="blk card"><h3><span class="n">3</span>${t.b4}</h3><ul class="days">${
       t.notableNew.map(([i, txt]) => { const d = [dayAt(119), dayAt(74), dayAt(6)][i];
         return `<li><span class="d">${fmtDate(d)}</span><span>${clkAll(txt)}</span></li>`; }).join('')
     }</ul></section>`;
   }
   /* MY QUESTIONS: the person's own, editable here, printed as a list. The app does
      not suggest any (H-04 is held for clinical and legal review). */
-  h += `<section class="blk"><h3><span class="n">5</span>${t.b5}</h3>
+  h += `<section class="blk card"><h3><span class="n">${scene === 'reg' ? 5 : 4}</span>${t.b5}</h3>
     <ol class="qs" id="qs">${QS[lang].map((q, i) =>
       `<li><textarea rows="2" aria-label="${t.b5} ${i + 1}" oninput="QS[lang][${i}]=this.value">${q}</textarea></li>`).join('')}</ol>
-    <button class="addq" onclick="addQ()"><i class="ph ph-plus"></i>${t.addq}</button>
-    <p class="note-small">${t.qnote}</p></section>`;
+    <button class="addq" onclick="addQ()"><i class="ph ph-plus"></i>${t.addq}</button></section>`;
   h += `<footer class="p-foot"><span>${t.foot1}</span><span>${t.foot2(fmtDate(TODAY))}</span></footer>`;
   p.innerHTML = h;
 }
@@ -565,8 +579,11 @@ function addQ(){ QS[lang].push(''); render(); const all = document.querySelector
 function setScene(s){ scene = s; el('sc-reg').setAttribute('aria-pressed', s === 'reg'); el('sc-new').setAttribute('aria-pressed', s === 'new'); render(); }
 function setLang(l){ lang = l; el('lg-en').setAttribute('aria-pressed', l === 'en'); el('lg-ja').setAttribute('aria-pressed', l === 'ja'); render(); }
 function toggleAmounts(){ amounts = !amounts; el('amtSw').setAttribute('aria-checked', amounts); render(); }
-/* Saving = the browser's print to PDF in the prototype. The real app makes the file
-   on the phone (local export, MVP scope guard): nothing leaves the device. */
+/* SAVE OR SHARE. The real app makes the PDF on the phone and opens the system
+   share sheet, where the person picks Files, Mail, Messages or print. The app
+   itself never sends it anywhere (local export, MVP scope guard): an email is the
+   person's own Mail app, sent by them. The prototype uses the browser's print,
+   whose sheet on iOS offers the same save and share choices. */
 function savePdf(){ window.print(); }
 
 render();
