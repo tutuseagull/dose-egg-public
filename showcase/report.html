@@ -196,7 +196,8 @@ button{border:0;background:none;cursor:pointer;padding:0}
         padding:0 var(--space-2) var(--space-2) 0;vertical-align:bottom}
 .tbl td{padding:var(--space-2) var(--space-2) var(--space-2) 0;border-top:1px solid var(--border-subtle);
         vertical-align:top}
-.tbl td.r, .tbl th.r{text-align:right;padding-right:0}
+.tbl td.r, .tbl th.r{text-align:right;padding-right:0;padding-left:var(--space-3)}
+.tbl td.r{white-space:nowrap}
 
 /* my questions: written by the person, edited here, printed as a numbered list */
 .qs{display:flex;flex-direction:column;gap:var(--space-2);margin:0;padding:0;list-style:none;counter-reset:q}
@@ -320,8 +321,8 @@ const T = {
     foot1:'Summarized from what the patient logged in DoseEgg. Not a medical assessment.',
     foot2:(d)=>`Made ${d}. Only doses the patient confirmed are counted; planned doses never count as taken.`,
     plHead:['From','Plan'], plRows:(a,b)=>[[a,'Levodopa 4 times a day: 08:00, 12:00, 16:00, 20:00'],[b,'Levodopa 5 times a day: 07:30, 11:00, 14:30, 18:00, 21:30, with Entacapone at 09:30']],
-    qHead:['3 months','Doses landed, typically','Days logged'],
-    qVal:m=>`${m} min from plan`, qDays:(k,n)=>`${k} of ${n}`,
+    qHead:['3 months','From plan, typically','Days logged'],
+    qVal:m=>`${m} min`, qDays:(k,n)=>`${k} of ${n}`,
     qNote:'Measured against the plan in force at the time. Only confirmed doses count.',
     holds:[['Doses confirmed',v=>v],['How I feel notes',v=>v],['Meals',v=>v],['Movement sessions',v=>v],['Nights of sleep',v=>v]],
     holdsNote:(k,n)=>`Across ${n} days, ${k} with at least one entry.`,
@@ -369,8 +370,8 @@ const T = {
     foot1:'DoseEggで本人が記録した内容をまとめたものです。医学的な評価ではありません。',
     foot2:(d)=>`作成日：${d}。本人が確認した服薬のみ数えています。予定の服薬を「服用済み」とは数えません。`,
     plHead:['開始日','計画'], plRows:(a,b)=>[[a,'レボドパ 1日4回：08:00、12:00、16:00、20:00'],[b,'レボドパ 1日5回：07:30、11:00、14:30、18:00、21:30、エンタカポン 09:30']],
-    qHead:['3か月','服薬時刻（典型）','記録のある日'],
-    qVal:m=>`予定から${m}分`, qDays:(k,n)=>`${n}日中${k}日`,
+    qHead:['3か月','予定とのずれ（典型）','記録のある日'],
+    qVal:m=>`${m}分`, qDays:(k,n)=>`${n}日中${k}日`,
     qNote:'その時点の計画と比べています。本人が確認した服薬のみ数えています。',
     holds:[['確認した服薬',v=>`${v}回`],['体調の記録',v=>`${v}件`],['食事',v=>`${v}件`],['運動',v=>`${v}回`],['睡眠',v=>`${v}夜`]],
     holdsNote:(k,n)=>`${n}日間のうち、記録があった日は${k}日。`,
@@ -553,7 +554,7 @@ function render(){
       }</tbody></table></section></div>`;
     h += `<section class="blk card"><h3><span class="n">2</span>${t.b2new}</h3>
       <table class="tbl"><thead><tr><th>${t.qHead[0]}</th><th class="r">${t.qHead[1]}</th><th class="r">${t.qHead[2]}</th></tr></thead><tbody>${
-        Q.map(q => `<tr><td>${fmtDate(q[0])}–${fmtDate(q[1])}</td><td class="r">${t.qVal(q[2])}</td><td class="r">${t.qDays(q[3], q[4])}</td></tr>`).join('')
+        Q.map(q => `<tr><td style="white-space:nowrap">${fmtDate(q[0])}–${fmtDate(q[1])}</td><td class="r">${t.qVal(q[2])}</td><td class="r">${t.qDays(q[3], q[4])}</td></tr>`).join('')
       }</tbody></table><p class="note-small">${t.qNote}</p></section>`;
     h += `<section class="blk card"><h3><span class="n">3</span>${t.b4}</h3><ul class="days">${
       t.notableNew.map(([i, txt]) => { const d = [dayAt(119), dayAt(74), dayAt(6)][i];
