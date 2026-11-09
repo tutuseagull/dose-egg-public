@@ -176,7 +176,15 @@ html .sheet.open{visibility:visible}
 .card{background:var(--surface-card);border:1px solid var(--border-subtle);
       border-radius:var(--radius-md);padding:var(--paper-pad);
       display:flex;flex-direction:column;gap:var(--space-4)}
-.card.summary{background:var(--surface-accent);border-color:transparent}
+.card.memo{gap:var(--space-6);padding:var(--space-6) var(--paper-pad)}
+.mblk{display:flex;flex-direction:column;gap:var(--space-2)}
+.mblk h3, .ask h3{margin:0;font-size:var(--text-label);font-weight:700;color:var(--accent);letter-spacing:.02em}
+/* the questions are the one tinted block: the visit is for the conversation */
+.ask{background:var(--surface-accent);border-radius:var(--radius-md);padding:var(--space-4);
+     display:flex;flex-direction:column;gap:var(--space-2);margin:0 calc(var(--space-2) * -1)}
+.ask .qs textarea{background:transparent}
+.details-h{margin:var(--space-6) 0 var(--space-1);font-size:var(--text-label);font-weight:600;
+           color:var(--text-muted);letter-spacing:.04em;text-transform:uppercase}
 .paper[lang="ja"]{font-family:var(--font-sans), 'Noto Sans JP', sans-serif}
 .p-head{display:flex;flex-direction:column;gap:var(--space-2)}
 .p-kicker{font-size:var(--text-label);font-weight:600;color:var(--text-muted);letter-spacing:.02em}
@@ -270,19 +278,25 @@ html .sheet.open{visibility:visible}
   /* paper is read at arm's length by the doctor, not on a phone mid-episode: body
      prints at 14px (the floor), tighter rhythm, so one language fits one page */
   html{font-size:82.4%}
-  .card{border:0;border-top:1px solid #ccc;border-radius:0;padding:3mm 0;background:#fff;gap:2mm}
+  .card{border:0;border-top:1px solid #ccc;border-radius:0;padding:2mm 0;background:#fff;gap:1.5mm}
+  .p-foot{padding-top:1mm}
+  .details-h{display:none}
   .card.blk, .blk{gap:2mm}
   .p-head{gap:1mm}
   .obs, .fact, .days li{break-inside:avoid}
   .fact{padding:1mm 0}
-  .card.summary{border-top:0;padding-top:0}
+  .card.memo{border-top:0;padding-top:0;gap:2.5mm}
+  .mblk{gap:1mm}
+  .legend{gap:1mm 3mm}
+  .ask{background:#fff;border:1px solid #bbb;margin:0;padding:3mm}
+  .details-h{margin:2mm 0 0}
   .qs textarea{display:none}
   .qs .qprint{display:inline}
   .qs li::before{line-height:var(--leading-body)}
   .qs{gap:1mm}
   /* the chart scales with its box: on paper it would fill the width and push the
      page to three, so it keeps about the size it has on a phone */
-  .chart{max-width:72mm}
+  .chart{max-width:62mm}
   /* on paper the chart and "Alongside" sit side by side, so one language is one page */
   .paper{display:grid;grid-template-columns:1fr 1fr;column-gap:8mm}
   .paper > *{grid-column:1 / -1}
@@ -372,13 +386,14 @@ const T = {
     amt:'Include amounts', amtOff:'Amounts are left out. Times are shown, not how much.',
     amtOn:'Amounts are included, as you logged them.',
     save:'Save or share PDF', saveHint:'Makes the PDF on your phone. You choose where it goes: Files, Mail, Messages, or print.',
-    kicker:'Report for my visit · DoseEgg',
+    kicker:'Visit notes · DoseEgg', noticed:'What I noticed', details:'The details', glanceAll:'Also in the record',
+    obsLong:(m,a,b)=>`Over the last 3 months, doses landed typically <b>${m} minutes</b> from plan, against ${a} to ${b} minutes in the 3-month periods before.`,
     titleReg:'The last two weeks', titleNew:'My record so far',
     period:(a,b,n)=>`<b>${a} to ${b}</b> · ${span(n)}`,
     coverage:(k,n)=>`Something was logged on <b>${k} of ${n} days</b>. A day with no entries is unknown, not zero.`,
     planNow:'Current plan',
     planLine:(times)=>`Levodopa ${times.length} times a day: ${times.join(', ')}. Entacapone once, at ${'{E}'}.`,
-    b1:'At a glance', b2:'Dose times and how I felt', b3:'Alongside', b4:'Notable days', b5:'Questions to discuss',
+    b1:'At a glance', b2:'Dose times and how I felt', b3:'Alongside', b4:'Days that stood out', b5:'Questions to discuss',
     b1new:'Plan history', b2new:'By 3 months', b3new:'What the record holds',
     obsDrift:(k,n,m)=>`The 14:30 dose was taken earlier than planned on <b>${k} of ${n}</b> logged days, typically by ${m} minutes.`,
     obsOff:(k,n,a,b)=>`“Meds wearing off” was noted on <b>${k} of ${n}</b> logged days, most often between ${a} and ${b}.`,
@@ -421,7 +436,8 @@ const T = {
     amt:'量を含める', amtOff:'量は含めていません。時刻のみ表示します。',
     amtOn:'記録した量を含めています。',
     save:'PDFを保存・共有', saveHint:'PDFはスマートフォン上で作成されます。送り先（ファイル、メール、メッセージ、印刷）はご自身で選べます。',
-    kicker:'受診用レポート · DoseEgg',
+    kicker:'診察メモ · DoseEgg', noticed:'気づいたこと', details:'詳細', glanceAll:'その他の記録',
+    obsLong:(m,a,b)=>`直近3か月の服薬は、予定から典型的に<b>${m}分</b>ずれていました。それ以前の3か月ごとでは${a}〜${b}分でした。`,
     titleReg:'直近2週間', titleNew:'これまでの記録',
     period:(a,b,n)=>`<b>${a}〜${b}</b>・${span(n)}`,
     coverage:(k,n)=>`記録があった日：<b>${n}日中${k}日</b>。記録のない日は「不明」で、ゼロとは数えません。`,
@@ -580,9 +596,14 @@ function render(){
   }).join('');
   lang = list[0];
 }
+/* THE MEMO FIRST (Tutu, 2026-11-09, after the slide mock). The top card is what
+   the person holds up in a ten-minute visit: the one strongest thing noticed, the
+   days that stood out, and the questions to discuss, with the questions as the
+   one tinted block, because the point of the visit is the conversation. Calm comes
+   from saying less, never from smaller type. The details follow for the doctor
+   who wants the evidence, and both print on the same page. */
 function paperHTML(){
-  const t = T[lang];
-
+  const t = T[lang], sep = lang === 'ja' ? '：' : ':';
   const first = dayAt(N - 1), last = dayAt(0);
   const times = PLAN.map(clk);
   let plan = t.planLine(times).replace('{E}', clk(ENTA));
@@ -590,9 +611,9 @@ function paperHTML(){
     ? plan.replace('レボドパ', `レボドパ ${AMT.ja.L}`).replace('エンタカポン', `エンタカポン ${AMT.ja.E}`)
     : plan.replace('Levodopa', `Levodopa ${AMT.en.L}`).replace('Entacapone', `Entacapone ${AMT.en.E}`);
 
-  let h = '';
+  let title, meta, noticed, days, details = '';
   if (scene === 'reg'){
-    /* ── computed: every number below comes from DAYS ── */
+    /* computed: every number below comes from DAYS */
     const n = LOGGED.length;
     const early = LOGGED.filter(d => d.doses[2] < toMin('14:30') - 15);
     const earlyBy = median(early.map(d => toMin('14:30') - d.doses[2]));
@@ -601,64 +622,67 @@ function paperHTML(){
     const offA = fromMin(Math.floor(offTimes[1] / 30) * 30), offB = fromMin(Math.ceil(offTimes[offTimes.length - 2] / 30) * 30);
     const hp = LOGGED.filter(d => d.highProt), rest = LOGGED.filter(d => !d.highProt);
     const hpLate = hp.filter(d => d.kickLate).length, restLate = rest.filter(d => d.kickLate).length;
-
-    h += `<div class="card summary"><header class="p-head">
-      <span class="p-kicker">${t.kicker}</span>
-      <h2 class="p-title">${t.titleReg}</h2>
-      <span class="p-meta">${t.period(fmtDate(first), fmtDate(last), N)}</span>
-      <span class="p-meta">${t.coverage(n, N)}</span>
-      <span class="p-meta"><b>${t.planNow}${lang === 'ja' ? '：' : ':'}</b> ${plan}</span>
-    </header>`;
-    h += `<section class="blk"><h3><span class="n">1</span>${t.b1}</h3>
-      ${obs(`${off.length}/${n}`, clkAll(t.obsOff(off.length, n, offA, offB)))}
-      ${obs(`${early.length}/${n}`, clkAll(t.obsDrift(early.length, n, earlyBy)))}
-      ${obs(`${hpLate}/${hp.length}`, clkAll(t.obsProt(hpLate, hp.length, restLate, rest.length)))}
-    </section></div>`;
-    h += `<section class="blk card half"><h3><span class="n">2</span>${t.b2}</h3>${chartSVG(t)}
+    const F = [
+      { k: off.length,  n,         html: obs(`${off.length}/${n}`, clkAll(t.obsOff(off.length, n, offA, offB))) },
+      { k: early.length, n,        html: obs(`${early.length}/${n}`, clkAll(t.obsDrift(early.length, n, earlyBy))) },
+      { k: hpLate,      n: hp.length, html: obs(`${hpLate}/${hp.length}`, clkAll(t.obsProt(hpLate, hp.length, restLate, rest.length))) },
+    ];
+    /* the memo's one finding: the strongest share among findings resting on 5+ days.
+       A rule, not a judgment, so the same record always leads with the same line. */
+    const lead = F.filter(f => f.n >= 5).sort((a, b) => b.k / b.n - a.k / a.n)[0];
+    title = t.titleReg;
+    meta = `${t.period(fmtDate(first), fmtDate(last), N)}<br>${t.coverage(n, N)}`;
+    noticed = lead.html;
+    days = t.notable.map(([i, txt]) => [fmtDate(dayAt([11, 6, 0][i]), true), txt]);
+    details += `<section class="blk card"><h3>${t.glanceAll}</h3>
+      <p class="p-meta"><b>${t.planNow}${sep}</b> ${plan}</p>
+      ${F.filter(f => f !== lead).map(f => f.html).join('')}</section>`;
+    details += `<section class="blk card half"><h3>${t.b2}</h3>${chartSVG(t)}
       <div class="legend"><span><i class="k dose"></i>${t.legDose}</span><span><i class="k plan"></i>${t.legPlan}</span>
         <span><i class="k off"></i>${t.legOff}</span><span><i class="k on"></i>${t.legOn}</span>
         <span><i class="k none"></i>${t.legNone}</span></div></section>`;
     const vals = [hp.length, LOGGED.filter(d => d.move).length, LOGGED.filter(d => d.shortSleep).length, LOGGED.filter(d => d.extra).length];
-    h += `<section class="blk card half"><h3><span class="n">3</span>${t.b3}</h3><div class="facts">${
+    details += `<section class="blk card half"><h3>${t.b3}</h3><div class="facts">${
       t.facts.map(([l, f], i) => `<div class="fact"><span class="fl">${l}</span><span class="fv">${f(vals[i], n)}</span></div>`).join('')
     }</div><p class="note-small">${t.factsNote}</p></section>`;
-    h += `<section class="blk card"><h3><span class="n">4</span>${t.b4}</h3><ul class="days">${
-      t.notable.map(([i, txt]) => { const ago = [11, 6, 0][i];
-        return `<li><span class="d">${fmtDate(dayAt(ago), true)}</span><span>${clkAll(txt)}</span></li>`; }).join('')
-    }</ul></section>`;
   } else {
     /* NEW DOCTOR: the long view. Plan history and the record by 3 months. */
-    const v1 = dayAt(119 + 160), v2 = dayAt(119);
-    const span = 119 + 160;
+    const v1 = dayAt(119 + 160), v2 = dayAt(119), span = 119 + 160;
     const Q = [ [dayAt(span), dayAt(190), 6, 74, 91], [dayAt(189), dayAt(120), 8, 61, 70],
                 [dayAt(119), dayAt(60), 9, 52, 60], [dayAt(59), dayAt(0), 21, 51, 60] ];
     const logged = Q.reduce((a, q) => a + q[3], 0), total = Q.reduce((a, q) => a + q[4], 0);
-    h += `<div class="card summary"><header class="p-head">
-      <span class="p-kicker">${t.kicker}</span>
-      <h2 class="p-title">${t.titleNew}</h2>
-      <span class="p-meta">${t.period(fmtDate(dayAt(span)), fmtDate(last), total)}</span>
-      <span class="p-meta">${t.coverage(logged, total)}</span>
-      <span class="p-meta"><b>${t.planNow}${lang === 'ja' ? '：' : ':'}</b> ${plan}</span>
-    </header>`;
-    h += `<section class="blk"><h3><span class="n">1</span>${t.b1new}</h3>
+    const lastQ = Q[Q.length - 1], before = Q.slice(0, -1).map(q => q[2]);
+    title = t.titleNew;
+    meta = `${t.period(fmtDate(dayAt(span)), fmtDate(last), total)}<br>${t.coverage(logged, total)}`;
+    noticed = obs(`${lastQ[3]}/${lastQ[4]}`, t.obsLong(lastQ[2], Math.min(...before), Math.max(...before)));
+    days = t.notableNew.map(([i, txt]) => [fmtDate([dayAt(119), dayAt(74), dayAt(6)][i]), txt]);
+    details += `<section class="blk card"><h3>${t.b1new}</h3>
+      <p class="p-meta"><b>${t.planNow}${sep}</b> ${plan}</p>
       <table class="tbl"><thead><tr><th>${t.plHead[0]}</th><th>${t.plHead[1]}</th></tr></thead><tbody>${
         t.plRows(fmtDate(v1), fmtDate(v2)).map(r => `<tr><td style="white-space:nowrap">${r[0]}</td><td>${clkAll(r[1])}</td></tr>`).join('')
-      }</tbody></table></section></div>`;
-    h += `<section class="blk card"><h3><span class="n">2</span>${t.b2new}</h3>
+      }</tbody></table></section>`;
+    details += `<section class="blk card"><h3>${t.b2new}</h3>
       <table class="tbl"><thead><tr><th>${t.qHead[0]}</th><th class="r">${t.qHead[1]}</th><th class="r">${t.qHead[2]}</th></tr></thead><tbody>${
         Q.map(q => `<tr><td style="white-space:nowrap">${fmtDate(q[0])}–${fmtDate(q[1])}</td><td class="r">${t.qVal(q[2])}</td><td class="r">${t.qDays(q[3], q[4])}</td></tr>`).join('')
       }</tbody></table><p class="note-small">${t.qNote}</p></section>`;
-    h += `<section class="blk card"><h3><span class="n">3</span>${t.b4}</h3><ul class="days">${
-      t.notableNew.map(([i, txt]) => { const d = [dayAt(119), dayAt(74), dayAt(6)][i];
-        return `<li><span class="d">${fmtDate(d)}</span><span>${clkAll(txt)}</span></li>`; }).join('')
-    }</ul></section>`;
   }
-  /* MY QUESTIONS: the person's own, editable here, printed as a list. The app does
+
+  /* QUESTIONS: the person's own, editable here, printed as a list. The app does
      not suggest any (H-04 is held for clinical and legal review). */
-  h += `<section class="blk card"><h3><span class="n">${scene === 'reg' ? 5 : 4}</span>${t.b5}</h3>
+  const qs = `<section class="ask"><h3>${t.b5}</h3>
     <ol class="qs">${QS[lang].map((q, i) =>
       `<li><textarea rows="2" aria-label="${t.b5} ${i + 1}" oninput="QS['${lang}'][${i}]=this.value;this.nextElementSibling.textContent=this.value">${q}</textarea><span class="qprint">${q}</span></li>`).join('')}</ol>
     <button class="addq" onclick="addQ('${lang}')"><i class="ph ph-plus"></i>${t.addq}</button></section>`;
+
+  let h = `<div class="card memo">
+    <header class="p-head"><span class="p-kicker">${t.kicker}</span>
+      <h2 class="p-title">${title}</h2><span class="p-meta">${meta}</span></header>
+    <section class="mblk"><h3>${t.noticed}</h3>${noticed}</section>
+    <section class="mblk"><h3>${t.b4}</h3><ul class="days">${
+      days.map(([d, txt]) => `<li><span class="d">${d}</span><span>${clkAll(txt)}</span></li>`).join('')}</ul></section>
+    ${qs}
+  </div>`;
+  h += `<div class="details-h">${t.details}</div>` + details;
   h += `<footer class="p-foot"><span>${t.foot1}</span><span>${t.foot2(fmtDate(TODAY))}</span></footer>`;
   return h;
 }
