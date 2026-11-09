@@ -109,7 +109,38 @@ button{border:0;background:none;cursor:pointer;padding:0}
         display:flex;flex-direction:column;gap:var(--space-4)}
 .lede{margin:0;color:var(--text-secondary)}
 
-/* ── controls above the page: who it is for, language, amounts ── */
+/* ── the settings line, and the Adjust sheet ── */
+.setline{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;
+         padding:var(--space-1) 0;border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle)}
+.setline span{flex:1;min-width:0;color:var(--text-secondary)}
+.textbtn{min-height:var(--target-min);padding:0 var(--space-3);margin-right:calc(var(--space-3) * -1);
+  border-radius:var(--radius-md);color:var(--accent);font-weight:600;
+  display:flex;align-items:center;gap:var(--space-2);flex:0 0 auto}
+.textbtn i{font-size:20px}
+.textbtn:active{background:var(--surface-raised)}
+.scrim{position:fixed;inset:0;background:var(--backdrop-dim, rgba(26,25,22,.34));opacity:0;pointer-events:none;
+       transition:opacity var(--motion-base) var(--ease-out);z-index:50}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,102%);width:100%;max-width:var(--shell-w);
+       background:var(--surface-card);border-radius:var(--radius-lg) var(--radius-lg) 0 0;z-index:60;
+       padding:var(--space-2) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
+       box-shadow:var(--shadow-overlay);transition:transform var(--motion-slow) var(--ease-settle)}
+.sheet.open{transform:translate(-50%,0)}
+html .scrim:not(.open){visibility:hidden;transition:opacity var(--motion-base) var(--ease-out), visibility 0s linear var(--motion-base)}
+html .sheet:not(.open){visibility:hidden;transition:transform var(--motion-slow) var(--ease-settle), visibility 0s linear var(--motion-slow)}
+html .sheet.open{visibility:visible}
+.pull{width:40px;height:var(--space-1);border-radius:var(--radius-full);background:var(--paper-300);margin:0 auto var(--space-4)}
+.sh-body{display:flex;flex-direction:column;gap:var(--space-6)}
+.sh-head{display:flex;align-items:center;gap:var(--space-2)}
+.sh-head h2{flex:1;margin:0;font-size:var(--text-title);font-weight:600;line-height:var(--leading-tight)}
+.icon-btn.plain{background:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;
+                color:var(--text-secondary);margin-right:calc(var(--space-3) * -1)}
+.fieldset{display:flex;flex-direction:column;gap:var(--space-2)}
+.lab{font-weight:600}
+/* two languages: each its own paper, its own printed page */
+.papers-lang{margin:var(--space-4) 0 var(--space-2);font-size:var(--text-label);font-weight:600;
+             color:var(--text-muted);letter-spacing:.04em;text-transform:uppercase}
+#papers{display:flex;flex-direction:column}
 .seg{display:flex;gap:var(--space-1);background:var(--surface-sunken);
      border-radius:var(--radius-md);padding:var(--space-1)}
 .seg button{flex:1;min-height:var(--target-routine);border-radius:var(--radius-sm);
@@ -202,6 +233,7 @@ button{border:0;background:none;cursor:pointer;padding:0}
 /* my questions: written by the person, edited here, printed as a numbered list */
 .qs{display:flex;flex-direction:column;gap:var(--space-2);margin:0;padding:0;list-style:none;counter-reset:q}
 .qs li{display:flex;gap:var(--space-3);align-items:flex-start;counter-increment:q}
+.qs .qprint{display:none}
 .qs li::before{content:counter(q) ".";flex:0 0 auto;font-weight:700;min-width:1.4rem;
                line-height:var(--target-min)}
 .qs textarea{flex:1;min-width:0;min-height:var(--target-min);resize:none;border:1px solid transparent;
@@ -228,15 +260,35 @@ button{border:0;background:none;cursor:pointer;padding:0}
 
 /* PRINT: only the paper, on a white page. This is what "Save as PDF" makes. */
 @media print{
-  @page{margin:14mm}
+  @page{margin:12mm}
   html,body{background:#fff}
-  .demo-bar,.top,.controls,.act,.addq,.edge-top{display:none!important}
+  .demo-bar,.top,.setline,.lede,.act,.addq,.edge-top,.scrim,.sheet,.papers-lang{display:none!important}
+  .paper + .papers-lang + .paper, .paper.next{break-before:page}
   .shell{max-width:none;background:#fff}
   .scroll{padding:0}
   .paper{gap:0}
-  .card{border:0;border-top:1px solid #ccc;border-radius:0;padding:5mm 0;background:#fff;break-inside:avoid}
+  /* paper is read at arm's length by the doctor, not on a phone mid-episode: body
+     prints at 14px (the floor), tighter rhythm, so one language fits one page */
+  html{font-size:82.4%}
+  .card{border:0;border-top:1px solid #ccc;border-radius:0;padding:3mm 0;background:#fff;gap:2mm}
+  .card.blk, .blk{gap:2mm}
+  .p-head{gap:1mm}
+  .obs, .fact, .days li{break-inside:avoid}
+  .fact{padding:1mm 0}
   .card.summary{border-top:0;padding-top:0}
-  .qs textarea{border:0;padding:0;overflow:visible}
+  .qs textarea{display:none}
+  .qs .qprint{display:inline}
+  .qs li::before{line-height:var(--leading-body)}
+  .qs{gap:1mm}
+  /* the chart scales with its box: on paper it would fill the width and push the
+     page to three, so it keeps about the size it has on a phone */
+  .chart{max-width:72mm}
+  /* on paper the chart and "Alongside" sit side by side, so one language is one page */
+  .paper{display:grid;grid-template-columns:1fr 1fr;column-gap:8mm}
+  .paper > *{grid-column:1 / -1}
+  .paper > .half{grid-column:auto}
+  .k{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .qs li:has(textarea:placeholder-shown), .qs li:has(textarea:empty){display:none}
 }
 </style>
 </head>
@@ -256,25 +308,14 @@ button{border:0;background:none;cursor:pointer;padding:0}
   <main class="scroll">
     <p class="lede" id="t-lede"></p>
 
-    <div class="controls" style="display:flex;flex-direction:column;gap:var(--space-3)">
-      <div class="seg" role="group" aria-label="Who is it for">
-        <button id="sc-reg" aria-pressed="true" onclick="setScene('reg')"></button>
-        <button id="sc-new" aria-pressed="false" onclick="setScene('new')"></button>
-      </div>
-      <div class="optrow">
-        <div class="seg lang" role="group" aria-label="Language">
-          <button id="lg-en" aria-pressed="true" onclick="setLang('en')">EN</button>
-          <button id="lg-ja" aria-pressed="false" onclick="setLang('ja')" lang="ja">日本語</button>
-        </div>
-        <div class="switchrow">
-          <label id="t-amt" for="amtSw"></label>
-          <button class="switch" id="amtSw" role="switch" aria-checked="false" onclick="toggleAmounts()"></button>
-        </div>
-      </div>
-      <p class="hint" id="t-amthint"></p>
+    <!-- SETTINGS (2026-11-09): sensible defaults need no setup, so the page opens
+         straight on the report. One line says what you are looking at; Adjust
+         changes it. Changes apply as you tap (no Set button), like every step. -->
+    <div class="setline">
+      <span id="setsum"></span>
+      <button class="textbtn" onclick="openAdjust()"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i>Adjust</button>
     </div>
-
-    <article class="paper" id="paper" data-clock-skip></article>
+    <div id="papers" data-clock-skip></div>
 
     <div class="act">
       <button class="btn" onclick="savePdf()"><i class="ph ph-export"></i><span id="t-save"></span></button>
@@ -282,6 +323,42 @@ button{border:0;background:none;cursor:pointer;padding:0}
     </div>
   </main>
 </div>
+
+<div class="scrim" id="scrim" onclick="closeAdjust()"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-title">
+  <div class="pull"></div>
+  <div class="sh-body">
+    <div class="sh-head">
+      <h2 id="sh-title">Report settings</h2>
+      <button class="icon-btn plain" onclick="closeAdjust()" aria-label="Close"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="fieldset">
+      <span class="lab">Who it is for</span>
+      <div class="seg" role="group" aria-label="Who it is for">
+        <button id="sc-reg" aria-pressed="true" onclick="setScene('reg')">Regular doctor</button>
+        <button id="sc-new" aria-pressed="false" onclick="setScene('new')">New doctor</button>
+      </div>
+      <p class="hint" id="scHint"></p>
+    </div>
+    <div class="fieldset">
+      <span class="lab">Language of the report</span>
+      <div class="seg" role="group" aria-label="Language of the report">
+        <button id="lg-en" aria-pressed="true" onclick="setLangs('en')">English</button>
+        <button id="lg-ja" aria-pressed="false" onclick="setLangs('ja')" lang="ja">日本語</button>
+        <button id="lg-both" aria-pressed="false" onclick="setLangs('both')">Both</button>
+      </div>
+      <p class="hint">Both makes one PDF with each language on its own page, for a doctor who reads a different language from you.</p>
+    </div>
+    <div class="fieldset">
+      <div class="switchrow">
+        <label for="amtSw" class="lab" style="flex:1;text-align:left">Include amounts</label>
+        <button class="switch" id="amtSw" role="switch" aria-checked="false" onclick="toggleAmounts()"></button>
+      </div>
+      <p class="hint" id="amtHint"></p>
+    </div>
+  </div>
+</div>
+<script src="../sheet-handle.js" data-close="closeAdjust"></script>
 
 <script src="../timefmt.js"></script>
 <script>
@@ -436,7 +513,9 @@ for (let ago = N - 1; ago >= 0; ago--){
 const LOGGED = DAYS.filter(d => !d.none);
 
 /* ═════════ state ═════════ */
-let lang = 'en', scene = 'reg', amounts = false;
+/* lang = the language being drawn right now; langs = what the report is in.
+   The app around the report stays in the app's language (English in MVP). */
+let lang = 'en', langs = 'en', scene = 'reg', amounts = false;
 
 /* dates and times in the page's language. English times follow the phone's 12/24h
    setting (timefmt.js sets data-clock); Japanese always uses 24-hour, as is usual. */
@@ -483,13 +562,26 @@ function chartSVG(t){
 
 /* ═════════ the page, one template per scenario ═════════ */
 function render(){
+  const c = T.en;
+  el('t-screen').textContent = c.screen; el('t-lede').textContent = c.lede;
+  el('t-save').textContent = c.save; el('t-savehint').textContent = c.saveHint;
+  el('amtHint').textContent = amounts ? c.amtOn : c.amtOff;
+  el('scHint').textContent = scene === 'reg'
+    ? 'The last two weeks: what changed since a doctor who knows you last saw you.'
+    : 'The long view: your plan history and the record by 3 months, for a doctor meeting you for the first time.';
+  const LN = { en:'English', ja:'日本語', both:'English and 日本語' };
+  el('setsum').textContent = [scene === 'reg' ? 'Last 2 weeks · Regular doctor' : 'Everything · New doctor',
+                              LN[langs], amounts ? 'Amounts on' : 'Amounts off'].join(' · ');
+  const list = langs === 'both' ? ['en', 'ja'] : [langs];
+  el('papers').innerHTML = list.map((l, i) => {
+    lang = l;
+    return (list.length > 1 ? `<div class="papers-lang">${LN[l]}</div>` : '')
+         + `<article class="paper${i ? ' next' : ''}" lang="${l}">${paperHTML()}</article>`;
+  }).join('');
+  lang = list[0];
+}
+function paperHTML(){
   const t = T[lang];
-  document.documentElement.lang = lang;
-  el('t-screen').textContent = t.screen; el('t-lede').textContent = t.lede;
-  el('sc-reg').textContent = t.reg; el('sc-new').textContent = t.neu;
-  el('t-amt').textContent = t.amt; el('t-amthint').textContent = amounts ? t.amtOn : t.amtOff;
-  el('t-save').textContent = t.save; el('t-savehint').textContent = t.saveHint;
-  const p = el('paper'); p.lang = lang;
 
   const first = dayAt(N - 1), last = dayAt(0);
   const times = PLAN.map(clk);
@@ -522,12 +614,12 @@ function render(){
       ${obs(`${early.length}/${n}`, clkAll(t.obsDrift(early.length, n, earlyBy)))}
       ${obs(`${hpLate}/${hp.length}`, clkAll(t.obsProt(hpLate, hp.length, restLate, rest.length)))}
     </section></div>`;
-    h += `<section class="blk card"><h3><span class="n">2</span>${t.b2}</h3>${chartSVG(t)}
+    h += `<section class="blk card half"><h3><span class="n">2</span>${t.b2}</h3>${chartSVG(t)}
       <div class="legend"><span><i class="k dose"></i>${t.legDose}</span><span><i class="k plan"></i>${t.legPlan}</span>
         <span><i class="k off"></i>${t.legOff}</span><span><i class="k on"></i>${t.legOn}</span>
         <span><i class="k none"></i>${t.legNone}</span></div></section>`;
     const vals = [hp.length, LOGGED.filter(d => d.move).length, LOGGED.filter(d => d.shortSleep).length, LOGGED.filter(d => d.extra).length];
-    h += `<section class="blk card"><h3><span class="n">3</span>${t.b3}</h3><div class="facts">${
+    h += `<section class="blk card half"><h3><span class="n">3</span>${t.b3}</h3><div class="facts">${
       t.facts.map(([l, f], i) => `<div class="fact"><span class="fl">${l}</span><span class="fv">${f(vals[i], n)}</span></div>`).join('')
     }</div><p class="note-small">${t.factsNote}</p></section>`;
     h += `<section class="blk card"><h3><span class="n">4</span>${t.b4}</h3><ul class="days">${
@@ -564,21 +656,25 @@ function render(){
   /* MY QUESTIONS: the person's own, editable here, printed as a list. The app does
      not suggest any (H-04 is held for clinical and legal review). */
   h += `<section class="blk card"><h3><span class="n">${scene === 'reg' ? 5 : 4}</span>${t.b5}</h3>
-    <ol class="qs" id="qs">${QS[lang].map((q, i) =>
-      `<li><textarea rows="2" aria-label="${t.b5} ${i + 1}" oninput="QS[lang][${i}]=this.value">${q}</textarea></li>`).join('')}</ol>
-    <button class="addq" onclick="addQ()"><i class="ph ph-plus"></i>${t.addq}</button></section>`;
+    <ol class="qs">${QS[lang].map((q, i) =>
+      `<li><textarea rows="2" aria-label="${t.b5} ${i + 1}" oninput="QS['${lang}'][${i}]=this.value;this.nextElementSibling.textContent=this.value">${q}</textarea><span class="qprint">${q}</span></li>`).join('')}</ol>
+    <button class="addq" onclick="addQ('${lang}')"><i class="ph ph-plus"></i>${t.addq}</button></section>`;
   h += `<footer class="p-foot"><span>${t.foot1}</span><span>${t.foot2(fmtDate(TODAY))}</span></footer>`;
-  p.innerHTML = h;
+  return h;
 }
 const obs = (cnt, txt) => `<div class="obs"><span class="cnt">${cnt}</span><p>${txt}</p></div>`;
 const el = id => document.getElementById(id);
 
 /* the questions are kept per language, so switching never loses what was typed */
 const QS = { en: [...T.en.qs], ja: [...T.ja.qs] };
-function addQ(){ QS[lang].push(''); render(); const all = document.querySelectorAll('#qs textarea'); all[all.length - 1].focus(); }
+function addQ(l){ QS[l].push(''); render();
+  const all = document.querySelectorAll(`.paper[lang="${l}"] .qs textarea`); all[all.length - 1].focus(); }
 
 function setScene(s){ scene = s; el('sc-reg').setAttribute('aria-pressed', s === 'reg'); el('sc-new').setAttribute('aria-pressed', s === 'new'); render(); }
-function setLang(l){ lang = l; el('lg-en').setAttribute('aria-pressed', l === 'en'); el('lg-ja').setAttribute('aria-pressed', l === 'ja'); render(); }
+function setLangs(l){ langs = l; ['en','ja','both'].forEach(k => el('lg-' + k).setAttribute('aria-pressed', k === l)); render(); }
+function openAdjust(){ el('scrim').classList.add('open'); el('sheet').classList.add('open'); el('sheet').querySelector('.seg button').focus(); }
+function closeAdjust(){ el('scrim').classList.remove('open'); el('sheet').classList.remove('open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAdjust(); });
 function toggleAmounts(){ amounts = !amounts; el('amtSw').setAttribute('aria-checked', amounts); render(); }
 /* SAVE OR SHARE. The real app makes the PDF on the phone and opens the system
    share sheet, where the person picks Files, Mail, Messages or print. The app
