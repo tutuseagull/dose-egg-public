@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- showcase: review controls hidden; add ?demo to the address to show them -->
+<script>if (!/[?&]demo\b/.test(location.search)) document.documentElement.classList.add('showcase');</script>
+<style>html.showcase .demo-bar{display:none!important}</style>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DoseEgg · Report for your visit</title>
+<!-- REPORT FOR YOUR VISIT, 2026-11-09. The third demo moment for the pitch: a
+     record becomes one page to bring to an appointment.
+     What it is (decided with the domain lead, Oct 2026): the patient's own notes for the
+     visit. Data and questions, never advice. The patient is the author; the
+     doctor is the reader. Footer: "Recorded by the patient. Not a medical
+     assessment."
+     Rules this page follows:
+       · TEMPLATED, NEVER GENERATED [AGENTS.md, AI features]. Every sentence is a
+         fixed template from the statement bank, filled with numbers COMPUTED from
+         the sample record below. Nothing is written by a model.
+       · Only ALLOWED statements (analyze-statements.html). Nothing from the Held
+         category: no progression, no "the medicine is working", no app-suggested
+         questions (H-04). The questions are the patient's own.
+       · Every pattern carries its coverage ("4 of 5 days"). A day with no entry is
+         unknown, never zero, and is drawn as such.
+       · Amounts are OFF by default. Some people take less than prescribed, by
+         choice; including amounts is theirs to decide at export (P02, 2026-11-03).
+       · No red/green, no good/bad, no scores. One mark colour.
+     Two scenarios (Tutu, 2026-11-03): a REGULAR doctor (what happened in the last
+     two weeks) and a NEW doctor (the long view: plan history, by 3 months).
+     English and Japanese: same page, a switch. Japanese wording is a first pass,
+     to be checked by a native speaker before it goes on stage.
+     Sample data, generated and shaped like the domain lead's pattern. Never real
+     data in this file. -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../motion.css">
+<meta name="theme-color" id="themeColor" content="">
+<script>
+function paintEdges(){
+  const c = getComputedStyle(document.documentElement).getPropertyValue('--surface-page').trim();
+  document.documentElement.style.setProperty('--edge', c);
+  const m = document.getElementById('themeColor'); if (m && c) m.setAttribute('content', c);
+}
+addEventListener('DOMContentLoaded', () => {
+  const s = document.createElement('div'); s.className = 'edge-top'; s.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(s); paintEdges();
+});
+</script>
+<style>
+/* Shared tokens come from ../tokens.css. Only this screen's layout tokens here. */
+:root{
+  --gutter:16px;
+  --shell-w:420px;
+  --paper-pad:20px;       /* the report page's inner margin */
+  --row-h:22px;           /* one day in the timing chart */
+}
+
+/* ═══════════════════ base (same as Look Back) ═══════════════════ */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:100%}
+body{margin:0;background:var(--backdrop);font-family:var(--font-sans);
+     font-size:var(--text-body);line-height:var(--leading-body);color:var(--text-primary);
+     -webkit-font-smoothing:antialiased;display:flex;justify-content:center}
+@media (max-width: 480px){
+  html{background:var(--edge, var(--surface-page))}
+  body{background:var(--surface-page)}
+  .edge-top{position:fixed;top:0;left:0;right:0;height:1px;background:var(--edge, var(--surface-page));
+            z-index:1;pointer-events:none}
+}
+button,input,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{border:0;background:none;cursor:pointer;padding:0}
+:focus-visible{outline:var(--focus-ring-width) solid var(--focus-ring);
+               outline-offset:var(--focus-ring-offset);border-radius:var(--radius-sm)}
+[hidden]{display:none!important}
+.shell{width:100%;max-width:var(--shell-w);background:var(--surface-page);min-height:100vh;
+       position:relative;display:flex;flex-direction:column}
+
+.demo-bar{display:flex;gap:var(--space-2);padding:var(--space-2) var(--space-3);
+          background:var(--paper-800);align-items:center;flex-wrap:wrap}
+.demo-bar .db{font-size:var(--text-label);letter-spacing:.04em;text-transform:uppercase;
+              color:var(--paper-400);font-weight:500;padding-right:var(--space-1)}
+.demo-btn{font-size:var(--text-label);font-weight:500;color:var(--paper-100);
+          background:color-mix(in srgb, var(--paper-0) 12%, transparent);
+          padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);
+          display:flex;align-items:center;min-height:var(--space-8);text-decoration:none}
+.demo-btn.home{font-weight:600}
+
+/* ── top bar: a step under Look Back, so Back on the left, title beside it ── */
+.top{display:flex;align-items:center;gap:var(--space-2);
+     padding:var(--space-4) var(--space-4) var(--space-2);
+     position:sticky;top:0;z-index:30}
+.top::before{content:'';position:absolute;inset:0 0 calc(var(--space-4) * -1) 0;z-index:-1;
+             background:linear-gradient(to bottom,
+               color-mix(in srgb, var(--surface-page) 88%, transparent) 0%,
+               color-mix(in srgb, var(--surface-page) 60%, transparent) 60%, transparent 100%);
+             pointer-events:none}
+.icon-btn{width:var(--target-min);height:var(--target-min);display:flex;align-items:center;
+          justify-content:center;border-radius:var(--radius-full);flex:0 0 auto;
+          background:var(--glass-fill);box-shadow:var(--glass-rim), var(--glass-shadow);
+          -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+          color:var(--text-primary);text-decoration:none}
+.icon-btn i{font-size:22px}
+.top h1{font-size:var(--text-heading);font-weight:600;margin:0;line-height:var(--leading-tight)}
+
+.scroll{flex:1;padding:var(--space-2) var(--gutter) var(--space-12);
+        display:flex;flex-direction:column;gap:var(--space-4)}
+.lede{margin:0;color:var(--text-secondary)}
+
+/* ── controls above the page: who it is for, language, amounts ── */
+.seg{display:flex;gap:var(--space-1);background:var(--surface-sunken);
+     border-radius:var(--radius-md);padding:var(--space-1)}
+.seg button{flex:1;min-height:var(--target-routine);border-radius:var(--radius-sm);
+     font-size:var(--text-body);font-weight:500;color:var(--text-secondary);padding:0 var(--space-2)}
+.seg button[aria-pressed="true"]{background:var(--surface-card);color:var(--text-primary);
+     font-weight:600;box-shadow:var(--content-edge)}
+.optrow{display:flex;align-items:center;gap:var(--space-4);flex-wrap:wrap}
+.optrow .lang{flex:0 0 auto}
+.optrow .lang button{min-width:var(--target-critical);white-space:nowrap;padding:0 var(--space-3)}
+.switchrow{flex:1;display:flex;align-items:center;justify-content:flex-end;gap:var(--space-3);
+           min-height:var(--target-min);text-align:right}
+.switch{position:relative;width:52px;height:32px;border-radius:var(--radius-full);flex:0 0 auto;
+        background:var(--paper-300);transition:background var(--motion-fast) var(--ease-out)}
+.switch::after{content:'';position:absolute;top:3px;left:3px;width:26px;height:26px;
+        border-radius:var(--radius-full);background:var(--surface-card);box-shadow:var(--content-edge);
+        transition:transform var(--motion-fast) var(--ease-out)}
+.switch[aria-checked="true"]{background:var(--accent)}
+.switch[aria-checked="true"]::after{transform:translateX(20px)}
+/* the switch is 32px tall; its row is the 48px target */
+.switchrow label{cursor:pointer}
+.hint{margin:0;font-size:var(--text-label);color:var(--text-muted);line-height:var(--leading-body)}
+
+/* ═══════════════════ the page itself ═══════════════════
+   A document a doctor reads, so it looks like paper: white, flat, a hairline, no
+   app chrome inside it. It reads the same on a phone, on a laptop shown across the
+   desk, and printed. */
+.paper{background:var(--surface-card);border:1px solid var(--border-subtle);
+       border-radius:var(--radius-md);padding:var(--paper-pad);
+       display:flex;flex-direction:column;gap:var(--space-6)}
+.paper[lang="ja"]{font-family:var(--font-sans), 'Noto Sans JP', sans-serif}
+.p-head{display:flex;flex-direction:column;gap:var(--space-1);
+        padding-bottom:var(--space-4);border-bottom:1px solid var(--border-subtle)}
+.p-kicker{font-size:var(--text-label);font-weight:600;color:var(--text-muted);letter-spacing:.02em}
+.p-title{font-size:var(--text-heading);font-weight:700;line-height:var(--leading-tight);margin:0}
+.p-meta{font-size:var(--text-body);color:var(--text-secondary)}
+.p-meta b{color:var(--text-primary);font-weight:600}
+.blk{display:flex;flex-direction:column;gap:var(--space-3)}
+.blk h3{margin:0;font-size:var(--text-body);font-weight:700;line-height:var(--leading-tight)}
+.blk h3 .n{color:var(--text-muted);font-weight:600;margin-right:var(--space-2)}
+
+/* at a glance: each observation with its evidence, the count leading */
+.obs{display:flex;gap:var(--space-3);align-items:flex-start}
+.obs .cnt{flex:0 0 auto;min-width:3.4rem;font-weight:700;font-size:var(--text-body);
+          font-variant-numeric:tabular-nums;color:var(--mark);line-height:var(--leading-body)}
+.obs p{margin:0}
+
+/* the timing chart: one row per day */
+.chart{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-4);font-size:var(--text-label);
+        color:var(--text-secondary)}
+.legend span{display:inline-flex;align-items:center;gap:var(--space-2)}
+.k{width:12px;height:12px;flex:0 0 auto;display:inline-block}
+.k.dose{border-radius:var(--radius-full);background:var(--mark)}
+.k.plan{width:2px;height:14px;background:var(--viz-grid);border-radius:var(--radius-sm)}
+.k.off{border-radius:var(--radius-full);border:2px solid var(--viz-ink);background:var(--surface-card)}
+.k.on{transform:rotate(45deg);border:2px solid var(--viz-ink);background:var(--surface-card);width:10px;height:10px}
+.k.none{border:1.5px dashed var(--viz-missing);border-radius:var(--radius-sm);width:16px}
+
+/* fixed-order fact rows: label, count, the denominator in words */
+.facts{display:flex;flex-direction:column}
+.fact{display:flex;gap:var(--space-3);align-items:baseline;padding:var(--space-2) 0;
+      border-bottom:1px solid var(--border-subtle)}
+.fact:last-child{border-bottom:0}
+.fact .fl{flex:1;min-width:0}
+.fact .fv{flex:0 0 auto;font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.note-small{margin:0;font-size:var(--text-label);color:var(--text-muted)}
+
+/* notable days */
+.days{display:flex;flex-direction:column;gap:var(--space-2);margin:0;padding:0;list-style:none}
+.days li{display:flex;gap:var(--space-3)}
+.days .d{flex:0 0 auto;min-width:6.5rem;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* by 3 months, and plan history */
+.tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.tbl th{text-align:left;font-size:var(--text-label);font-weight:600;color:var(--text-muted);
+        padding:0 var(--space-2) var(--space-2) 0;vertical-align:bottom}
+.tbl td{padding:var(--space-2) var(--space-2) var(--space-2) 0;border-top:1px solid var(--border-subtle);
+        vertical-align:top}
+.tbl td.r, .tbl th.r{text-align:right;padding-right:0}
+
+/* my questions: written by the person, edited here, printed as a numbered list */
+.qs{display:flex;flex-direction:column;gap:var(--space-2);margin:0;padding:0;list-style:none;counter-reset:q}
+.qs li{display:flex;gap:var(--space-3);align-items:flex-start;counter-increment:q}
+.qs li::before{content:counter(q) ".";flex:0 0 auto;font-weight:700;min-width:1.4rem;
+               line-height:var(--target-min)}
+.qs textarea{flex:1;min-width:0;min-height:var(--target-min);resize:none;border:1px solid transparent;
+             border-radius:var(--radius-sm);padding:var(--space-2) var(--space-2);background:transparent;
+             line-height:var(--leading-body);field-sizing:content}
+.qs textarea:hover{border-color:var(--border-subtle)}
+.qs textarea:focus{border-color:var(--border-interactive);outline:none;background:var(--surface-page)}
+.addq{align-self:flex-start;min-height:var(--target-min);padding:0 var(--space-3);
+      margin-left:calc(var(--space-3) * -1);border-radius:var(--radius-md);color:var(--accent);
+      display:flex;align-items:center;gap:var(--space-2);font-weight:500}
+.addq i{font-size:18px}
+.p-foot{padding-top:var(--space-4);border-top:1px solid var(--border-subtle);
+        font-size:var(--text-label);color:var(--text-muted);display:flex;flex-direction:column;gap:var(--space-1)}
+
+/* ── the one action: save it as a file to hand over ── */
+.act{display:flex;flex-direction:column;gap:var(--space-2);align-items:stretch}
+.btn{min-height:var(--target-routine);border-radius:var(--radius-full);font-weight:600;
+     display:flex;align-items:center;justify-content:center;gap:var(--space-2);
+     background:var(--accent);color:var(--on-accent)}
+.btn i{font-size:20px}
+.done{display:flex;align-items:center;gap:var(--space-2);justify-content:center;
+      color:var(--text-secondary);font-size:var(--text-body);min-height:var(--target-min)}
+.done i{color:var(--accent);font-size:20px}
+
+/* PRINT: only the paper, on a white page. This is what "Save as PDF" makes. */
+@media print{
+  @page{margin:14mm}
+  html,body{background:#fff}
+  .demo-bar,.top,.controls,.act,.addq,.edge-top{display:none!important}
+  .shell{max-width:none;background:#fff}
+  .scroll{padding:0}
+  .paper{border:0;padding:0}
+  .qs textarea{border:0;padding:0;overflow:visible}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="demo-bar">
+    <a class="demo-btn home" href="../index.html">← Home</a>
+    <span class="db">Report · sample data</span>
+  </div>
+
+  <div class="top">
+    <a class="icon-btn" href="look-back.html" aria-label="Back to Look Back"><i class="ph ph-arrow-left"></i></a>
+    <h1 id="t-screen">Report for your visit</h1>
+  </div>
+
+  <main class="scroll">
+    <p class="lede" id="t-lede"></p>
+
+    <div class="controls" style="display:flex;flex-direction:column;gap:var(--space-3)">
+      <div class="seg" role="group" aria-label="Who is it for">
+        <button id="sc-reg" aria-pressed="true" onclick="setScene('reg')"></button>
+        <button id="sc-new" aria-pressed="false" onclick="setScene('new')"></button>
+      </div>
+      <div class="optrow">
+        <div class="seg lang" role="group" aria-label="Language">
+          <button id="lg-en" aria-pressed="true" onclick="setLang('en')">EN</button>
+          <button id="lg-ja" aria-pressed="false" onclick="setLang('ja')" lang="ja">日本語</button>
+        </div>
+        <div class="switchrow">
+          <label id="t-amt" for="amtSw"></label>
+          <button class="switch" id="amtSw" role="switch" aria-checked="false" onclick="toggleAmounts()"></button>
+        </div>
+      </div>
+      <p class="hint" id="t-amthint"></p>
+    </div>
+
+    <article class="paper" id="paper" data-clock-skip></article>
+
+    <div class="act">
+      <button class="btn" onclick="savePdf()"><i class="ph ph-file-arrow-down"></i><span id="t-save"></span></button>
+      <p class="hint" id="t-savehint" style="text-align:center"></p>
+    </div>
+  </main>
+</div>
+
+<script src="../timefmt.js"></script>
+<script>
+/* ═════════ words: every string the page says, in both languages ═════════
+   Templates only. A number goes into a slot; nothing else varies. */
+const T = {
+  en: {
+    screen:'Report for your visit',
+    lede:'One page from your record, to show or hand over. Your notes and your questions, not advice.',
+    reg:'Regular doctor', neu:'New doctor',
+    amt:'Include amounts', amtOff:'Amounts are left out. Times are shown, not how much.',
+    amtOn:'Amounts are included, as you logged them.',
+    save:'Save as PDF', saveHint:'Saves a file to your phone. Nothing is sent anywhere.',
+    kicker:'Report for my visit · DoseEgg',
+    titleReg:'The last two weeks', titleNew:'My record so far',
+    period:(a,b,n)=>`<b>${a} to ${b}</b> · ${n} days`,
+    coverage:(k,n)=>`Something was logged on <b>${k} of ${n} days</b>. A day with no entries is unknown, not zero.`,
+    planNow:'Current plan',
+    planLine:(times)=>`Levodopa ${times.length} times a day: ${times.join(', ')}. Entacapone once, at ${'{E}'}.`,
+    b1:'At a glance', b2:'Dose times and how I felt', b3:'Alongside', b4:'Notable days', b5:'My questions for you',
+    b1new:'Plan history', b2new:'By 3 months', b3new:'What the record holds',
+    obsDrift:(k,n,m)=>`The 14:30 dose was taken earlier than planned on <b>${k} of ${n}</b> logged days, typically by ${m} minutes.`,
+    obsOff:(k,n,a,b)=>`“Meds wearing off” was noted on <b>${k} of ${n}</b> logged days, most often between ${a} and ${b}.`,
+    obsProt:(k,n,j,m)=>`On ${n} days breakfast was marked high-protein; the 07:30 dose was noted kicking in later on <b>${k} of them</b>. On the other ${m} logged days, on ${j}.`,
+    legDose:'dose taken', legPlan:'planned time', legOff:'“wearing off”', legOn:'“kicked in”', legNone:'no entries',
+    facts:[
+      ['Breakfast marked high-protein', (v,n)=>`${v} of ${n} days`],
+      ['Movement sessions (walk, tennis)', v=>`${v}`],
+      ['Nights under 6 hours, as logged', (v,n)=>`${v} of ${n} nights`],
+      ['Doses outside the plan', v=>`${v}`],
+    ],
+    factsNote:'Counts only, in a fixed order. They sit next to the dose times; they are not causes.',
+    noneDays:'None noted.',
+    qs:['Could we talk about the afternoon dose? It often wears off before the next one.',
+        'Is it worth trying breakfast with less protein on days I need the morning dose to work quickly?'],
+    addq:'Add a question',
+    qnote:'Written by me.',
+    foot1:'Recorded by the patient in DoseEgg. Not a medical assessment.',
+    foot2:(d)=>`Made ${d}. Only doses the patient confirmed are counted; planned doses never count as taken.`,
+    plHead:['From','Plan'], plRows:(a,b)=>[[a,'Levodopa 4 times a day: 08:00, 12:00, 16:00, 20:00'],[b,'Levodopa 5 times a day: 07:30, 11:00, 14:30, 18:00, 21:30, with Entacapone at 09:30']],
+    qHead:['3 months','Doses landed, typically','Days logged'],
+    qVal:m=>`${m} min from plan`, qDays:(k,n)=>`${k} of ${n}`,
+    qNote:'Measured against the plan in force at the time. Only confirmed doses count.',
+    holds:[['Doses confirmed',v=>v],['How I feel notes',v=>v],['Meals',v=>v],['Movement sessions',v=>v],['Nights of sleep',v=>v]],
+    holdsNote:(k,n)=>`Across ${n} days, ${k} with at least one entry.`,
+    notable:[
+      [0,'Froze in place at 15:10, at a doorway'],
+      [1,'Dizzy after standing up, 18:40'],
+      [2,'Took a quarter tablet at 17:20, before my child’s class'],
+    ],
+    notableNew:[
+      [0,'Plan changed to 5 times a day'],
+      [1,'A stretch of 12 days where doses landed earlier than plan (named “the move”)'],
+      [2,'Froze in place twice in two weeks'],
+    ],
+  },
+  ja: {
+    screen:'受診用レポート',
+    lede:'記録から作る1枚のレポート。見せたり、渡したりできます。内容は自分のメモと質問で、助言ではありません。',
+    reg:'いつもの医師', neu:'初めての医師',
+    amt:'量を含める', amtOff:'量は含めていません。時刻のみ表示します。',
+    amtOn:'記録した量を含めています。',
+    save:'PDFとして保存', saveHint:'ファイルをスマートフォンに保存します。どこにも送信されません。',
+    kicker:'受診用レポート · DoseEgg',
+    titleReg:'直近2週間', titleNew:'これまでの記録',
+    period:(a,b,n)=>`<b>${a}〜${b}</b>・${n}日間`,
+    coverage:(k,n)=>`記録があった日：<b>${n}日中${k}日</b>。記録のない日は「不明」で、ゼロとは数えません。`,
+    planNow:'現在の服薬計画',
+    planLine:(times)=>`レボドパ 1日${times.length}回：${times.join('、')}。エンタカポン 1日1回：{E}。`,
+    b1:'まとめ', b2:'服薬時刻と体調', b3:'あわせて記録されたこと', b4:'気になった日', b5:'先生への質問',
+    b1new:'服薬計画の履歴', b2new:'3か月ごと', b3new:'記録の内容',
+    obsDrift:(k,n,m)=>`14:30の服薬は、記録のある<b>${n}日中${k}日</b>で予定より早く、多くは約${m}分早めでした。`,
+    obsOff:(k,n,a,b)=>`「薬が切れてきた」の記録は<b>${n}日中${k}日</b>で、多くは${a}〜${b}の間でした。`,
+    obsProt:(k,n,j,m)=>`朝食を高たんぱくと記録した${n}日のうち<b>${k}日</b>で、07:30の薬の効き始めが遅いと記録されました。それ以外の${m}日では${j}日でした。`,
+    legDose:'服薬', legPlan:'予定時刻', legOff:'「切れてきた」', legOn:'「効いてきた」', legNone:'記録なし',
+    facts:[
+      ['朝食を高たんぱくと記録', (v,n)=>`${n}日中${v}日`],
+      ['運動（散歩、テニス）', v=>`${v}回`],
+      ['睡眠6時間未満（記録より）', (v,n)=>`${n}夜中${v}夜`],
+      ['計画外の服薬', v=>`${v}回`],
+    ],
+    factsNote:'回数のみ、決まった順で表示しています。服薬時刻と並べていますが、原因ではありません。',
+    noneDays:'特になし。',
+    qs:['午後の薬について相談できますか。次の服薬の前に切れることが多いです。',
+        '朝の薬を早く効かせたい日は、朝食のたんぱく質を控えてみる価値はありますか。'],
+    addq:'質問を追加',
+    qnote:'自分で書いた質問です。',
+    foot1:'DoseEggで本人が記録した内容です。医学的な評価ではありません。',
+    foot2:(d)=>`作成日：${d}。本人が確認した服薬のみ数えています。予定の服薬を「服用済み」とは数えません。`,
+    plHead:['開始日','計画'], plRows:(a,b)=>[[a,'レボドパ 1日4回：08:00、12:00、16:00、20:00'],[b,'レボドパ 1日5回：07:30、11:00、14:30、18:00、21:30、エンタカポン 09:30']],
+    qHead:['3か月','服薬時刻（典型）','記録のある日'],
+    qVal:m=>`予定から${m}分`, qDays:(k,n)=>`${n}日中${k}日`,
+    qNote:'その時点の計画と比べています。本人が確認した服薬のみ数えています。',
+    holds:[['確認した服薬',v=>`${v}回`],['体調の記録',v=>`${v}件`],['食事',v=>`${v}件`],['運動',v=>`${v}回`],['睡眠',v=>`${v}夜`]],
+    holdsNote:(k,n)=>`${n}日間のうち、記録があった日は${k}日。`,
+    notable:[
+      [0,'15:10 戸口で足がすくんだ'],
+      [1,'18:40 立ち上がった後にめまい'],
+      [2,'17:20 子どもの習い事の前に1/4錠を服用'],
+    ],
+    notableNew:[
+      [0,'服薬計画を1日5回に変更'],
+      [1,'予定より早い服薬が12日続いた期間（「引っ越し」と命名）'],
+      [2,'2週間で2回、足がすくんだ'],
+    ],
+  }
+};
+/* amounts, only when switched on; same words in both languages as the Cabinet's chips */
+const AMT = { en:{ L:'½ tablet (100mg)', E:'1 tablet (200mg)' }, ja:{ L:'½錠（100mg）', E:'1錠（200mg）' } };
+
+/* ═════════ the sample record (generated, seeded: the same every load) ═════════
+   Shaped like the domain lead's pattern: five Levodopa times, an Entacapone at its
+   own time, the afternoon dose often taken early, wearing off before it, and a
+   later kick-in after high-protein breakfasts. Two days have no entries. */
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const PLAN = ['07:30','11:00','14:30','18:00','21:30'], ENTA = '09:30';
+const toMin = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+const fromMin = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(Math.round(m % 60)).padStart(2, '0')}`;
+const TODAY = new Date(); TODAY.setHours(12, 0, 0, 0);
+const dayAt = ago => { const d = new Date(TODAY); d.setDate(d.getDate() - ago); return d; };
+
+const N = 14, EMPTY = new Set([9, 4]);
+const DAYS = [];
+for (let ago = N - 1; ago >= 0; ago--){
+  if (EMPTY.has(ago)){ DAYS.push({ ago, none:true }); continue; }
+  const k = DAYS.length;
+  const highProt = [12, 10, 7, 3, 1].includes(ago);
+  const early = [13, 11, 8, 6, 5, 2, 0].includes(ago);          /* afternoon dose taken early */
+  const doses = PLAN.map((p, i) => {
+    let off = Math.round((rnd() - .5) * 16);
+    if (i === 2 && early) off = -(22 + Math.round(rnd() * 16));
+    return toMin(p) + off;
+  });
+  const kickLate = highProt ? ago !== 3 : [11, 6].includes(ago);  /* 4 of 5 high-protein days; 2 of 7 others */
+  const kick = doses[0] + (kickLate ? 70 + Math.round(rnd() * 20) : 35 + Math.round(rnd() * 15));
+  const wearing = [13, 12, 11, 8, 6, 5, 2, 0].includes(ago) ? toMin('13:40') + Math.round(rnd() * 35) : null;
+  const short = [12, 6, 1].includes(ago);
+  DAYS.push({ ago, doses, kick, kickLate, wearing, highProt, early, shortSleep:short,
+              move: [13, 10, 8, 5, 2, 0].includes(ago), extra: [8, 2, 0].includes(ago),
+              /* a dose outside the plan: a top-up, or part of a dose taken early */
+              extraAt: { 8: toMin('16:20'), 2: toMin('16:40'), 0: toMin('17:20') }[ago] });
+}
+const LOGGED = DAYS.filter(d => !d.none);
+
+/* ═════════ state ═════════ */
+let lang = 'en', scene = 'reg', amounts = false;
+
+/* dates and times in the page's language. English times follow the phone's 12/24h
+   setting (timefmt.js sets data-clock); Japanese always uses 24-hour, as is usual. */
+function fmtDate(d, withDay){
+  return new Intl.DateTimeFormat(lang === 'ja' ? 'ja-JP' : 'en-US',
+    withDay ? { month:'short', day:'numeric', weekday:'short' } : { month:'short', day:'numeric' }).format(d);
+}
+function clk(t){
+  if (lang === 'ja' || document.documentElement.dataset.clock !== '12') return t;
+  const [h, m] = t.split(':').map(Number);
+  return new Intl.DateTimeFormat('en-US', { hour:'numeric', minute:'2-digit', hour12:true })
+    .format(new Date(2000, 0, 1, h, m));
+}
+const clkAll = s => s.replace(/\b([01]\d|2[0-3]):([0-5]\d)\b/g, m => clk(m));
+const median = a => { const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+
+/* ═════════ the timing chart: 14 rows, 06:00 to 24:00 ═════════ */
+function chartSVG(t){
+  /* viewBox width close to the rendered width (phone column minus margins), so a
+     14-unit label renders at about 14px: the type floor holds in the chart too [C-16] */
+  const W = 310, L = 64, R = 10, top = 22, rh = 26, H = top + DAYS.length * rh + 6;
+  const x = m => L + (m - 360) / (1440 - 360) * (W - L - R);
+  let s = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t.b2}">`;
+  [6, 12, 18, 24].forEach(h => {
+    const X = x(h * 60);
+    s += `<line x1="${X}" y1="${top - 4}" x2="${X}" y2="${H - 4}" stroke="var(--viz-grid)" stroke-width="1"/>`;
+    s += `<text x="${X}" y="14" text-anchor="middle" font-size="14" fill="var(--text-muted)">${lang === 'ja' || document.documentElement.dataset.clock !== '12' ? String(h % 24).padStart(2,'0') : ((h % 12) || 12) + (h % 24 < 12 ? 'a' : 'p')}</text>`;
+  });
+  DAYS.forEach((d, r) => {
+    const y = top + r * rh + rh / 2;
+    s += `<text x="0" y="${y + 5}" font-size="14" fill="var(--text-secondary)">${fmtDate(dayAt(d.ago))}</text>`;
+    if (d.none){
+      s += `<rect x="${x(360) + 1}" y="${y - 7}" width="${x(1440) - x(360) - 2}" height="14" rx="3" fill="none" stroke="var(--viz-missing)" stroke-dasharray="4 3"/>`;
+      return;
+    }
+    PLAN.forEach(p => { const X = x(toMin(p)); s += `<line x1="${X}" y1="${y - 7}" x2="${X}" y2="${y + 7}" stroke="var(--paper-300)" stroke-width="2" stroke-linecap="round"/>`; });
+    d.doses.forEach(m => { s += `<circle cx="${x(m)}" cy="${y}" r="4.5" fill="var(--mark)"/>`; });
+    if (d.extraAt) s += `<circle cx="${x(d.extraAt)}" cy="${y}" r="4.5" fill="var(--mark)"/>`;
+    if (d.wearing) s += `<circle cx="${x(d.wearing)}" cy="${y}" r="4" fill="var(--surface-card)" stroke="var(--viz-ink)" stroke-width="1.6"/>`;
+    s += `<rect x="${x(d.kick) - 3.4}" y="${y - 3.4}" width="6.8" height="6.8" transform="rotate(45 ${x(d.kick)} ${y})" fill="var(--surface-card)" stroke="var(--viz-ink)" stroke-width="1.6"/>`;
+  });
+  return s + '</svg>';
+}
+
+/* ═════════ the page, one template per scenario ═════════ */
+function render(){
+  const t = T[lang];
+  document.documentElement.lang = lang;
+  el('t-screen').textContent = t.screen; el('t-lede').textContent = t.lede;
+  el('sc-reg').textContent = t.reg; el('sc-new').textContent = t.neu;
+  el('t-amt').textContent = t.amt; el('t-amthint').textContent = amounts ? t.amtOn : t.amtOff;
+  el('t-save').textContent = t.save; el('t-savehint').textContent = t.saveHint;
+  const p = el('paper'); p.lang = lang;
+
+  const first = dayAt(N - 1), last = dayAt(0);
+  const times = PLAN.map(clk);
+  let plan = t.planLine(times).replace('{E}', clk(ENTA));
+  if (amounts) plan = lang === 'ja'
+    ? plan.replace('レボドパ', `レボドパ ${AMT.ja.L}`).replace('エンタカポン', `エンタカポン ${AMT.ja.E}`)
+    : plan.replace('Levodopa', `Levodopa ${AMT.en.L}`).replace('Entacapone', `Entacapone ${AMT.en.E}`);
+
+  let h = '';
+  if (scene === 'reg'){
+    /* ── computed: every number below comes from DAYS ── */
+    const n = LOGGED.length;
+    const early = LOGGED.filter(d => d.doses[2] < toMin('14:30') - 15);
+    const earlyBy = median(early.map(d => toMin('14:30') - d.doses[2]));
+    const off = LOGGED.filter(d => d.wearing != null);
+    const offTimes = off.map(d => d.wearing).sort((a, b) => a - b);
+    const offA = fromMin(Math.floor(offTimes[1] / 30) * 30), offB = fromMin(Math.ceil(offTimes[offTimes.length - 2] / 30) * 30);
+    const hp = LOGGED.filter(d => d.highProt), rest = LOGGED.filter(d => !d.highProt);
+    const hpLate = hp.filter(d => d.kickLate).length, restLate = rest.filter(d => d.kickLate).length;
+
+    h += `<header class="p-head">
+      <span class="p-kicker">${t.kicker}</span>
+      <h2 class="p-title">${t.titleReg}</h2>
+      <span class="p-meta">${t.period(fmtDate(first), fmtDate(last), N)}</span>
+      <span class="p-meta">${t.coverage(n, N)}</span>
+      <span class="p-meta"><b>${t.planNow}${lang === 'ja' ? '：' : ':'}</b> ${plan}</span>
+    </header>`;
+    h += `<section class="blk"><h3><span class="n">1</span>${t.b1}</h3>
+      ${obs(`${off.length}/${n}`, clkAll(t.obsOff(off.length, n, offA, offB)))}
+      ${obs(`${early.length}/${n}`, clkAll(t.obsDrift(early.length, n, earlyBy)))}
+      ${obs(`${hpLate}/${hp.length}`, clkAll(t.obsProt(hpLate, hp.length, restLate, rest.length)))}
+    </section>`;
+    h += `<section class="blk"><h3><span class="n">2</span>${t.b2}</h3>${chartSVG(t)}
+      <div class="legend"><span><i class="k dose"></i>${t.legDose}</span><span><i class="k plan"></i>${t.legPlan}</span>
+        <span><i class="k off"></i>${t.legOff}</span><span><i class="k on"></i>${t.legOn}</span>
+        <span><i class="k none"></i>${t.legNone}</span></div></section>`;
+    const vals = [hp.length, LOGGED.filter(d => d.move).length, LOGGED.filter(d => d.shortSleep).length, LOGGED.filter(d => d.extra).length];
+    h += `<section class="blk"><h3><span class="n">3</span>${t.b3}</h3><div class="facts">${
+      t.facts.map(([l, f], i) => `<div class="fact"><span class="fl">${l}</span><span class="fv">${f(vals[i], n)}</span></div>`).join('')
+    }</div><p class="note-small">${t.factsNote}</p></section>`;
+    h += `<section class="blk"><h3><span class="n">4</span>${t.b4}</h3><ul class="days">${
+      t.notable.map(([i, txt]) => { const ago = [11, 6, 0][i];
+        return `<li><span class="d">${fmtDate(dayAt(ago), true)}</span><span>${clkAll(txt)}</span></li>`; }).join('')
+    }</ul></section>`;
+  } else {
+    /* NEW DOCTOR: the long view. Plan history and the record by 3 months. */
+    const v1 = dayAt(119 + 160), v2 = dayAt(119);
+    const span = 119 + 160;
+    const Q = [ [dayAt(span), dayAt(190), 6, 74, 91], [dayAt(189), dayAt(120), 8, 61, 70],
+                [dayAt(119), dayAt(60), 9, 52, 60], [dayAt(59), dayAt(0), 21, 51, 60] ];
+    const logged = Q.reduce((a, q) => a + q[3], 0), total = Q.reduce((a, q) => a + q[4], 0);
+    h += `<header class="p-head">
+      <span class="p-kicker">${t.kicker}</span>
+      <h2 class="p-title">${t.titleNew}</h2>
+      <span class="p-meta">${t.period(fmtDate(dayAt(span)), fmtDate(last), total)}</span>
+      <span class="p-meta">${t.coverage(logged, total)}</span>
+      <span class="p-meta"><b>${t.planNow}${lang === 'ja' ? '：' : ':'}</b> ${plan}</span>
+    </header>`;
+    h += `<section class="blk"><h3><span class="n">1</span>${t.b1new}</h3>
+      <table class="tbl"><thead><tr><th>${t.plHead[0]}</th><th>${t.plHead[1]}</th></tr></thead><tbody>${
+        t.plRows(fmtDate(v1), fmtDate(v2)).map(r => `<tr><td style="white-space:nowrap">${r[0]}</td><td>${clkAll(r[1])}</td></tr>`).join('')
+      }</tbody></table></section>`;
+    h += `<section class="blk"><h3><span class="n">2</span>${t.b2new}</h3>
+      <table class="tbl"><thead><tr><th>${t.qHead[0]}</th><th class="r">${t.qHead[1]}</th><th class="r">${t.qHead[2]}</th></tr></thead><tbody>${
+        Q.map(q => `<tr><td>${fmtDate(q[0])}–${fmtDate(q[1])}</td><td class="r">${t.qVal(q[2])}</td><td class="r">${t.qDays(q[3], q[4])}</td></tr>`).join('')
+      }</tbody></table><p class="note-small">${t.qNote}</p></section>`;
+    const holds = [1184, 412, 486, 152, 233];
+    h += `<section class="blk"><h3><span class="n">3</span>${t.b3new}</h3><div class="facts">${
+      t.holds.map(([l, f], i) => `<div class="fact"><span class="fl">${l}</span><span class="fv">${f(holds[i])}</span></div>`).join('')
+    }</div><p class="note-small">${t.holdsNote(logged, total)}</p></section>`;
+    h += `<section class="blk"><h3><span class="n">4</span>${t.b4}</h3><ul class="days">${
+      t.notableNew.map(([i, txt]) => { const d = [dayAt(119), dayAt(74), dayAt(6)][i];
+        return `<li><span class="d">${fmtDate(d)}</span><span>${clkAll(txt)}</span></li>`; }).join('')
+    }</ul></section>`;
+  }
+  /* MY QUESTIONS: the person's own, editable here, printed as a list. The app does
+     not suggest any (H-04 is held for clinical and legal review). */
+  h += `<section class="blk"><h3><span class="n">5</span>${t.b5}</h3>
+    <ol class="qs" id="qs">${QS[lang].map((q, i) =>
+      `<li><textarea rows="2" aria-label="${t.b5} ${i + 1}" oninput="QS[lang][${i}]=this.value">${q}</textarea></li>`).join('')}</ol>
+    <button class="addq" onclick="addQ()"><i class="ph ph-plus"></i>${t.addq}</button>
+    <p class="note-small">${t.qnote}</p></section>`;
+  h += `<footer class="p-foot"><span>${t.foot1}</span><span>${t.foot2(fmtDate(TODAY))}</span></footer>`;
+  p.innerHTML = h;
+}
+const obs = (cnt, txt) => `<div class="obs"><span class="cnt">${cnt}</span><p>${txt}</p></div>`;
+const el = id => document.getElementById(id);
+
+/* the questions are kept per language, so switching never loses what was typed */
+const QS = { en: [...T.en.qs], ja: [...T.ja.qs] };
+function addQ(){ QS[lang].push(''); render(); const all = document.querySelectorAll('#qs textarea'); all[all.length - 1].focus(); }
+
+function setScene(s){ scene = s; el('sc-reg').setAttribute('aria-pressed', s === 'reg'); el('sc-new').setAttribute('aria-pressed', s === 'new'); render(); }
+function setLang(l){ lang = l; el('lg-en').setAttribute('aria-pressed', l === 'en'); el('lg-ja').setAttribute('aria-pressed', l === 'ja'); render(); }
+function toggleAmounts(){ amounts = !amounts; el('amtSw').setAttribute('aria-checked', amounts); render(); }
+/* Saving = the browser's print to PDF in the prototype. The real app makes the file
+   on the phone (local export, MVP scope guard): nothing leaves the device. */
+function savePdf(){ window.print(); }
+
+render();
+</script>
+</body>
+</html>

@@ -143,6 +143,15 @@ button{border:0;background:none;cursor:pointer;padding:0}
 .pagehead{margin:0 0 var(--space-4)}
 .pagehead h1{font-size:var(--text-title);font-weight:600;line-height:var(--leading-tight);margin:0}
 .pagehead p{margin:var(--space-1) 0 0;color:var(--text-muted);font-size:var(--text-body)}
+/* the way to the visit report: a flat row, the same weight as the content around it */
+.reportbtn{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-routine);
+  padding:0 var(--space-4);margin-bottom:var(--space-4);border-radius:var(--radius-md);
+  border:1px solid var(--border-control);background:var(--surface-card);color:var(--text-primary);
+  text-decoration:none;font-weight:600}
+.reportbtn span{flex:1}
+.reportbtn i{font-size:20px;color:var(--mark)}
+.reportbtn i.ph-caret-right{color:var(--text-muted)}
+.reportbtn:active{background:var(--surface-raised)}
 
 /* ── scale tabs (segmented) ── */
 .scales{display:flex;gap:var(--space-1);background:var(--surface-sunken);
@@ -332,6 +341,10 @@ svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-we
       <h1>Gaps between doses</h1>
       <p>Measured against your plan, from the doses you confirmed.</p>
     </div>
+    <!-- the report lives in Look Back: a report is made from an interval, and Look
+         Back owns the interval [information-architecture.html] -->
+    <a class="reportbtn" href="doctor-report.html"><i class="ph ph-file-text" aria-hidden="true"></i>
+      <span>Report for your visit</span><i class="ph ph-caret-right" aria-hidden="true"></i></a>
 
     <div class="scales" role="tablist" aria-label="Time scale">
       <button role="tab" id="sc-q" aria-selected="true" onclick="setScale('q')">3 months</button>
