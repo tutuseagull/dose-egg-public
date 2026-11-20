@@ -177,3 +177,10 @@
 @media (prefers-reduced-transparency: reduce) {
   :root { --glass-fill: var(--paper-0); --glass-fill-strong: var(--paper-0); --glass-blur: none; }
 }
+
+/* IN-APP TEXT SIZE (Settings, 2026-11-20). One root font-size; every size is rem.
+   Saved by prototypes/settings.html, applied before paint by prefs.js. */
+html[data-text-scale="large"]  { font-size: 112.5%; }
+html[data-text-scale="larger"] { font-size: 125%; }
+html[data-text-scale="huge"]   { font-size: 150%; }
+html[data-text-scale="max"]    { font-size: 200%; }   /* WCAG 1.4.4 check only, not offered in Settings */

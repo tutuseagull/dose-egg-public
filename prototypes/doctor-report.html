@@ -32,6 +32,7 @@
 <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
 <link rel="stylesheet" href="../tokens.css">
+<script src="../prefs.js"></script>
 <link rel="stylesheet" href="../motion.css">
 <meta name="theme-color" id="themeColor" content="">
 <script>
@@ -565,8 +566,9 @@ const AMT = { en:{ L:'½ tablet (100mg)', E:'1 tablet (200mg)' }, ja:{ L:'½錠�
               zh:{ L:'½ 片（100mg）', E:'1 片（200mg）' } };
 /* drug words in each language's template, so amounts slot in after them */
 const DRUG = { en:['Levodopa','Entacapone'], ja:['レボドパ','エンタカポン'], zh:['左旋多巴','恩他卡朋'] };
-/* the report's languages: shown in their own names, in a fixed order */
-const LANGS = [['en','English'], ['zh','简体中文'], ['ja','日本語']];
+/* the report's languages: shown in their own names, in a fixed order.
+   Japanese before Chinese: the pitch is Japan and the US first (Tutu, 2026-11-20). */
+const LANGS = [['en','English'], ['ja','日本語'], ['zh','简体中文']];
 const LNAME = Object.fromEntries(LANGS);
 const LOCALE = { en:'en-US', ja:'ja-JP', zh:'zh-CN' };
 /* only English follows the phone's 12/24h; Japanese and Chinese use 24-hour, as is usual */
@@ -612,7 +614,9 @@ const LOGGED = DAYS.filter(d => !d.none);
 /* ═════════ state ═════════ */
 /* lang = the language being drawn right now; langs = what the report is in.
    The app around the report stays in the app's language (English in MVP). */
-let lang = 'en', langs = ['en'], scene = 'reg', amounts = false;
+/* the report opens in the default report language from Settings (prefs.js) */
+const START = window.DoseEggPrefs ? window.DoseEggPrefs.reportLang() : 'en';
+let lang = START, langs = [START], scene = 'reg', amounts = false;
 
 /* dates and times in the page's language. English times follow the phone's 12/24h
    setting (timefmt.js sets data-clock); Japanese always uses 24-hour, as is usual. */
