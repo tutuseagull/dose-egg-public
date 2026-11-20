@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- showcase: review controls hidden; add ?demo to the address to show them -->
+<script>if (!/[?&]demo\b/.test(location.search)) document.documentElement.classList.add('showcase');</script>
+<style>html.showcase .demo-bar{display:none!important}</style>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DoseEgg · Settings</title>
+<!-- SETTINGS, first build (decided 2026-11-20, decision log). Only what the
+     home-screen web app for one tester needs:
+       Display    text size, applied to this page as you tap, so the page is the preview
+       Language   app language (follows the phone by default) and the default report
+                  language (follows the app). English, 日本語, 简体中文, in that order:
+                  Japan and the US are pitched first.
+       Your data  save a backup, restore from one, last backed up, delete all data
+       About      version, privacy policy
+     Not here on purpose: sign-in, send feedback, app lock, the AI ledger, Apple Health
+     (all later, see feature-backlog.html, Settings).
+     Rules held: no toasts (the result shows in place) [feedback and undo]; answer-first
+     buttons, two per decision; no second lines unless the person would get it wrong
+     otherwise [AGENTS.md]; 14px floor; 48px targets. -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../motion.css">
+<script src="../prefs.js"></script>
+<meta name="theme-color" id="themeColor" content="">
+<style>
+:root{ --gutter:16px; --shell-w:420px; }
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:100%}
+body{margin:0;background:var(--backdrop);font-family:var(--font-sans);
+     font-size:var(--text-body);line-height:var(--leading-body);color:var(--text-primary);
+     -webkit-font-smoothing:antialiased;display:flex;justify-content:center}
+@media (max-width: 480px){ html{background:var(--surface-page)} body{background:var(--surface-page)} }
+html .scrim:not(.open){visibility:hidden;transition:opacity var(--motion-base) var(--ease-out), visibility 0s linear var(--motion-base)}
+html .scrim.open{visibility:visible;transition:opacity var(--motion-base) var(--ease-out), visibility 0s}
+html .sheet:not(.open){visibility:hidden;transition:transform var(--motion-slow) var(--ease-settle), visibility 0s linear var(--motion-slow)}
+html .sheet.open{visibility:visible;transition:transform var(--motion-slow) var(--ease-settle), visibility 0s}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+button{border:0;background:none;cursor:pointer;padding:0}
+:focus-visible{outline:var(--focus-ring-width) solid var(--focus-ring);
+               outline-offset:var(--focus-ring-offset);border-radius:var(--radius-sm)}
+[hidden]{display:none!important}
+.shell{width:100%;max-width:var(--shell-w);background:var(--surface-page);min-height:100vh;
+       position:relative;display:flex;flex-direction:column}
+
+/* ── demo bar (dev only) ── */
+.demo-bar{display:flex;gap:var(--space-2);padding:var(--space-2) var(--space-3);
+          background:var(--paper-800);align-items:center;flex-wrap:wrap}
+.demo-bar .db{font-size:var(--text-label);letter-spacing:.04em;text-transform:uppercase;
+              color:var(--paper-400);font-weight:500;padding-right:var(--space-1)}
+.demo-btn{font-size:var(--text-label);font-weight:500;color:var(--paper-100);
+          background:color-mix(in srgb, var(--paper-0) 12%, transparent);
+          padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);
+          display:flex;align-items:center;min-height:var(--space-8);text-decoration:none}
+.demo-btn.home{font-weight:600}
+
+/* ── top bar: Back and a title, as on the Medicine Cabinet ── */
+.top{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-4) var(--space-4) var(--space-2)}
+.glassbtn{width:var(--target-min);height:var(--target-min);display:flex;align-items:center;
+  justify-content:center;border-radius:var(--radius-full);flex:0 0 auto;color:var(--text-primary);
+  background:var(--glass-fill);box-shadow:var(--glass-rim), var(--glass-shadow);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);text-decoration:none}
+.glassbtn i{font-size:22px}
+.top h1{margin:0;font-size:var(--text-heading);font-weight:600}
+
+.scroll{flex:1;padding:var(--space-2) var(--gutter) var(--space-12);
+        display:flex;flex-direction:column;gap:var(--space-8)}
+
+/* ── groups: a label above, rows in one flat card with hairlines between ── */
+.group h2{margin:0 0 var(--space-2);font-size:var(--text-label);font-weight:600;
+          color:var(--text-muted);letter-spacing:.02em}
+.list{background:var(--surface-card);border:1px solid var(--border-control);border-radius:var(--radius-md);
+      overflow:hidden}
+.row{position:relative;display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-critical);
+     padding:var(--space-2) var(--space-4);width:100%;text-align:left;text-decoration:none;color:inherit}
+.row + .row, .row + .status, .status + .row{border-top:1px solid var(--border-subtle)}
+.row > i{font-size:20px;color:var(--mark);flex:0 0 auto}
+.row .lab{flex:1;min-width:0}
+.row .val{color:var(--text-secondary);text-align:right}
+.row .chev{font-size:18px;color:var(--text-muted)}
+.row:active{background:var(--surface-raised)}
+.row[disabled]{color:var(--text-muted);cursor:default}
+.row[disabled] > i{color:var(--text-muted)}
+/* a select laid over the whole row: the row looks like a list row, the phone opens its own picker */
+.row select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;-webkit-appearance:none;appearance:none}
+/* a line of state inside the list: where the result of an action shows */
+.status{padding:var(--space-3) var(--space-4);color:var(--text-secondary);white-space:pre-line}
+.status b{color:var(--text-primary);font-weight:600}
+.status.fresh{background:var(--surface-accent);transition:background 1.8s var(--ease-out)}
+.note{margin:var(--space-2) 0 0;font-size:var(--text-label);color:var(--text-muted)}
+
+/* text size: two buttons and the size between them; the page itself is the preview */
+.sizer{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2) var(--target-gap);padding:var(--space-3) var(--space-4)}
+/* at large sizes the stepper drops below its label instead of squeezing it */
+.sizer .lab{flex:1 1 8rem}
+.stepper{display:flex;align-items:center;gap:var(--space-2)}
+.stepbtn{width:var(--target-min);height:var(--target-min);border-radius:var(--radius-full);
+  border:1px solid var(--border-control);background:var(--surface-card);font-weight:700;
+  display:flex;align-items:center;justify-content:center;line-height:1}
+.stepbtn.sm{font-size:var(--text-label)}
+.stepbtn.lg{font-size:var(--text-heading)}
+.stepbtn:active{background:var(--surface-raised)}
+.stepbtn[disabled]{color:var(--paper-300);cursor:default}
+.stepval{min-width:5.5rem;text-align:center;font-weight:600}
+
+/* ── the confirm sheet ── */
+.scrim{position:fixed;inset:0;background:color-mix(in srgb, var(--paper-900) 34%, transparent);
+  opacity:0;pointer-events:none;transition:opacity var(--motion-base) var(--ease-out);z-index:50}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;bottom:0;width:100%;max-width:var(--shell-w);z-index:60;
+  transform:translate(-50%,102%);transition:transform var(--motion-slow) var(--ease-out);
+  background:var(--surface-card);border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow:var(--shadow-overlay);padding:var(--space-2) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom))}
+.sheet.open{transform:translate(-50%,0)}
+.pull{width:40px;height:var(--space-1);border-radius:var(--radius-full);background:var(--paper-300);margin:0 auto var(--space-4)}
+.sh-body{display:flex;flex-direction:column;gap:var(--space-4)}
+.sh-body h2{margin:0;font-size:var(--text-title);font-weight:600;line-height:var(--leading-tight)}
+.sh-body p{margin:0;color:var(--text-secondary)}
+.acts{display:flex;flex-direction:column;gap:var(--target-gap);margin-top:var(--space-2)}
+.btn{min-height:var(--target-routine);border-radius:var(--radius-md);padding:0 var(--space-4);
+  font-weight:600;display:flex;align-items:center;justify-content:center;gap:var(--space-2)}
+.btn.primary{background:var(--accent);color:var(--on-accent)}
+.btn.quiet{background:var(--surface-card);box-shadow:var(--content-edge)}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="demo-bar">
+    <a class="demo-btn home" href="../index.html">← Home</a>
+    <span class="db">Settings · sample</span>
+    <button class="demo-btn" onclick="cycleBackup()" id="demoBackup">backup: 3 days</button>
+    <button class="demo-btn" onclick="resetAll()">reset</button>
+  </div>
+
+  <div class="top">
+    <a class="glassbtn" href="index.html" onclick="if (document.referrer && history.length > 1){ history.back(); return false; }" id="backBtn"><i class="ph ph-arrow-left" aria-hidden="true"></i></a>
+    <h1 data-t="title"></h1>
+  </div>
+
+  <main class="scroll">
+
+    <!-- DISPLAY -->
+    <section class="group">
+      <h2 data-t="display"></h2>
+      <div class="list">
+        <div class="sizer">
+          <span class="lab" data-t="textSize" id="sizeLab"></span>
+          <div class="stepper" role="group" aria-labelledby="sizeLab">
+            <button class="stepbtn sm" id="smaller" onclick="stepSize(-1)">A</button>
+            <span class="stepval" id="sizeVal" aria-live="polite"></span>
+            <button class="stepbtn lg" id="larger" onclick="stepSize(1)">A</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LANGUAGE -->
+    <section class="group">
+      <h2 data-t="language"></h2>
+      <div class="list">
+        <label class="row"><span class="lab" data-t="appLang"></span><span class="val" id="appLangVal"></span>
+          <i class="ph ph-caret-up-down chev" aria-hidden="true"></i>
+          <select id="appLang" onchange="setPref('doseegg-app-lang', this.value)"></select></label>
+        <label class="row"><span class="lab" data-t="reportLang"></span><span class="val" id="reportLangVal"></span>
+          <i class="ph ph-caret-up-down chev" aria-hidden="true"></i>
+          <select id="reportLang" onchange="setPref('doseegg-report-lang', this.value)"></select></label>
+      </div>
+    </section>
+
+    <!-- YOUR DATA: the backup file is the only copy while the app lives on the phone -->
+    <section class="group">
+      <h2 data-t="data"></h2>
+      <div class="list">
+        <div class="status" id="backupStatus"></div>
+        <button class="row" onclick="saveBackup()"><i class="ph ph-download-simple" aria-hidden="true"></i><span class="lab" data-t="save"></span></button>
+        <label class="row"><i class="ph ph-upload-simple" aria-hidden="true"></i><span class="lab" data-t="restore"></span>
+          <input type="file" accept="application/json,.json" hidden id="restoreFile" onchange="restoreBackup(this)"></label>
+        <button class="row" onclick="openDelete()" id="deleteRow"><i class="ph ph-trash" aria-hidden="true"></i><span class="lab" data-t="delete"></span></button>
+      </div>
+      <p class="note" data-t="onlyHere"></p>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="group">
+      <h2 data-t="about"></h2>
+      <div class="list">
+        <div class="row"><span class="lab" data-t="version"></span><span class="val">0.1 · prototype</span></div>
+        <a class="row" href="#" onclick="return false"><span class="lab" data-t="privacy"></span><i class="ph ph-caret-right chev" aria-hidden="true"></i></a>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- DELETE: two answers, the commitment first. The last backup date is in the sheet
+     because it is the one fact that changes the decision. -->
+<div class="scrim" id="scrim" onclick="closeDelete()"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="delTitle">
+  <div class="pull"></div>
+  <div class="sh-body">
+    <h2 id="delTitle" data-t="delTitle"></h2>
+    <p data-t="delBody"></p>
+    <p id="delBackup"></p>
+    <div class="acts">
+      <button class="btn primary" onclick="deleteAll()" data-t="delYes"></button>
+      <button class="btn quiet" onclick="closeDelete()" data-t="delNo"></button>
+    </div>
+  </div>
+</div>
+
+<script src="../sheet-handle.js" data-close="closeDelete"></script>
+<script>
+const P = window.DoseEggPrefs;
+const el = id => document.getElementById(id);
+
+/* ═════════ words, in each app language ═════════ */
+const T = {
+  en: {
+    title:'Settings', display:'Display', textSize:'Text size',
+    sizes:['Default','Large','Larger','Largest'], smaller:'Smaller text', larger:'Larger text',
+    language:'Language', appLang:'App language', reportLang:'Report language',
+    phone:'Same as phone', sameApp:'Same as app',
+    data:'Your data', save:'Save a backup', restore:'Restore from a backup', delete:'Delete all data',
+    onlyHere:'Your data is only on this phone.',
+    never:'No backup yet.', today:'Last backed up today.',
+    ago:n => `Last backed up ${n} days ago.`, nudge:'Worth saving a new one.',
+    restored:d => `Restored from the backup of ${d}.`, badFile:'That file isn’t a DoseEgg backup. Nothing was changed.',
+    empty:'Nothing is stored on this phone.',
+    about:'About', version:'Version', privacy:'Privacy policy', back:'Back',
+    delTitle:'Delete everything on this phone?',
+    delBody:'Entries, medications and settings. This can’t be undone. Backup files you saved are not affected.',
+    delYes:'Delete everything', delNo:'Keep my data',
+  },
+  ja: {
+    title:'設定', display:'表示', textSize:'文字サイズ',
+    sizes:['標準','大','特大','最大'], smaller:'文字を小さく', larger:'文字を大きく',
+    language:'言語', appLang:'アプリの言語', reportLang:'レポートの言語',
+    phone:'端末と同じ', sameApp:'アプリと同じ',
+    data:'データ', save:'バックアップを保存', restore:'バックアップから復元', delete:'すべてのデータを削除',
+    onlyHere:'データはこの端末にだけ保存されています。',
+    never:'まだバックアップがありません。', today:'最終バックアップ：今日',
+    ago:n => `最終バックアップ：${n}日前`, nudge:'新しいバックアップの保存をおすすめします。',
+    restored:d => `${d}のバックアップから復元しました。`, badFile:'DoseEggのバックアップファイルではありません。変更はありません。',
+    empty:'この端末にデータはありません。',
+    about:'このアプリについて', version:'バージョン', privacy:'プライバシーポリシー', back:'戻る',
+    delTitle:'この端末のデータをすべて削除しますか？',
+    delBody:'記録、薬、設定が削除され、元に戻せません。保存済みのバックアップファイルは削除されません。',
+    delYes:'すべて削除', delNo:'削除しない',
+  },
+  zh: {
+    title:'设置', display:'显示', textSize:'文字大小',
+    sizes:['默认','大','更大','最大'], smaller:'缩小文字', larger:'放大文字',
+    language:'语言', appLang:'应用语言', reportLang:'报告语言',
+    phone:'跟随手机', sameApp:'与应用相同',
+    data:'你的数据', save:'保存备份', restore:'从备份恢复', delete:'删除所有数据',
+    onlyHere:'你的数据只保存在这部手机上。',
+    never:'还没有备份。', today:'上次备份：今天',
+    ago:n => `上次备份：${n} 天前`, nudge:'建议保存一份新的备份。',
+    restored:d => `已从 ${d} 的备份恢复。`, badFile:'这不是 DoseEgg 的备份文件，没有做任何更改。',
+    empty:'这部手机上没有数据。',
+    about:'关于', version:'版本', privacy:'隐私政策', back:'返回',
+    delTitle:'删除这部手机上的所有数据？',
+    delBody:'记录、药物和设置都会被删除，无法恢复。已保存的备份文件不受影响。',
+    delYes:'全部删除', delNo:'保留数据',
+  }
+};
+/* in their own names; Japanese before Chinese (Japan and the US are pitched first) */
+const LANGS = [['en','English'], ['ja','日本語'], ['zh','简体中文']];
+const LOCALE = { en:'en-US', ja:'ja-JP', zh:'zh-CN' };
+const SCALES = ['', 'large', 'larger', 'huge'];   /* 100, 112.5, 125, 150%; 200% stays a test-only tuner value */
+
+/* ═════════ sample state for the walk-through ═════════ */
+const DAY = 864e5;
+let backupDaysAgo = 3;          /* demo bar cycles 3 → 16 → none */
+let hasData = true, statusExtra = null, flash = false;
+
+function t(){ return T[P.appLang()]; }
+function setPref(k, v){ P.set(k, v); render(); }
+
+function render(){
+  const L = P.appLang(), w = T[L];
+  document.documentElement.lang = L;
+  document.querySelectorAll('[data-t]').forEach(n => { n.textContent = w[n.dataset.t]; });
+  el('backBtn').setAttribute('aria-label', w.back);
+
+  /* text size */
+  const i = Math.max(0, SCALES.indexOf(P.get('doseegg-text-scale') || ''));
+  el('sizeVal').textContent = w.sizes[i];
+  el('smaller').disabled = i === 0; el('larger').disabled = i === SCALES.length - 1;
+  el('smaller').setAttribute('aria-label', w.smaller); el('larger').setAttribute('aria-label', w.larger);
+
+  /* languages: the stored choice, shown as the value; options named in their own language */
+  const appV = P.get('doseegg-app-lang') || 'phone', repV = P.get('doseegg-report-lang') || 'app';
+  el('appLang').innerHTML = [['phone', w.phone], ...LANGS].map(([k, n]) =>
+    `<option value="${k}"${k === appV ? ' selected' : ''}>${n}</option>`).join('');
+  el('reportLang').innerHTML = [['app', w.sameApp], ...LANGS].map(([k, n]) =>
+    `<option value="${k}"${k === repV ? ' selected' : ''}>${n}</option>`).join('');
+  const name = k => (LANGS.find(l => l[0] === k) || [])[1];
+  el('appLangVal').textContent = appV === 'phone' ? w.phone : name(appV);
+  el('reportLangVal').textContent = repV === 'app' ? w.sameApp : name(repV);
+
+  /* backup status: plain fact; after two weeks, one gentle line. No badge, no colour. */
+  let s;
+  if (!hasData) s = w.empty;
+  else if (backupDaysAgo == null) s = w.never;
+  else if (backupDaysAgo === 0) s = w.today;
+  else s = w.ago(backupDaysAgo) + (backupDaysAgo >= 14 ? '\n' + w.nudge : '');
+  el('backupStatus').textContent = statusExtra || s;
+  el('backupStatus').classList.toggle('fresh', flash);
+  if (flash) setTimeout(() => { flash = false; el('backupStatus').classList.remove('fresh'); }, 50);
+  el('deleteRow').disabled = !hasData;
+  el('delBackup').textContent = backupDaysAgo == null ? w.never
+    : backupDaysAgo === 0 ? w.today : w.ago(backupDaysAgo);
+}
+
+function stepSize(d){
+  const i = Math.max(0, SCALES.indexOf(P.get('doseegg-text-scale') || ''));
+  const n = Math.min(SCALES.length - 1, Math.max(0, i + d));
+  if (SCALES[n]) { P.set('doseegg-text-scale', SCALES[n]); document.documentElement.dataset.textScale = SCALES[n]; }
+  else { P.remove('doseegg-text-scale'); delete document.documentElement.dataset.textScale; }
+  render();
+}
+
+/* SAVE: the phone saves one file (share sheet in the real app). The status line
+   changing to "today" is the confirmation, so no message. */
+function saveBackup(){
+  const now = new Date();
+  const file = { schema_version:2, owner_id:'sample-owner', exported_at:now.toISOString(),
+                 app_version:'0.1', entries:[], medications:[], schedule_versions:[], tags:[] };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(file, null, 2)], { type:'application/json' }));
+  a.download = `DoseEgg backup ${now.toISOString().slice(0, 10)}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+  backupDaysAgo = 0; hasData = true; statusExtra = null; flash = true; render();
+}
+
+/* RESTORE: merges by id, newest wins, so nothing already here is lost
+   (docs/entry-schema.md, Backup file). The result shows in the status line. */
+function restoreBackup(input){
+  const f = input.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    let ok = false, when = null;
+    try { const j = JSON.parse(r.result); ok = j && j.schema_version != null; when = j.exported_at; } catch (e) {}
+    const w = t();
+    statusExtra = ok ? w.restored(new Intl.DateTimeFormat(LOCALE[P.appLang()], { month:'short', day:'numeric' })
+                                  .format(when ? new Date(when) : new Date())) : w.badFile;
+    if (ok) hasData = true;
+    flash = true; render(); input.value = '';
+  };
+  r.readAsText(f);
+}
+
+function openDelete(){ if (!hasData) return; render(); el('scrim').classList.add('open'); el('sheet').classList.add('open');
+  el('sheet').querySelector('.btn.quiet').focus(); }
+function closeDelete(){ el('scrim').classList.remove('open'); el('sheet').classList.remove('open'); }
+/* DELETE: the result is the status line reading "Nothing is stored on this phone". */
+function deleteAll(){ hasData = false; statusExtra = null; flash = true; closeDelete(); render(); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDelete(); });
+
+/* demo bar */
+function cycleBackup(){
+  backupDaysAgo = backupDaysAgo === 3 ? 16 : backupDaysAgo === 16 ? null : 3;
+  hasData = true; statusExtra = null;
+  el('demoBackup').textContent = 'backup: ' + (backupDaysAgo == null ? 'none' : backupDaysAgo + ' days');
+  render();
+}
+function resetAll(){
+  ['doseegg-text-scale', 'doseegg-app-lang', 'doseegg-report-lang'].forEach(P.remove);
+  delete document.documentElement.dataset.textScale;
+  backupDaysAgo = 3; hasData = true; statusExtra = null;
+  el('demoBackup').textContent = 'backup: 3 days'; render();
+}
+
+render();
+</script>
+</body>
+</html>

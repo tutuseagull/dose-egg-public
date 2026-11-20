@@ -36,6 +36,7 @@
 <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
 <link rel="stylesheet" href="../tokens.css">
+<script src="../prefs.js"></script>
 <link rel="stylesheet" href="../motion.css">
 <meta name="theme-color" id="themeColor" content="">
 <script>
@@ -162,6 +163,18 @@ html .sheet.open{visibility:visible}
 /* the switch is 32px tall; its row is the 48px target */
 .switchrow label{cursor:pointer}
 .hint{margin:0;font-size:var(--text-label);color:var(--text-muted);line-height:var(--leading-body)}
+/* language picker: native selects, so a long list opens the phone's own picker */
+.langrow{display:flex;align-items:center;gap:var(--space-2)}
+.langrow[hidden]{display:none}
+.selwrap{position:relative;flex:1;display:flex}
+.selwrap select{flex:1;-webkit-appearance:none;appearance:none;min-height:var(--target-routine);
+  padding:0 calc(var(--space-4) + 22px) 0 var(--space-4);border:1px solid var(--border-control);
+  border-radius:var(--radius-md);background:var(--surface-card);color:var(--text-primary);
+  font:inherit;font-size:var(--text-body)}
+.selwrap i{position:absolute;right:var(--space-4);top:50%;transform:translateY(-50%);
+  font-size:18px;color:var(--text-muted);pointer-events:none}
+.textbtn.left{margin-right:0;margin-left:calc(var(--space-3) * -1);align-self:flex-start}
+.textbtn[hidden]{display:none}
 
 /* ═══════════════════ the page itself ═══════════════════
    A document a doctor reads, so it looks like paper: white, flat, a hairline, no
@@ -191,6 +204,7 @@ html .sheet.open{visibility:visible}
            font-size:var(--text-label);font-weight:600;
            color:var(--text-muted);letter-spacing:.04em;text-transform:uppercase}
 .paper[lang="ja"]{font-family:var(--font-sans), 'Noto Sans JP', sans-serif}
+.paper[lang="zh"]{font-family:var(--font-sans), 'Noto Sans SC', 'PingFang SC', sans-serif}
 .p-head{display:flex;flex-direction:column;gap:var(--space-2)}
 .p-kicker{font-size:var(--text-label);font-weight:600;color:var(--text-muted);letter-spacing:.02em}
 .p-title{font-size:var(--text-heading);font-weight:700;line-height:var(--leading-tight);margin:0}
@@ -261,6 +275,32 @@ html .sheet.open{visibility:visible}
 .p-foot{padding:var(--space-2) var(--space-1) 0;
         font-size:var(--text-label);color:var(--text-muted);display:flex;flex-direction:column;gap:var(--space-1)}
 
+/* ── the new-doctor long view ── */
+.ctxcard{background:var(--surface-accent);border-radius:var(--radius-md);padding:var(--space-4);
+         display:flex;flex-direction:column;gap:var(--space-4)}
+.ctxcard[hidden]{display:none}
+.ctx-q{margin:0;font-size:var(--text-heading);font-weight:600;line-height:var(--leading-tight)}
+.ctx-acts{display:flex;gap:var(--target-gap)}
+.c-btn{flex:1 1 6rem;min-height:var(--target-routine);border-radius:var(--radius-md);font-weight:600;
+       border:1px solid var(--border-subtle);background:var(--surface-card)}
+.c-btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.field{width:100%;min-height:var(--target-min);border:1px solid var(--border-control);border-radius:var(--radius-sm);
+       padding:var(--space-2) var(--space-3);background:var(--surface-card);line-height:var(--leading-body);resize:none}
+.field:focus{outline:none;border-color:var(--border-interactive)}
+.lead-intro{margin:0}
+.fact .fl small{display:block;font-size:var(--text-label);color:var(--text-muted)}
+.lanes{width:100%;height:auto;display:block}
+.tbl.pace{table-layout:fixed}
+.tbl.pace th:first-child{width:34%}
+.tbl.pace th.r{white-space:normal;line-height:var(--leading-tight)}
+.tbl.pace td.r{white-space:normal}
+.tbl.pace th small{display:block;font-weight:400}
+.tbl.pace td.few{color:var(--text-muted);white-space:normal}
+.days .dt{flex:1;min-width:0}
+.days .hide-day{flex:0 0 auto;margin:calc(var(--space-3) * -1) calc(var(--space-3) * -1) 0 0;color:var(--text-muted)}
+.about{margin:0}
+.ask .addq.ask-this, .mblk .ask-this{margin-top:var(--space-1)}
+
 /* ── the one action: save it as a file to hand over ── */
 .act{display:flex;flex-direction:column;gap:var(--space-2);align-items:stretch}
 .btn{min-height:var(--target-routine);border-radius:var(--radius-full);font-weight:600;
@@ -275,7 +315,11 @@ html .sheet.open{visibility:visible}
 @media print{
   @page{margin:12mm}
   html,body{background:#fff}
-  .demo-bar,.top,.setline,.lede,.act,.addq,.edge-top,.scrim,.sheet,.papers-lang{display:none!important}
+  .demo-bar,.top,.setline,.lede,.act,.addq,.edge-top,.scrim,.sheet,.papers-lang,.ctxcard,.hide-day{display:none!important}
+  .ask.empty{display:none!important}
+  /* the long view is two pages: the memo, then the details */
+  .paper.long .details-h{display:block;break-before:page;border-top:0;padding-top:0;margin-top:0}
+  .paper.long .lanes{max-width:100mm}   /* the SVG scales its 14-unit text with it: about 100mm keeps it near body size */
   .paper + .papers-lang + .paper, .paper.next{break-before:page}
   .shell{max-width:none;background:#fff}
   .scroll{padding:0}
@@ -320,7 +364,7 @@ html .sheet.open{visibility:visible}
   </div>
 
   <div class="top">
-    <a class="icon-btn" href="look-back.html" aria-label="Back to Look Back"><i class="ph ph-arrow-left"></i></a>
+    <a class="icon-btn" href="look-back.html" onclick="if (document.referrer && history.length > 1){ history.back(); return false; }" aria-label="Back"><i class="ph ph-arrow-left"></i></a>
     <h1 id="t-screen">Report for your visit</h1>
   </div>
 
@@ -332,6 +376,17 @@ html .sheet.open{visibility:visible}
     <div class="setline">
       <span id="setsum"></span>
       <button class="textbtn" onclick="openAdjust()"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i>Adjust</button>
+    </div>
+    <!-- CONTEXT FOR A NEW DOCTOR (Tutu, 2026-11-20). A new doctor's first questions
+         (year diagnosed, other conditions) are not in the record, so the report
+         offers once, in the same shape as the dose card: answer first, Add or Skip.
+         What is typed stays on the phone and is printed as written, never translated. -->
+    <div class="ctxcard" id="ctxcard" hidden>
+      <p class="ctx-q">Add some context for a new doctor?</p>
+      <div class="ctx-acts">
+        <button class="c-btn primary" onclick="openCtx()">Add</button>
+        <button class="c-btn" onclick="skipCtx()">Skip</button>
+      </div>
     </div>
     <div id="papers" data-clock-skip></div>
 
@@ -359,13 +414,17 @@ html .sheet.open{visibility:visible}
       <p class="hint" id="scHint"></p>
     </div>
     <div class="fieldset">
-      <span class="lab">Language of the report</span>
-      <div class="seg" role="group" aria-label="Language of the report">
-        <button id="lg-en" aria-pressed="true" onclick="setLangs('en')">English</button>
-        <button id="lg-ja" aria-pressed="false" onclick="setLangs('ja')" lang="ja">日本語</button>
-        <button id="lg-both" aria-pressed="false" onclick="setLangs('both')">Both</button>
+      <!-- LANGUAGE (2026-11-20): one language, plus an optional second. Works for any
+           number of languages; the structure itself holds the limit of two, so no
+           option ever goes grey. The first language is the PDF's first page. -->
+      <label class="lab" for="lg1">Language of the report</label>
+      <div class="langrow"><span class="selwrap"><select id="lg1" onchange="setLang(0, this.value)"></select><i class="ph ph-caret-down" aria-hidden="true"></i></span></div>
+      <div class="langrow" id="lg2row" hidden>
+        <span class="selwrap"><select id="lg2" aria-label="Second language" onchange="setLang(1, this.value)"></select><i class="ph ph-caret-down" aria-hidden="true"></i></span>
+        <button class="icon-btn plain" onclick="removeSecond()" aria-label="Remove second language"><i class="ph ph-x"></i></button>
       </div>
-      <p class="hint">Both makes one PDF with each language on its own page, for a doctor who reads a different language from you.</p>
+      <button class="textbtn left" id="addLang" onclick="addSecond()"><i class="ph ph-plus" aria-hidden="true"></i>Add a second language</button>
+      <p class="hint" id="lgHint" hidden>Each language gets its own page in the PDF.</p>
     </div>
     <div class="fieldset">
       <div class="switchrow">
@@ -374,13 +433,44 @@ html .sheet.open{visibility:visible}
       </div>
       <p class="hint" id="amtHint"></p>
     </div>
+    <!-- NEW DOCTOR ONLY. What can be left out: whole sections, and single days from
+         the list itself. The logged-days line and the footer always print, and the
+         footer says when something was left out. The summary cannot be edited:
+         to change what it says, change the record. -->
+    <div class="fieldset" id="ndRows" hidden>
+      <span class="lab">Show in the report</span>
+      <div class="switchrow"><span style="flex:1">Plan over time</span>
+        <button class="switch" id="sw-lanes" role="switch" aria-checked="true" aria-label="Plan over time" onclick="toggleShow('lanes')"></button></div>
+      <div class="switchrow"><span style="flex:1">By plan</span>
+        <button class="switch" id="sw-pace" role="switch" aria-checked="true" aria-label="By plan" onclick="toggleShow('pace')"></button></div>
+      <div class="switchrow"><span style="flex:1">Days that stood out</span>
+        <button class="switch" id="sw-days" role="switch" aria-checked="true" aria-label="Days that stood out" onclick="toggleShow('days')"></button></div>
+      <button class="textbtn left" onclick="closeAdjust(); openCtx()"><i class="ph ph-note-pencil" aria-hidden="true"></i>Context for a new doctor</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="ctxSheet" role="dialog" aria-modal="true" aria-labelledby="ctx-title">
+  <div class="pull"></div>
+  <div class="sh-body">
+    <div class="sh-head">
+      <h2 id="ctx-title">Context for a new doctor</h2>
+      <button class="icon-btn plain" onclick="closeAdjust()" aria-label="Close"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="fieldset"><label class="lab" for="cx-year">Year diagnosed</label>
+      <input class="field" id="cx-year" inputmode="numeric" maxlength="4" oninput="ctx.year=this.value.replace(/\D/g,'');render()"></div>
+    <div class="fieldset"><label class="lab" for="cx-cond">Other conditions</label>
+      <textarea class="field" id="cx-cond" rows="2" oninput="ctx.cond=this.value;render()"></textarea></div>
+    <div class="fieldset"><label class="lab" for="cx-note">Anything else the doctor should know</label>
+      <textarea class="field" id="cx-note" rows="3" oninput="ctx.note=this.value;render()"></textarea></div>
   </div>
 </div>
 <script src="../sheet-handle.js" data-close="closeAdjust"></script>
 
 <script src="../timefmt.js"></script>
+<script src="../report-record.js"></script>
 <script>
-/* ═════════ words: every string the page says, in both languages ═════════
+/* ═════════ words: every string the page says, in each language ═════════
    Templates only. A number goes into a slot; nothing else varies. */
 const T = {
   en: {
@@ -482,21 +572,145 @@ const T = {
       [1,'予定より早い服薬が12日続いた期間（「引っ越し」と命名）'],
       [2,'2週間で2回、足がすくんだ'],
     ],
+  },
+  zh: {
+    screen:'就诊报告',
+    lede:'根据你的记录生成的一页报告，可以给医生看或交给医生。内容是你自己的记录和问题，不是建议。',
+    reg:'常看的医生', neu:'第一次看的医生',
+    amt:'包含剂量', amtOff:'未包含剂量，只显示时间。',
+    amtOn:'已包含你记录的剂量。',
+    save:'保存或分享 PDF', saveHint:'PDF 在你的手机上生成。发送到哪里由你决定：文件、邮件、信息或打印。',
+    kicker:'就诊备忘 · DoseEgg', noticed:'我注意到的', details:'详细内容', glanceAll:'记录中的其他内容',
+    obsLong:(m,a,b)=>`最近 3 个月，服药时间与计划通常相差 <b>${m} 分钟</b>；之前每 3 个月为 ${a} 到 ${b} 分钟。`,
+    titleReg:'最近两周', titleNew:'到目前为止的记录',
+    period:(a,b,n)=>`<b>${a} 至 ${b}</b> · ${span(n)}`,
+    coverage:(k,n)=>`有记录的天数：<b>${n} 天中的 ${k} 天</b>。没有记录的日子是“未知”，不算作零。`,
+    planNow:'当前服药计划',
+    planLine:(times)=>`左旋多巴 每天 ${times.length} 次：${times.join('、')}。恩他卡朋 每天 3 次：{E}。the small white one：21:30。`,
+    b1:'概览', b2:'服药时间和感受', b3:'同时记录的内容', b4:'值得注意的日子', b5:'想讨论的问题',
+    b1new:'服药计划变化', b2new:'每 3 个月', b3new:'记录内容',
+    obsDrift:(k,n,m)=>`14:30 的那次药，在有记录的 <b>${n} 天中有 ${k} 天</b>比计划提前服用，通常提前约 ${m} 分钟。`,
+    obsOff:(k,n,a,b)=>`“药效快过了”在有记录的 <b>${n} 天中有 ${k} 天</b>出现，多在 ${a} 到 ${b} 之间。`,
+    obsProt:(k,n,j,m)=>`有 ${n} 天早餐记为高蛋白，其中 <b>${k} 天</b>记录 07:30 的药起效较晚。其余 ${m} 天中有 ${j} 天。`,
+    legDose:'服药', legPlan:'计划时间', legOff:'“药效快过了”', legOn:'“开始起效”', legNone:'无记录',
+    facts:[
+      ['早餐记为高蛋白', (v,n)=>`${n} 天中 ${v} 天`],
+      ['运动（散步、网球）', v=>`${v} 次`],
+      ['睡眠不足 6 小时（按记录）', (v,n)=>`${n} 晚中 ${v} 晚`],
+      ['计划外服药', v=>`${v} 次`],
+    ],
+    factsNote:'只显示次数，按固定顺序排列。与服药时间并列显示，但不代表原因。',
+    noneDays:'无。',
+    qs:['可以聊聊下午那次药吗？经常还没到下一次就没药效了。',
+        '如果某天需要早上的药快点起效，早餐少吃些蛋白质值得一试吗？'],
+    addq:'添加问题',
+    foot1:'根据患者在 DoseEgg 中的记录整理，不是医学评估。',
+    foot2:(d)=>`生成于 ${d}。只计入患者确认的服药；计划中的服药不会算作已服。`,
+    plHead:['开始日期','计划'], plRows:(a,b)=>[[a,'左旋多巴 每天 4 次：08:00、12:00、16:00、20:00'],[b,'左旋多巴 每天 5 次：07:30、11:00、14:30、18:00、21:30；恩他卡朋：09:30、11:00、14:30；the small white one：21:30']],
+    qHead:['3 个月','与计划的偏差（通常）','有记录的天数'],
+    qVal:m=>`${m} 分钟`, qDays:(k,n)=>`${n} 天中 ${k} 天`,
+    qNote:'与当时的计划比较，只计入患者确认的服药。',
+    holds:[['已确认的服药',v=>`${v} 次`],['感受记录',v=>`${v} 条`],['饮食',v=>`${v} 条`],['运动',v=>`${v} 次`],['睡眠',v=>`${v} 晚`]],
+    holdsNote:(k,n)=>`${n} 天中，有记录的日子为 ${k} 天。`,
+    notable:[
+      [0,'15:10 在门口突然迈不开步'],
+      [1,'18:40 站起来后头晕'],
+      [2,'17:20 孩子上课前吃了 1/4 片'],
+    ],
+    notableNew:[
+      [0,'服药计划改为每天 5 次'],
+      [1,'连续 12 天服药比计划早（命名为“搬家”）'],
+      [2,'两周内两次迈不开步'],
+    ],
   }
 };
 /* amounts, only when switched on; same words in both languages as the Cabinet's chips */
 /* A span in the unit people think in, with the exact days kept beside it once it
    is long enough to need a bigger unit: "about 9 months (281 days)". Up to 4
    weeks it is just days. */
+/* THE LONG VIEW's words (new doctor, 2026-11-20). Every number comes from
+   report-record.js; these only put it into a sentence. ja and zh are a first pass,
+   for a native check. */
+const TN = {
+  en: {
+    planName:(L,k,E)=>`${L} ${k} times a day${E ? `, with ${E}` : ''}`,
+    times:k=>`${k}×/day`,
+    leadIntro:{ off:'“Meds wearing off” was noted on' },
+    kOfN:(k,n)=>`${k} of ${n} days`, kOf:(k,n)=>`${k} of ${n}`,
+    nothing:'Nothing stands out across the plans so far.',
+    askThis:'Ask about this',
+    askDraft:{ off:'Could we look at how often wearing off was noted on each plan?' },
+    ev:{ fall:'Fell', severe:'Marked severe', freeze:'Froze in place' },
+    grouped:(k)=>`${k} days`,
+    about:'About me', diag:y=>`Diagnosed in ${y}`, cond:'Other conditions',
+    lanesH:'Plan over time', paceH:'By plan', allDays:'All days that stood out',
+    tzLane:'Time zone', city:{ 'Asia/Tokyo':'Tokyo' },
+    rows:['Days logged','Doses from plan, typically','First dose, typically','Last dose, typically',
+          'Breakfast, typically','Sleep, typically','Movement logged','“Wearing off” noted'],
+    min:m=>`${m} min`, hrs:h=>`${h} h`, few:'Too few logs',
+    tz:(a,b,c)=>`Times are as logged, in local time. ${c} time ${a} to ${b}.`,
+    leftOut:'Some parts were left out by the patient.',
+  },
+  ja: {
+    planName:(L,k,E)=>`${L} 1日${k}回${E ? `＋${E}` : ''}`,
+    times:k=>`1日${k}回`,
+    leadIntro:{ off:'「薬が切れてきた」の記録：' },
+    kOfN:(k,n)=>`${n}日中${k}日`, kOf:(k,n)=>`${k}/${n}日`,
+    nothing:'これまでのところ、計画ごとに目立つ違いはありません。',
+    askThis:'これについて相談する',
+    askDraft:{ off:'計画ごとに「薬が切れてきた」と記録した頻度を、一緒に見ていただけますか？' },
+    ev:{ fall:'転倒', severe:'重い症状', freeze:'すくみ' },
+    grouped:(k)=>`${k}日`,
+    about:'私について', diag:y=>`${y}年に診断`, cond:'その他の病気',
+    lanesH:'服薬計画の推移', paceH:'計画ごと', allDays:'気になった日（すべて）',
+    tzLane:'タイムゾーン', city:{ 'Asia/Tokyo':'東京' },
+    rows:['記録のある日','予定とのずれ（典型）','最初の服薬（典型）','最後の服薬（典型）',
+          '朝食（典型）','睡眠（典型）','運動の記録','「切れてきた」の記録'],
+    min:m=>`${m}分`, hrs:h=>`${h}時間`, few:'記録が少ない',
+    tz:(a,b,c)=>`時刻は記録した現地時刻です。${a}〜${b}は${c}時間です。`,
+    leftOut:'一部は本人の判断で省いています。',
+  },
+  zh: {
+    planName:(L,k,E)=>`${L} 每日${k}次${E ? `＋${E}` : ''}`,
+    times:k=>`每日${k}次`,
+    leadIntro:{ off:'记录到“药效减退”：' },
+    kOfN:(k,n)=>`${n}天中${k}天`, kOf:(k,n)=>`${k}/${n}天`,
+    nothing:'到目前为止，各用药方案之间没有明显差异。',
+    askThis:'就此提问',
+    askDraft:{ off:'能否一起看看每个用药方案下记录到“药效减退”的频率？' },
+    ev:{ fall:'跌倒', severe:'标记为严重', freeze:'冻结' },
+    grouped:(k)=>`${k}天`,
+    about:'关于我', diag:y=>`${y}年确诊`, cond:'其他疾病',
+    lanesH:'用药方案的变化', paceH:'按用药方案', allDays:'所有值得注意的日子',
+    tzLane:'时区', city:{ 'Asia/Tokyo':'东京' },
+    rows:['有记录的天数','与计划的偏差（典型）','第一次服药（典型）','最后一次服药（典型）',
+          '早餐（典型）','睡眠（典型）','有运动记录','记录到“药效减退”'],
+    min:m=>`${m}分钟`, hrs:h=>`${h}小时`, few:'记录太少',
+    tz:(a,b,c)=>`时间按记录时的当地时间显示。${a}至${b}为${c}时间。`,
+    leftOut:'部分内容由本人选择不包含。',
+  },
+};
 function span(n){
-  const ja = lang === 'ja';
-  if (n < 28) return ja ? `${n}日間` : `${n} days`;
-  const [v, u] = n < 91 ? [Math.round(n / 7), ja ? '週間' : 'weeks']
-               : n < 730 ? [Math.round(n / 30.4), ja ? 'か月' : 'months']
-               : [Math.round(n / 365 * 10) / 10, ja ? '年' : 'years'];
-  return ja ? `約${v}${u}（${n}日間）` : `about ${v} ${u} (${n} days)`;
+  const U = { en:['days','weeks','months','years'], ja:['日間','週間','か月','年'], zh:[' 天',' 周',' 个月',' 年'] }[lang];
+  if (n < 28) return lang === 'en' ? `${n} days` : `${n}${U[0]}`;
+  const [v, u] = n < 91 ? [Math.round(n / 7), U[1]]
+               : n < 730 ? [Math.round(n / 30.4), U[2]]
+               : [Math.round(n / 365 * 10) / 10, U[3]];
+  if (lang === 'ja') return `約${v}${u}（${n}日間）`;
+  if (lang === 'zh') return `约 ${v}${u}（${n} 天）`;
+  return `about ${v} ${u} (${n} days)`;
 }
-const AMT = { en:{ L:'½ tablet (100mg)', E:'1 tablet (200mg)' }, ja:{ L:'½錠（100mg）', E:'1錠（200mg）' } };
+const AMT = { en:{ L:'½ tablet (100mg)', E:'1 tablet (200mg)' }, ja:{ L:'½錠（100mg）', E:'1錠（200mg）' },
+              zh:{ L:'½ 片（100mg）', E:'1 片（200mg）' } };
+/* drug words in each language's template, so amounts slot in after them */
+const DRUG = { en:['Levodopa','Entacapone'], ja:['レボドパ','エンタカポン'], zh:['左旋多巴','恩他卡朋'] };
+/* the report's languages: shown in their own names, in a fixed order.
+   Japanese before Chinese: the pitch is Japan and the US first (Tutu, 2026-11-20). */
+const LANGS = [['en','English'], ['ja','日本語'], ['zh','简体中文']];
+const LNAME = Object.fromEntries(LANGS);
+const LOCALE = { en:'en-US', ja:'ja-JP', zh:'zh-CN' };
+/* only English follows the phone's 12/24h; Japanese and Chinese use 24-hour, as is usual */
+const h24 = () => lang !== 'en' || document.documentElement.dataset.clock !== '12';
 
 /* ═════════ the sample record (generated, seeded: the same every load) ═════════
    Shaped like the domain lead's pattern: five Levodopa times, an Entacapone at its
@@ -538,16 +752,26 @@ const LOGGED = DAYS.filter(d => !d.none);
 /* ═════════ state ═════════ */
 /* lang = the language being drawn right now; langs = what the report is in.
    The app around the report stays in the app's language (English in MVP). */
-let lang = 'en', langs = 'en', scene = 'reg', amounts = false;
+/* the report opens in the default report language from Settings (prefs.js) */
+const START = window.DoseEggPrefs ? window.DoseEggPrefs.reportLang() : 'en';
+let lang = START, langs = [START], scene = 'reg', amounts = false;
+/* new doctor: what the person chose to add, leave out, or ask about */
+const RL = window.RecordLong;
+const ctx = { year:'', cond:'', note:'' };
+let ctxAsked = false;
+const show = { lanes:true, pace:true, days:true };
+const hiddenDays = new Set();
+const asked = new Set();
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
 
 /* dates and times in the page's language. English times follow the phone's 12/24h
    setting (timefmt.js sets data-clock); Japanese always uses 24-hour, as is usual. */
 function fmtDate(d, withDay){
-  return new Intl.DateTimeFormat(lang === 'ja' ? 'ja-JP' : 'en-US',
+  return new Intl.DateTimeFormat(LOCALE[lang],
     withDay ? { month:'short', day:'numeric', weekday:'short' } : { month:'short', day:'numeric' }).format(d);
 }
 function clk(t){
-  if (lang === 'ja' || document.documentElement.dataset.clock !== '12') return t;
+  if (h24()) return t;
   const [h, m] = t.split(':').map(Number);
   return new Intl.DateTimeFormat('en-US', { hour:'numeric', minute:'2-digit', hour12:true })
     .format(new Date(2000, 0, 1, h, m));
@@ -565,7 +789,7 @@ function chartSVG(t){
   [6, 12, 18, 24].forEach(h => {
     const X = x(h * 60);
     s += `<line x1="${X}" y1="${top - 4}" x2="${X}" y2="${H - 4}" stroke="var(--viz-grid)" stroke-width="1"/>`;
-    s += `<text x="${X}" y="14" text-anchor="middle" font-size="14" fill="var(--text-muted)">${lang === 'ja' || document.documentElement.dataset.clock !== '12' ? String(h % 24).padStart(2,'0') : ((h % 12) || 12) + (h % 24 < 12 ? 'a' : 'p')}</text>`;
+    s += `<text x="${X}" y="14" text-anchor="middle" font-size="14" fill="var(--text-muted)">${h24() ? String(h % 24).padStart(2,'0') : ((h % 12) || 12) + (h % 24 < 12 ? 'a' : 'p')}</text>`;
   });
   DAYS.forEach((d, r) => {
     const y = top + r * rh + rh / 2;
@@ -591,15 +815,16 @@ function render(){
   el('amtHint').textContent = amounts ? c.amtOn : c.amtOff;
   el('scHint').textContent = scene === 'reg'
     ? 'The last two weeks: what changed since a doctor who knows you last saw you.'
-    : 'The long view: your plan history and the record by 3 months, for a doctor meeting you for the first time.';
-  const LN = { en:'English', ja:'日本語', both:'English and 日本語' };
+    : 'Everything so far: the plan over time, and each plan side by side.';
   el('setsum').textContent = [scene === 'reg' ? 'Last 2 weeks · Regular doctor' : 'Everything · New doctor',
-                              LN[langs], amounts ? 'Amounts on' : 'Amounts off'].join(' · ');
-  const list = langs === 'both' ? ['en', 'ja'] : [langs];
+                              langs.map(l => LNAME[l]).join(' + '), amounts ? 'Amounts on' : 'Amounts off'].join(' · ');
+  el('ctxcard').hidden = !(scene === 'new' && !ctxAsked);
+  el('ndRows').hidden = scene !== 'new';
+  const list = langs;
   el('papers').innerHTML = list.map((l, i) => {
     lang = l;
-    return (list.length > 1 ? `<div class="papers-lang">${LN[l]}</div>` : '')
-         + `<article class="paper${i ? ' next' : ''}" lang="${l}">${paperHTML()}</article>`;
+    return (list.length > 1 ? `<div class="papers-lang">${LNAME[l]}</div>` : '')
+         + `<article class="paper${i ? ' next' : ''}${scene === 'new' ? ' long' : ''}" lang="${l}">${paperHTML()}</article>`;
   }).join('');
   lang = list[0];
 }
@@ -610,16 +835,16 @@ function render(){
    from saying less, never from smaller type. The details follow for the doctor
    who wants the evidence, and both print on the same page. */
 function paperHTML(){
-  const t = T[lang], sep = lang === 'ja' ? '：' : ':';
+  const t = T[lang], sep = lang === 'en' ? ':' : '：';
   const first = dayAt(N - 1), last = dayAt(0);
   const times = PLAN.map(clk);
   /* written with 24-hour times, then formatted once (formatting twice would double "AM") */
-  let plan = clkAll(t.planLine(PLAN).replace('{E}', ENTA.join(lang === 'ja' ? '、' : ', ')));
-  if (amounts) plan = lang === 'ja'
-    ? plan.replace('レボドパ', `レボドパ ${AMT.ja.L}`).replace('エンタカポン', `エンタカポン ${AMT.ja.E}`)
-    : plan.replace('Levodopa', `Levodopa ${AMT.en.L}`).replace('Entacapone', `Entacapone ${AMT.en.E}`);
+  let plan = clkAll(t.planLine(PLAN).replace('{E}', ENTA.join(lang === 'en' ? ', ' : '、')));
+  if (amounts){ const [L, E] = DRUG[lang];
+    plan = plan.replace(L, `${L} ${AMT[lang].L}`).replace(E, `${E} ${AMT[lang].E}`); }
 
-  let title, meta, noticed, days, details = '';
+  let title, meta, noticed, days, details = '', about = '';
+  const foot = [];
   if (scene === 'reg'){
     /* computed: every number below comes from DAYS */
     const n = LOGGED.length;
@@ -654,58 +879,174 @@ function paperHTML(){
       t.facts.map(([l, f], i) => `<div class="fact"><span class="fl">${l}</span><span class="fv">${f(vals[i], n)}</span></div>`).join('')
     }</div><p class="note-small">${t.factsNote}</p></section>`;
   } else {
-    /* NEW DOCTOR: the long view. Plan history and the record by 3 months. */
-    const v1 = dayAt(119 + 160), v2 = dayAt(119), span = 119 + 160;
-    const Q = [ [dayAt(span), dayAt(190), 6, 74, 91], [dayAt(189), dayAt(120), 8, 61, 70],
-                [dayAt(119), dayAt(60), 9, 52, 60], [dayAt(59), dayAt(0), 21, 51, 60] ];
-    const logged = Q.reduce((a, q) => a + q[3], 0), total = Q.reduce((a, q) => a + q[4], 0);
-    const lastQ = Q[Q.length - 1], before = Q.slice(0, -1).map(q => q[2]);
+    /* NEW DOCTOR: the long view, calculated from report-record.js. Two pages: the
+       memo, then the plan over time and the periods side by side. */
+    const n = TN[lang], P = RL.PERIODS;
     title = t.titleNew;
-    meta = `${t.period(fmtDate(dayAt(span)), fmtDate(last), total)}<br>${t.coverage(logged, total)}`;
-    noticed = obs(`${lastQ[3]}/${lastQ[4]}`, t.obsLong(lastQ[2], Math.min(...before), Math.max(...before)));
-    days = t.notableNew.map(([i, txt]) => [fmtDate([dayAt(119), dayAt(74), dayAt(6)][i]), txt]);
-    details += `<section class="blk card"><h3>${t.b1new}</h3>
-      <p class="p-meta"><b>${t.planNow}${sep}</b> ${plan}</p>
-      <table class="tbl"><thead><tr><th>${t.plHead[0]}</th><th>${t.plHead[1]}</th></tr></thead><tbody>${
-        t.plRows(fmtDate(v1), fmtDate(v2)).map(r => `<tr><td style="white-space:nowrap">${r[0]}</td><td>${clkAll(r[1])}</td></tr>`).join('')
-      }</tbody></table></section>`;
-    details += `<section class="blk card"><h3>${t.b2new}</h3>
-      <table class="tbl"><thead><tr><th>${t.qHead[0]}</th><th class="r">${t.qHead[1]}</th><th class="r">${t.qHead[2]}</th></tr></thead><tbody>${
-        Q.map(q => `<tr><td style="white-space:nowrap">${fmtDate(q[0])}–${fmtDate(q[1])}</td><td class="r">${t.qVal(q[2])}</td><td class="r">${t.qDays(q[3], q[4])}</td></tr>`).join('')
-      }</tbody></table><p class="note-small">${t.qNote}</p></section>`;
+    meta = `${t.period(fmtDate(dayAt(RL.SPAN - 1)), fmtDate(last), RL.SPAN)}<br>${t.coverage(RL.logged, RL.SPAN)}
+      <br><b>${t.planNow}${sep}</b> ${plan}`;
+    if (RL.LEAD){
+      const key = RL.LEAD.key;
+      noticed = `<p class="lead-intro">${n.leadIntro[key]}</p><div class="facts">${
+        P.filter(x => x[key]).map(x => `<div class="fact"><span class="fl">${planName(x)}<small>${range(x)}</small></span>
+          <span class="fv">${n.kOfN(x[key].k, x[key].n)}</span></div>`).join('')}</div>`
+        + (asked.has(key) ? '' : `<button class="addq ask-this" onclick="askAbout('${key}')"><i class="ph ph-chat-circle-text" aria-hidden="true"></i>${n.askThis}</button>`);
+    } else noticed = `<p class="lead-intro">${n.nothing}</p>`;   /* ship the null result */
+    const stood = RL.STOOD.filter(e => !hiddenDays.has(e.ago));
+    days = show.days ? stood.slice(0, 3).map(e => [fmtDate(dayAt(e.ago), true), evText(e), e.ago]) : null;
+    const parts = [ctx.year && n.diag(esc(ctx.year)), ctx.cond && `${n.cond}${sep} ${esc(ctx.cond)}`, ctx.note && esc(ctx.note)].filter(Boolean);
+    about = parts.length ? `<section class="mblk"><h3>${n.about}</h3><p class="about">${parts.join('<br>')}</p></section>` : '';
+
+    if (show.lanes) details += `<section class="blk card"><h3>${n.lanesH}</h3>${lanesSVG(n)}</section>`;
+    if (show.pace){
+      const tm = m => m == null ? null : clk(fromMin(m));
+      const ROWS = [
+        x => n.kOf(x.logged, x.days),
+        x => x.drift == null ? null : n.min(x.drift),
+        x => tm(x.firstDose), x => tm(x.lastDose), x => tm(x.breakfast),
+        x => x.sleep == null ? null : n.hrs(x.sleep),
+        x => x.move ? n.kOf(x.move.k, x.move.n) : null,
+        x => x.off ? n.kOf(x.off.k, x.off.n) : null,
+      ];
+      details += `<section class="blk card"><h3>${n.paceH}</h3>
+        <table class="tbl pace"><thead><tr><th></th>${P.map(x => `<th class="r">${range(x)}<small>${planShort(x)}</small></th>`).join('')}</tr></thead>
+        <tbody>${ROWS.map((f, i) => `<tr><td>${n.rows[i]}</td>${P.map(x => { const v = f(x);
+          return v == null ? `<td class="r few">${n.few}</td>` : `<td class="r">${v}</td>`; }).join('')}</tr>`).join('')}</tbody></table>
+        <p class="note-small">${t.qNote}</p></section>`;
+    }
+    if (show.days && stood.length > 3){
+      /* every day, repeats of one kind on one line (3 or more), so the list stays short */
+      const lines = [];
+      ['fall', 'severe', 'freeze', 'pin'].forEach(ty => {
+        const g = stood.filter(e => e.type === ty);
+        if (g.length >= 3) lines.push([n.grouped(g.length), `${n.ev[ty]}${sep} ${g.map(e => fmtDate(dayAt(e.ago)) + (e.note ? ` (${esc(e.note)})` : '')).join(', ')}`]);
+        else g.forEach(e => lines.push([fmtDate(dayAt(e.ago), true), evText(e)]));
+      });
+      details += `<section class="blk card"><h3>${n.allDays}</h3><ul class="days">${
+        lines.map(([d, x]) => `<li><span class="d">${d}</span><span class="dt">${x}</span></li>`).join('')}</ul></section>`;
+    }
+    const trip = RL.TRIP;
+    foot.push(n.tz(fmtDate(dayAt(trip.from)), fmtDate(dayAt(trip.to)), n.city[trip.tz]));
+    if (!show.lanes || !show.pace || !show.days || hiddenDays.size) foot.push(n.leftOut);
   }
 
   /* QUESTIONS: the person's own, editable here, printed as a list. The app does
      not suggest any (H-04 is held for clinical and legal review). */
-  const qs = `<section class="ask"><h3>${t.b5}</h3>
-    <ol class="qs">${QS[lang].map((q, i) =>
-      `<li><textarea rows="2" aria-label="${t.b5} ${i + 1}" oninput="QS['${lang}'][${i}]=this.value;this.nextElementSibling.textContent=this.value">${q}</textarea><span class="qprint">${q}</span></li>`).join('')}</ol>
+  /* Zero questions is fine: on screen the block is the heading and "Add a question";
+     on paper it does not print at all. */
+  const Q = QS[scene][lang];
+  const qs = `<section class="ask${Q.length ? '' : ' empty'}"><h3>${t.b5}</h3>
+    ${Q.length ? `<ol class="qs">${Q.map((q, i) =>
+      `<li><textarea rows="2" aria-label="${t.b5} ${i + 1}" oninput="QS['${scene}']['${lang}'][${i}]=this.value;this.nextElementSibling.textContent=this.value">${esc(q)}</textarea><span class="qprint">${esc(q)}</span></li>`).join('')}</ol>` : ''}
     <button class="addq" onclick="addQ('${lang}')"><i class="ph ph-plus"></i>${t.addq}</button></section>`;
 
   let h = `<div class="card memo">
     <header class="p-head"><span class="p-kicker">${t.kicker}</span>
       <h2 class="p-title">${title}</h2><span class="p-meta">${meta}</span></header>
+    ${about}
     <section class="mblk"><h3>${t.noticed}</h3>${noticed}</section>
-    <section class="mblk"><h3>${t.b4}</h3><ul class="days">${
-      days.map(([d, txt]) => `<li><span class="d">${d}</span><span>${clkAll(txt)}</span></li>`).join('')}</ul></section>
+    ${days ? `<section class="mblk"><h3>${t.b4}</h3><ul class="days">${
+      days.map(([d, txt, ago]) => `<li><span class="d">${d}</span><span class="dt">${clkAll(txt)}</span>${ago != null
+        ? `<button class="icon-btn plain hide-day" onclick="hideDay(${ago})" aria-label="Leave this day out"><i class="ph ph-eye-slash"></i></button>` : ''}</li>`).join('')}</ul></section>` : ''}
     ${qs}
   </div>`;
   h += `<div class="details-h">${t.details}</div>` + details;
-  h += `<footer class="p-foot"><span>${t.foot1}</span><span>${t.foot2(fmtDate(TODAY))}</span></footer>`;
+  h += `<footer class="p-foot">${[t.foot1, t.foot2(fmtDate(TODAY)), ...foot].map(x => `<span>${x}</span>`).join('')}</footer>`;
   return h;
 }
 const obs = (cnt, txt) => `<div class="obs"><span class="cnt">${cnt}</span><p>${txt}</p></div>`;
 const el = id => document.getElementById(id);
 
 /* the questions are kept per language, so switching never loses what was typed */
-const QS = { en: [...T.en.qs], ja: [...T.ja.qs] };
-function addQ(l){ QS[l].push(''); render();
+const QS = { reg:{ en: [...T.en.qs], ja: [...T.ja.qs], zh: [...T.zh.qs] }, new:{ en:[], ja:[], zh:[] } };
+function addQ(l){ QS[scene][l].push(''); render();
   const all = document.querySelectorAll(`.paper[lang="${l}"] .qs textarea`); all[all.length - 1].focus(); }
 
+/* ═════════ the long view: helpers ═════════ */
+function planName(x){ const m = x.plan.meds, E = m.some(d => d.key === 'ent') ? DRUG[lang][1] : null;
+  return TN[lang].planName(DRUG[lang][0], m[0].times.length, E); }
+function planShort(x){ const m = x.plan.meds, E = m.some(d => d.key === 'ent');
+  return TN[lang].times(m[0].times.length) + (E ? ` + ${DRUG[lang][1]}` : ''); }
+function range(x){ return `${fmtDate(dayAt(x.from))}–${fmtDate(dayAt(x.to))}`; }
+function evText(e){ const n = TN[lang], sep = lang === 'en' ? ':' : '：';
+  return e.type === 'pin' ? esc(e.note) : n.ev[e.type] + (e.note ? `${sep} ${esc(e.note)}` : ''); }
+
+/* PLAN OVER TIME: one lane per medication across the months, each change marked.
+   Same fill for every version; the text in the bar says what changed. No arrows,
+   no trend line: the periods are compared side by side in the table below. */
+function lanesSVG(n){
+  const W = 330, S = RL.SPAN, x = ago => (S - 1 - ago) / (S - 1) * W;
+  const lev = DRUG[lang][0], ent = DRUG[lang][1];
+  const lanes = [
+    { label: lev, segs: RL.PERIODS.map(p => ({ a:p.from, b:p.to, txt:TN[lang].times(p.plan.meds[0].times.length) })) },
+    { label: ent, segs: RL.PERIODS.filter(p => p.plan.meds.some(m => m.key === 'ent')).map(p => ({ a:p.from, b:p.to, txt:TN[lang].times(3) })) },
+    { label: 'the small white one', segs: RL.PERIODS.filter(p => p.plan.meds.some(m => m.key === 'own')).map(p => ({ a:p.from, b:p.to, txt:TN[lang].times(1) })) },
+  ];
+  const LH = 48, top = 4, H = top + lanes.length * LH + LH + 22;
+  let s = `<svg class="lanes" viewBox="0 0 ${W} ${H}" role="img" aria-label="${n.lanesH}">`;
+  /* months along the bottom, at the first of each month */
+  const yb = H - 4;
+  for (let ago = S - 1; ago >= 0; ago--){
+    const d = dayAt(ago);
+    if (d.getDate() !== 1) continue;
+    const X = x(ago);
+    s += `<line x1="${X}" y1="${yb - 22}" x2="${X}" y2="${yb - 15}" stroke="var(--text-muted)" stroke-width="1"/>`;   /* a short tick, so no line crosses a label */
+    if (X < W - 24) s += `<text x="${X + 2}" y="${yb}" font-size="14" fill="var(--text-muted)">${new Intl.DateTimeFormat(LOCALE[lang], { month:'short' }).format(d)}</text>`;
+  }
+  lanes.forEach((ln, i) => {
+    const y = top + i * LH;
+    s += `<text x="0" y="${y + 14}" font-size="14" fill="var(--text-secondary)">${ln.label}</text>`;
+    ln.segs.forEach(g => {
+      const X1 = x(g.a) + 1, X2 = x(g.b) - 1;
+      s += `<rect x="${X1}" y="${y + 20}" width="${X2 - X1}" height="22" rx="4" fill="var(--mark)"/>`;
+      s += `<text x="${X1 + 6}" y="${y + 36}" font-size="14" font-weight="600" fill="var(--on-accent)">${g.txt}</text>`;
+    });
+  });
+  /* the time zone lane: only where it was not home */
+  const t = RL.TRIP, yz = top + lanes.length * LH;
+  s += `<text x="0" y="${yz + 14}" font-size="14" fill="var(--text-secondary)">${n.tzLane}</text>`;
+  s += `<rect x="${x(t.from)}" y="${yz + 20}" width="${Math.max(4, x(t.to) - x(t.from))}" height="22" rx="3" fill="none" stroke="var(--viz-ink)" stroke-width="1.6"/>`;
+  s += `<text x="${x(t.to) + 6}" y="${yz + 36}" font-size="14" fill="var(--text-primary)">${n.city[t.tz]}</text>`;
+  return s + '</svg>';
+}
+function askAbout(key){
+  /* drafts the same question in every report language; once edited, each is the person's own */
+  LANGS.forEach(([l]) => QS.new[l].push(TN[l].askDraft[key]));
+  asked.add(key); render();
+  const all = document.querySelectorAll(`.paper[lang="${langs[0]}"] .qs textarea`); all[all.length - 1].focus();
+}
+function hideDay(ago){ hiddenDays.add(ago); render(); }
+function toggleShow(k){ show[k] = !show[k]; el('sw-' + k).setAttribute('aria-checked', show[k]); render(); }
+function openCtx(){ ctxAsked = true; render();
+  el('scrim').classList.add('open'); el('ctxSheet').classList.add('open'); el('cx-year').focus(); }
+function skipCtx(){ ctxAsked = true; render(); }
+
 function setScene(s){ scene = s; el('sc-reg').setAttribute('aria-pressed', s === 'reg'); el('sc-new').setAttribute('aria-pressed', s === 'new'); render(); }
-function setLangs(l){ langs = l; ['en','ja','both'].forEach(k => el('lg-' + k).setAttribute('aria-pressed', k === l)); render(); }
+/* LANGUAGE PICKER. langs holds one or two codes. Picking the other slot's language
+   swaps the two, so the pair never holds the same language twice. */
+function fillSelect(id, chosen){
+  el(id).innerHTML = LANGS.map(([k, name]) =>
+    `<option value="${k}" lang="${k}"${k === chosen ? ' selected' : ''}>${name}</option>`).join('');
+}
+function syncLangUI(){
+  fillSelect('lg1', langs[0]);
+  const two = langs.length > 1;
+  el('lg2row').hidden = !two; el('lgHint').hidden = !two;
+  el('addLang').hidden = two || LANGS.length < 2;
+  if (two) fillSelect('lg2', langs[1]);
+}
+function setLang(i, v){
+  const j = 1 - i;
+  if (langs[j] === v) langs[j] = langs[i];
+  langs[i] = v; syncLangUI(); render();
+}
+function addSecond(){
+  langs.push(LANGS.find(([k]) => k !== langs[0])[0]);
+  syncLangUI(); render(); el('lg2').focus();
+}
+function removeSecond(){ langs = [langs[0]]; syncLangUI(); render(); el('addLang').focus(); }
 function openAdjust(){ el('scrim').classList.add('open'); el('sheet').classList.add('open'); el('sheet').querySelector('.seg button').focus(); }
-function closeAdjust(){ el('scrim').classList.remove('open'); el('sheet').classList.remove('open'); }
+function closeAdjust(){ el('scrim').classList.remove('open'); el('sheet').classList.remove('open'); el('ctxSheet').classList.remove('open'); }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAdjust(); });
 function toggleAmounts(){ amounts = !amounts; el('amtSw').setAttribute('aria-checked', amounts); render(); }
 /* SAVE OR SHARE. The real app makes the PDF on the phone and opens the system
@@ -715,6 +1056,7 @@ function toggleAmounts(){ amounts = !amounts; el('amtSw').setAttribute('aria-che
    whose sheet on iOS offers the same save and share choices. */
 function savePdf(){ window.print(); }
 
+syncLangUI();
 render();
 </script>
 </body>
