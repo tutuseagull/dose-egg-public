@@ -143,15 +143,15 @@ button{border:0;background:none;cursor:pointer;padding:0}
 .pagehead{margin:0 0 var(--space-4)}
 .pagehead h1{font-size:var(--text-title);font-weight:600;line-height:var(--leading-tight);margin:0}
 .pagehead p{margin:var(--space-1) 0 0;color:var(--text-muted);font-size:var(--text-body)}
-/* the way to the visit report: a flat row, the same weight as the content around it */
-.reportbtn{display:flex;align-items:center;gap:var(--space-3);min-height:var(--target-routine);
-  padding:0 var(--space-4);margin-bottom:var(--space-4);border-radius:var(--radius-md);
-  border:1px solid var(--border-control);background:var(--surface-card);color:var(--text-primary);
-  text-decoration:none;font-weight:600}
-.reportbtn span{flex:1}
-.reportbtn i{font-size:20px;color:var(--mark)}
-.reportbtn i.ph-caret-right{color:var(--text-muted)}
-.reportbtn:active{background:var(--surface-raised)}
+/* the way to the report (2026-11-20): a small labelled button beside the heading, not a
+   full-width row at the top. Reports is also a menu row now, so this is a shortcut. */
+.ph-row{display:flex;align-items:center;gap:var(--space-2)}
+.ph-row h1{flex:1;min-width:0}
+.reportlink{flex:0 0 auto;display:flex;align-items:center;gap:var(--space-2);min-height:var(--target-min);
+  padding:0 var(--space-3);margin-right:calc(var(--space-3) * -1);border-radius:var(--radius-md);
+  color:var(--accent);font-weight:600;text-decoration:none}
+.reportlink i{font-size:20px}
+.reportlink:active{background:var(--surface-raised)}
 
 /* ── scale tabs (segmented) ── */
 .scales{display:flex;gap:var(--space-1);background:var(--surface-sunken);
@@ -321,10 +321,12 @@ svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-we
 
   <div class="top">
     <button class="icon-btn vt-menu" id="menuBtn" aria-label="Menu" aria-haspopup="true" aria-expanded="false" onclick="toggleMenu(event)"><i class="ph ph-list"></i></button>
-    <!-- the same two places as Today's menu; the views are the tabs -->
+    <!-- the same places as Today's menu; the views are the tabs. Reports added 2026-11-20 -->
     <div class="pop" id="pop" hidden>
       <a class="navrow" href="medicine-cabinet.html"><i class="ph ph-first-aid-kit"></i>
         <span class="lab">Medicine Cabinet</span></a>
+      <a class="navrow" href="doctor-report.html"><i class="ph ph-file-text"></i>
+        <span class="lab">Reports</span></a>
       <button class="navrow"><i class="ph ph-gear"></i>
         <span class="lab">Settings</span></button>
     </div>
@@ -338,13 +340,10 @@ svg{display:block;width:100%;height:auto;touch-action:pan-y;user-select:none;-we
 
   <main class="scroll">
     <div class="pagehead">
-      <h1>Gaps between doses</h1>
+      <div class="ph-row"><h1>Gaps between doses</h1>
+        <a class="reportlink" href="doctor-report.html"><i class="ph ph-file-text" aria-hidden="true"></i>Report</a></div>
       <p>Measured against your plan, from the doses you confirmed.</p>
     </div>
-    <!-- the report lives in Look Back: a report is made from an interval, and Look
-         Back owns the interval [information-architecture.html] -->
-    <a class="reportbtn" href="doctor-report.html"><i class="ph ph-file-text" aria-hidden="true"></i>
-      <span>Report for your visit</span><i class="ph ph-caret-right" aria-hidden="true"></i></a>
 
     <div class="scales" role="tablist" aria-label="Time scale">
       <button role="tab" id="sc-q" aria-selected="true" onclick="setScale('q')">3 months</button>
